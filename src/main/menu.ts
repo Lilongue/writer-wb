@@ -4,7 +4,9 @@ import {
   shell,
   BrowserWindow,
   MenuItemConstructorOptions,
+  dialog,
 } from 'electron';
+import ProjectService from './services/ProjectService';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -198,11 +200,49 @@ export default class MenuBuilder {
         label: '&File',
         submenu: [
           {
-            label: '&Open',
-            accelerator: 'Ctrl+O',
+            label: '&New Project',
+            accelerator: 'Ctrl+N',
+            async click() {
+              const { canceled, filePaths } = await dialog.showOpenDialog({
+                properties: ['openDirectory', 'createDirectory'],
+                title: 'Выберите папку для нового проекта',
+              });
+              if (canceled) return;
+              try {
+                await ProjectService.create(filePaths[0]);
+              } catch (e) {
+                console.error('Failed to create project', e);
+                // TODO: Показать ошибку пользователю
+              }
+            },
           },
           {
-            label: '&Close',
+            label: '&Open Project',
+            accelerator: 'Ctrl+O',
+            async click() {
+              const { canceled, filePaths } = await dialog.showOpenDialog({
+                properties: ['openDirectory'],
+                title: 'Выберите папку проекта',
+              });
+              if (canceled) return;
+              try {
+                await ProjectService.open(filePaths[0]);
+              } catch (e) {
+                console.error('Failed to open project', e);
+                // TODO: Показать ошибку пользователю
+              }
+            },
+          },
+          {
+            label: '&Close Project',
+            accelerator: 'Ctrl+C',
+            click: () => {
+              ProjectService.close();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'E&xit',
             accelerator: 'Ctrl+W',
             click: () => {
               this.mainWindow.close();
@@ -228,15 +268,8 @@ export default class MenuBuilder {
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
+                      !this.mainWindow.isFullScreen()
                     );
-                  },
-                },
-                {
-                  label: 'Toggle &Developer Tools',
-                  accelerator: 'Alt+Ctrl+I',
-                  click: () => {
-                    this.mainWindow.webContents.toggleDevTools();
                   },
                 },
               ]
@@ -246,7 +279,7 @@ export default class MenuBuilder {
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
+                      !this.mainWindow.isFullScreen()
                     );
                   },
                 },

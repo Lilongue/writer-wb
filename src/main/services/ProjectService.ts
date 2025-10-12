@@ -1,25 +1,67 @@
 import path from 'path';
 import fs from 'fs/promises';
 import Database from 'better-sqlite3';
+import { app } from 'electron';
+import FileSystemService from './FileSystemService';
+
+// TODO: Вынести путь к схеме в конфигурацию или константы
+const SCHEMA_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets', 'database', 'schema.sql')
+  : path.join(app.getAppPath(), 'assets', 'database', 'schema.sql');
 
 class ProjectService {
   private db: Database.Database | null = null;
   private projectRoot: string | null = null;
 
+  // --- Public API ---
+
   public async create(projectPath: string): Promise<void> {
-    // TODO: Implement project creation logic
-    console.log(`Creating project at: ${projectPath}`);
+    // TODO: Добавить проверку, не создается ли проект внутри другого проекта
+    if (this.db) {
+      this.close();
+    }
+
+    await FileSystemService.createDirectories(projectPath, ['narrative', 'world']);
+
+    const dbPath = path.join(projectPath, 'project.sqlite');
+    this.db = this._initDatabase(dbPath);
+
+    await this._applySchema(this.db);
+
+    this.projectRoot = projectPath;
+    console.log(`Project created at: ${projectPath}`);
+    // TODO: Отправить в рендерер событие об успешном создании проекта
   }
 
   public async open(projectPath: string): Promise<boolean> {
-    // TODO: Implement project opening logic
-    console.log(`Opening project at: ${projectPath}`);
-    return Promise.resolve(false);
+    if (this.db) {
+      this.close();
+    }
+
+    const structureIsValid = await this._validateProjectStructure(projectPath);
+    if (!structureIsValid) {
+      // TODO: Показать пользователю осмысленную ошибку
+      console.error('Invalid project structure.');
+      return false;
+    }
+
+    const dbPath = path.join(projectPath, 'project.sqlite');
+    this.db = this._connectToDatabase(dbPath);
+
+    this.projectRoot = projectPath;
+    console.log(`Project opened at: ${projectPath}`);
+    // TODO: Отправить в рендерер событие об успешном открытии проекта
+    return true;
   }
 
   public close(): void {
-    // TODO: Implement project closing logic
-    console.log('Closing project.');
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+      this.projectRoot = null;
+      console.log('Project closed.');
+      // TODO: Отправить в рендерер событие о закрытии проекта
+    }
   }
 
   public getDb(): Database.Database {
@@ -31,6 +73,35 @@ class ProjectService {
 
   public getProjectRoot(): string | null {
     return this.projectRoot;
+  }
+
+  // --- Private Helpers ---
+
+  private _initDatabase(dbPath: string): Database.Database {
+    // TODO: Добавить обработку ошибок, если файл не может быть создан
+    return new Database(dbPath);
+  }
+
+  private _connectToDatabase(dbPath: string): Database.Database {
+    // TODO: Добавить обработку ошибок, если файл БД поврежден или не является БД
+    return new Database(dbPath, { fileMustExist: true });
+  }
+
+  private async _applySchema(database: Database.Database): Promise<void> {
+    // TODO: Добавить обработку ошибок, если файл схемы не найден или содержит ошибки
+    const schemaSql = await fs.readFile(SCHEMA_PATH, 'utf-8');
+    database.exec(schemaSql);
+  }
+
+  private async _validateProjectStructure(projectPath: string): Promise<boolean> {
+    const dbExists = await FileSystemService.pathExists(
+      path.join(projectPath, 'project.sqlite'),
+    );
+    const dirsExist = await FileSystemService.checkDirectoriesExist(projectPath, [
+      'narrative',
+      'world',
+    ]);
+    return dbExists && dirsExist;
   }
 }
 
