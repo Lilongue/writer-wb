@@ -1,0 +1,10 @@
+# IDE specific folders
+.gigaide/
+.idea/
+.vscode/
+.vs/
+.eclipse/
+nbproject/
+
+# Progect folders
+node_modules
