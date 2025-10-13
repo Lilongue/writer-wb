@@ -12,7 +12,12 @@ class FileSystemService {
       await fs.stat(entityPath);
       return true;
     } catch (error) {
-      if (error.code === 'ENOENT') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ENOENT'
+      ) {
         return false;
       }
       throw error;
