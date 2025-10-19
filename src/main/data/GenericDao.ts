@@ -3,13 +3,13 @@ import { NarrativeItem } from '../../common/types';
 
 /**
  * Data Access Object (DAO) для инкапсуляции всех SQL-запросов к базе данных.
- * Принимает в конструкторе активное подключение к БД.
+ * Принимает в конструкторе функцию, которая поставляет активное подключение к БД.
  */
 export class GenericDao {
-  private db: Database.Database;
+  private getDb: () => Database.Database;
 
-  constructor(db: Database.Database) {
-    this.db = db;
+  constructor(getDb: () => Database.Database) {
+    this.getDb = getDb;
   }
 
   /**
@@ -17,9 +17,10 @@ export class GenericDao {
    * @returns {NarrativeItem[]} Массив объектов повествования.
    */
   public getNarrativeItems(): NarrativeItem[] {
+    const db = this.getDb();
     const sql =
       'SELECT id, name, parent_id, sort_order FROM narrative_items ORDER BY sort_order ASC';
-    const stmt = this.db.prepare(sql);
+    const stmt = db.prepare(sql);
     const items = stmt.all() as NarrativeItem[];
     return items;
   }

@@ -13,6 +13,14 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
+import eventBus from './eventBus';
+
+/**
+ * Add event listeners...
+ */
+
+import { narrativeService } from './services/ProjectService';
+
 let mainWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -78,6 +86,15 @@ const createWindow = async () => {
     }
   });
 
+  // Прослушивание событий и пересылка их в рендерер
+  eventBus.on('project-opened', () => {
+    mainWindow?.webContents.send('project-opened');
+  });
+
+  eventBus.on('project-closed', () => {
+    mainWindow?.webContents.send('project-closed');
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -92,16 +109,17 @@ const createWindow = async () => {
   });
 };
 
-/**
- * Add event listeners...
- */
-
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// IPC MAIN
+ipcMain.handle('get-narrative-items', () => {
+  return narrativeService.getNarrativeItems();
 });
 
 app

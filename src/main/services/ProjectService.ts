@@ -1,8 +1,12 @@
+/* eslint-disable no-underscore-dangle */
 import path from 'path';
 import fs from 'fs/promises';
 import Database from 'better-sqlite3';
 import { app } from 'electron';
 import FileSystemService from './FileSystemService';
+import { GenericDao } from '../data/GenericDao';
+import { NarrativeService } from './NarrativeService';
+import eventBus from '../eventBus';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
 const SCHEMA_PATH = app.isPackaged
@@ -11,6 +15,7 @@ const SCHEMA_PATH = app.isPackaged
 
 class ProjectService {
   private db: Database.Database | null = null;
+
   private projectRoot: string | null = null;
 
   // --- Public API ---
@@ -21,7 +26,10 @@ class ProjectService {
       this.close();
     }
 
-    await FileSystemService.createDirectories(projectPath, ['narrative', 'world']);
+    await FileSystemService.createDirectories(projectPath, [
+      'narrative',
+      'world',
+    ]);
 
     const dbPath = path.join(projectPath, 'project.sqlite');
     this.db = this._initDatabase(dbPath);
@@ -30,7 +38,7 @@ class ProjectService {
 
     this.projectRoot = projectPath;
     console.log(`Project created at: ${projectPath}`);
-    // TODO: Отправить в рендерер событие об успешном создании проекта
+    eventBus.emit('project-opened');
   }
 
   public async open(projectPath: string): Promise<boolean> {
@@ -50,7 +58,7 @@ class ProjectService {
 
     this.projectRoot = projectPath;
     console.log(`Project opened at: ${projectPath}`);
-    // TODO: Отправить в рендерер событие об успешном открытии проекта
+    eventBus.emit('project-opened');
     return true;
   }
 
@@ -60,7 +68,7 @@ class ProjectService {
       this.db = null;
       this.projectRoot = null;
       console.log('Project closed.');
-      // TODO: Отправить в рендерер событие о закрытии проекта
+      eventBus.emit('project-closed');
     }
   }
 
@@ -93,16 +101,26 @@ class ProjectService {
     database.exec(schemaSql);
   }
 
-  private async _validateProjectStructure(projectPath: string): Promise<boolean> {
+  private async _validateProjectStructure(
+    projectPath: string,
+  ): Promise<boolean> {
     const dbExists = await FileSystemService.pathExists(
       path.join(projectPath, 'project.sqlite'),
     );
-    const dirsExist = await FileSystemService.checkDirectoriesExist(projectPath, [
-      'narrative',
-      'world',
-    ]);
+    const dirsExist = await FileSystemService.checkDirectoriesExist(
+      projectPath,
+      ['narrative', 'world'],
+    );
     return dbExists && dirsExist;
   }
 }
 
-export default new ProjectService();
+const projectService = new ProjectService();
+
+// Создаем DAO, передавая ему функцию для получения активной БД
+export const genericDao = new GenericDao(() => projectService.getDb());
+
+// Создаем сервис повествования
+export const narrativeService = new NarrativeService(genericDao);
+
+export default projectService;

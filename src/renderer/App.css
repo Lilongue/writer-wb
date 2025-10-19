@@ -1,0 +1,16 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+
+.sidebar {
+  width: 240px;
+  float: left;
+  height: 100vh;
+  padding: 10px;
+}
+
+.content {
+  margin-left: 250px;
+  padding: 10px;
+}
