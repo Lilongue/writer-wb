@@ -1,5 +1,8 @@
-import { NarrativeItem } from '../../common/types';
+/* eslint-disable no-console */
+import path from 'path';
+import { ItemDetails, NarrativeItem } from '../../common/types';
 import { GenericDao } from '../data/GenericDao';
+import fileSystemService from './FileSystemService';
 
 /**
  * Сервис для управления бизнес-логикой, связанной с элементами повествования.
@@ -7,8 +10,11 @@ import { GenericDao } from '../data/GenericDao';
 export class NarrativeService {
   private dao: GenericDao;
 
-  constructor(dao: GenericDao) {
+  private getProjectRoot: () => string | null;
+
+  constructor(dao: GenericDao, getProjectRoot: () => string | null) {
     this.dao = dao;
+    this.getProjectRoot = getProjectRoot;
   }
 
   /**
@@ -19,6 +25,43 @@ export class NarrativeService {
   public getNarrativeItems(): NarrativeItem[] {
     // На данный момент просто проксирует вызов к DAO.
     return this.dao.getNarrativeItems();
+  }
+
+  public async getDetails(id: number): Promise<ItemDetails | null> {
+    const item = this.dao.getNarrativeItemById(id);
+    if (!item) {
+      return null;
+    }
+
+    const projectRoot = this.getProjectRoot();
+    let content: string | undefined;
+    let absolutePath: string | undefined;
+    let fileExists = false;
+
+    if (item.file_path && projectRoot) {
+      absolutePath = path.join(projectRoot, item.file_path);
+      fileExists = await fileSystemService.pathExists(absolutePath);
+
+      if (fileExists) {
+        try {
+          content = await fileSystemService.readFile(absolutePath);
+        } catch (e) {
+          console.error(`Error reading existing file ${absolutePath}`, e);
+          content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
+          fileExists = false; // Считаем, что его нет, раз не смогли прочитать
+        }
+      } else {
+        content = `# Файл не найден\nНажмите кнопку ниже, чтобы создать его.`;
+      }
+    }
+
+    return {
+      id: item.id,
+      name: item.name,
+      path: absolutePath,
+      content: content || item.description || '',
+      fileExists,
+    };
   }
 
   // В будущем здесь появятся другие методы бизнес-логики:

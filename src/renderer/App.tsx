@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
+import { Layout, Empty } from 'antd';
 import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
+import ContentDisplay from './components/ContentDisplay';
+
+const { Sider, Content } = Layout;
 
 export default function App() {
   const [projectState, setProjectState] = useState({ isOpen: false, key: 0 });
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<{
+    id: number | null;
+    type: 'narrative' | 'world' | null;
+  }>({ id: null, type: null });
 
   useEffect(() => {
     const cleanupOpened = window.electron.ipcRenderer.on(
@@ -24,7 +31,7 @@ export default function App() {
       'project-closed',
       () => {
         setProjectState({ isOpen: false, key: 0 });
-        setSelectedItemId(null);
+        setSelection({ id: null, type: null });
       },
     );
 
@@ -34,30 +41,37 @@ export default function App() {
     };
   }, []);
 
-  const handleSelect = (key: string | null) => {
-    setSelectedItemId(key);
+  const handleNarrativeSelect = (key: string | null) => {
+    setSelection({ id: key ? parseInt(key, 10) : null, type: 'narrative' });
+  };
+
+  const handleWorldObjectSelect = (key: string | null) => {
+    setSelection({ id: key ? parseInt(key, 10) : null, type: 'world' });
   };
 
   return (
-    <div>
-      <div className="sidebar">
+    <Layout style={{ height: '100vh' }}>
+      <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
         {projectState.isOpen ? (
           <>
-            <NarrativeTree key={projectState.key} onSelect={handleSelect} />
-            <WorldObjectTree onSelect={handleSelect} />
+            <NarrativeTree
+              key={projectState.key}
+              onSelect={handleNarrativeSelect}
+            />
+            <WorldObjectTree onSelect={handleWorldObjectSelect} />
           </>
         ) : (
-          <div className="sidebar-section">
-            <h2>Project</h2>
-            <p>No project open. Use File - New/Open Project.</p>
+          <div className="empty-project-container">
+            <Empty description="Проект не открыт. Используйте меню Файл -> Создать/Открыть" />
           </div>
         )}
-      </div>
-
-      <div className="content">
-        <h2>Content</h2>
-        <p>Selected Item ID: {selectedItemId || 'None'}</p>
-      </div>
-    </div>
+      </Sider>
+      <Content>
+        <ContentDisplay
+          selectedId={selection.id}
+          selectedType={selection.type}
+        />
+      </Content>
+    </Layout>
   );
 }

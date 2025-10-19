@@ -61,8 +61,8 @@ INSERT INTO entity_templates (name, category, fields_schema) VALUES ('part', 'na
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('chapter', 'narrative', '[]');
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('scene', 'narrative', '[]');
 
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('character', 'world', '[]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('location', 'world', '[]');
+INSERT INTO entity_templates (name, category, fields_schema) VALUES ('character', 'world', '[{"name": "race", "label": "Раса"}, {"name": "age", "label": "Возраст"}]');
+INSERT INTO entity_templates (name, category, fields_schema) VALUES ('location', 'world', '[{"name": "population", "label": "Население"}]');
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('item', 'world', '[]');
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('concept', 'world', '[]');
 

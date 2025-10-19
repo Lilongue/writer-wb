@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useEffect, useState } from 'react';
 import { Tree } from 'antd';
 import type { TreeProps } from 'antd/es/tree';
@@ -70,10 +71,14 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
 
   const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
     if (selectedKeys.length > 0) {
-      onSelect(selectedKeys[0] as string);
-    } else {
-      onSelect(null);
+      const key = selectedKeys[0] as string;
+      if (key.startsWith('obj-')) {
+        const id = key.split('-')[1];
+        onSelect(id);
+        return;
+      }
     }
+    onSelect(null);
   };
 
   return (

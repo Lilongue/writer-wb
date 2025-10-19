@@ -9,39 +9,39 @@
 -- 1: 'Произведение' (корневой элемент)
 
 -- Часть 1 (станет all_entities.id = 2)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), 1, 'Часть 1: Начало', 0);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), 1, 'Часть 1: Начало', 0, 'narrative/Часть 1_ Начало.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Глава 1 (станет all_entities.id = 3)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 2, 'Глава 1: Утро', 0);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 2, 'Глава 1: Утро', 0, 'narrative/Часть 1_ Начало/Глава 1_ Утро.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Глава 2 (станет all_entities.id = 4)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 2, 'Глава 2: Полдень', 1);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 2, 'Глава 2: Полдень', 1, 'narrative/Часть 1_ Начало/Глава 2_ Полдень.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Сцена 1 внутри Главы 2 (станет all_entities.id = 5)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'scene'), 4, 'Сцена 1: Разговор', 0);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'scene'), 4, 'Сцена 1: Разговор', 0, 'narrative/Часть 1_ Начало/Глава 2_ Полдень/Сцена 1_ Разговор.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Часть 2 (станет all_entities.id = 6)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), 1, 'Часть 2: Развитие', 1);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), 1, 'Часть 2: Развитие', 1, 'narrative/Часть 2_ Развитие.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Глава 3 внутри Части 2 (станет all_entities.id = 7)
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 6, 'Глава 3: Вечер', 0);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order, file_path) VALUES ((SELECT id FROM entity_templates WHERE name = 'chapter'), 6, 'Глава 3: Вечер', 0, 'narrative/Часть 2_ Развитие/Глава 3_ Вечер.md');
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- =================== WORLD OBJECTS ===================
 
 -- Персонажи
-INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Арагорн', 'Наследник Исилдура');
-INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Гэндальф', 'Истари, мудрец и волшебник');
-INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Фродо Бэггинс', 'Хранитель Кольца');
+INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Арагорн', 'Наследник Исилдура', '{"race": "Дунэдайн", "age": "87"}');
+INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Гэндальф', 'Истари, мудрец и волшебник', '{"race": "Майар", "age": "Неизвестен"}');
+INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Фродо Бэггинс', 'Хранитель Кольца', '{"race": "Хоббит", "age": "50"}');
 
 -- Локации
-INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Шир', 'Родина хоббитов');
-INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Ривенделл', 'Скрытая долина эльфов');
+INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Шир', 'Родина хоббитов', '{"population": "~30000"}');
+INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Ривенделл', 'Скрытая долина эльфов', '{"population": "Неизвестно"}');
 
 -- Предметы
 INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'item'), 'Кольцо Всевластия', 'Главный артефакт');

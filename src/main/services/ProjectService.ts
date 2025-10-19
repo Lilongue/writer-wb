@@ -124,7 +124,11 @@ const projectService = new ProjectService();
 export const genericDao = new GenericDao(() => projectService.getDb());
 
 // Создаем сервисы
-export const narrativeService = new NarrativeService(genericDao);
-export const worldObjectService = new WorldObjectService(genericDao);
+export const narrativeService = new NarrativeService(genericDao, () =>
+  projectService.getProjectRoot(),
+);
+export const worldObjectService = new WorldObjectService(genericDao, () =>
+  projectService.getProjectRoot(),
+);
 
 export default projectService;

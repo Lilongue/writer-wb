@@ -62,6 +62,27 @@ export class GenericDao {
     return stmt.all(typeId) as WorldObject[];
   }
 
+  public getNarrativeItemById(id: number): NarrativeItem {
+    const db = this.getDb();
+    const sql = 'SELECT * FROM narrative_items WHERE id = ?';
+    const stmt = db.prepare(sql);
+    return stmt.get(id) as NarrativeItem;
+  }
+
+  public getWorldObjectById(id: number): WorldObject {
+    const db = this.getDb();
+    const sql = 'SELECT * FROM world_objects WHERE id = ?';
+    const stmt = db.prepare(sql);
+    return stmt.get(id) as WorldObject;
+  }
+
+  public getTemplateById(id: number): any {
+    const db = this.getDb();
+    const sql = 'SELECT * FROM entity_templates WHERE id = ?';
+    const stmt = db.prepare(sql);
+    return stmt.get(id);
+  }
+
   // В будущем здесь будут другие методы для работы с БД:
   // - createNarrativeItem(...)
   // - updateNarrativeItem(...)

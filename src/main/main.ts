@@ -12,6 +12,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import fileSystemService from './services/FileSystemService';
 
 import eventBus from './eventBus';
 
@@ -131,6 +132,33 @@ ipcMain.handle('get-world-object-types', () => {
 
 ipcMain.handle('get-world-objects-by-type', (_event, typeId) => {
   return worldObjectService.getWorldObjectsByTypeId(typeId);
+});
+
+ipcMain.handle(
+  'get-item-details',
+  async (_event, { id, type }: { id: number; type: 'narrative' | 'world' }) => {
+    if (type === 'narrative') {
+      return narrativeService.getDetails(id);
+    }
+    if (type === 'world') {
+      return worldObjectService.getDetails(id);
+    }
+    return null;
+  },
+);
+
+ipcMain.on('open-in-external-editor', (_event, filePath: string) => {
+  shell.openPath(filePath).catch(console.error);
+});
+
+ipcMain.handle('create-file', async (_event, filePath: string) => {
+  try {
+    await fileSystemService.createFileWithDirs(filePath, '\n'); // Создаем с пустой строкой
+    return { success: true };
+  } catch (e) {
+    console.error('Failed to create file:', e);
+    return { success: false };
+  }
 });
 
 app

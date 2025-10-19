@@ -28,3 +28,16 @@
   background-color: #f0f2f5;
 }
 
+.empty-project-container {
+  padding: 16px;
+}
+
+.empty-details-container {
+  padding: 24px;
+  height: 100%;
+}
+
+.create-file-container {
+  text-align: center;
+  padding: 20px;
+}

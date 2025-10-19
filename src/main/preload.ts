@@ -2,7 +2,10 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'project-opened' | 'project-closed';
+export type Channels =
+  | 'project-opened'
+  | 'project-closed'
+  | 'open-in-external-editor';
 
 const electronHandler = {
   ipcRenderer: {

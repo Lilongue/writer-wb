@@ -8,7 +8,8 @@ export interface NarrativeItem {
   name: string;
   parent_id: number | null;
   sort_order: number;
-  // file_path будет добавлен позже, когда мы будем работать с файлами
+  file_path?: string;
+  description?: string;
 }
 
 // В будущем здесь появятся другие доменные типы:
@@ -21,6 +22,22 @@ export interface WorldObject {
   id: number;
   name: string;
   template_id: number;
+  properties?: string;
+  description?: string;
+}
+
+export interface CustomField {
+  label: string;
+  value: string;
+}
+
+export interface ItemDetails {
+  id: number;
+  name: string;
+  path?: string;
+  fileExists?: boolean;
+  content?: string;
+  customFields?: CustomField[];
 }
 
 // export interface Connection { ... }

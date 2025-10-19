@@ -110,6 +110,7 @@
     "electron-updater": "^6.3.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^6.0.3",
     "react-router-dom": "^7.3.0"
   },
   "devDependencies": {
