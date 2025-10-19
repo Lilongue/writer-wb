@@ -10,7 +10,21 @@
   padding: 10px;
 }
 
-.content {
-  margin-left: 250px;
-  padding: 10px;
+.sidebar-section {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
 }
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.content {
+  flex-grow: 1;
+  padding: 24px;
+}
+
+.draggable-tree {
+  background-color: #f0f2f5;
+}
+

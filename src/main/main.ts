@@ -19,7 +19,10 @@ import eventBus from './eventBus';
  * Add event listeners...
  */
 
-import { narrativeService } from './services/ProjectService';
+import {
+  narrativeService,
+  worldObjectService,
+} from './services/ProjectService';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -120,6 +123,14 @@ app.on('window-all-closed', () => {
 // IPC MAIN
 ipcMain.handle('get-narrative-items', () => {
   return narrativeService.getNarrativeItems();
+});
+
+ipcMain.handle('get-world-object-types', () => {
+  return worldObjectService.getWorldObjectTypes();
+});
+
+ipcMain.handle('get-world-objects-by-type', (_event, typeId) => {
+  return worldObjectService.getWorldObjectsByTypeId(typeId);
 });
 
 app

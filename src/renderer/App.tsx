@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
 import NarrativeTree from './components/NarrativeTree';
+import WorldObjectTree from './components/WorldObjectTree';
 
 export default function App() {
   const [projectState, setProjectState] = useState({ isOpen: false, key: 0 });
@@ -32,19 +34,25 @@ export default function App() {
     };
   }, []);
 
+  const handleSelect = (key: string | null) => {
+    setSelectedItemId(key);
+  };
+
   return (
     <div>
-      {projectState.isOpen ? (
-        <NarrativeTree
-          key={projectState.key}
-          onSelect={(id) => setSelectedItemId(id)}
-        />
-      ) : (
-        <div className="sidebar">
-          <h2>Project</h2>
-          <p>No project open. Use File - New/Open Project.</p>
-        </div>
-      )}
+      <div className="sidebar">
+        {projectState.isOpen ? (
+          <>
+            <NarrativeTree key={projectState.key} onSelect={handleSelect} />
+            <WorldObjectTree onSelect={handleSelect} />
+          </>
+        ) : (
+          <div className="sidebar-section">
+            <h2>Project</h2>
+            <p>No project open. Use File - New/Open Project.</p>
+          </div>
+        )}
+      </div>
 
       <div className="content">
         <h2>Content</h2>

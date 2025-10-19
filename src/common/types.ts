@@ -12,5 +12,15 @@ export interface NarrativeItem {
 }
 
 // В будущем здесь появятся другие доменные типы:
-// export interface WorldObject { ... }
+export interface WorldObjectType {
+  id: number;
+  name: string;
+}
+
+export interface WorldObject {
+  id: number;
+  name: string;
+  template_id: number;
+}
+
 // export interface Connection { ... }

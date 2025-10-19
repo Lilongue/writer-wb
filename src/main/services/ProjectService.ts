@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-underscore-dangle */
 import path from 'path';
 import fs from 'fs/promises';
@@ -6,6 +8,7 @@ import { app } from 'electron';
 import FileSystemService from './FileSystemService';
 import { GenericDao } from '../data/GenericDao';
 import { NarrativeService } from './NarrativeService';
+import { WorldObjectService } from './WorldObjectService';
 import eventBus from '../eventBus';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
@@ -120,7 +123,8 @@ const projectService = new ProjectService();
 // Создаем DAO, передавая ему функцию для получения активной БД
 export const genericDao = new GenericDao(() => projectService.getDb());
 
-// Создаем сервис повествования
+// Создаем сервисы
 export const narrativeService = new NarrativeService(genericDao);
+export const worldObjectService = new WorldObjectService(genericDao);
 
 export default projectService;
