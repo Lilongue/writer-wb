@@ -33,6 +33,29 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     fetchDetails();
   }, [fetchDetails]);
 
+  useEffect(() => {
+    if (!details?.path || !details.fileExists) {
+      return () => {}; // Ничего не делаем, если нет пути или файла
+    }
+
+    const intervalId = setInterval(() => {
+      window.electron.ipcRenderer
+        .invoke('fs-stat', details.path)
+        .then((stats) => {
+          if (stats && details.mtime !== stats.mtimeMs) {
+            console.log('File changed on poll, reloading...', details.path);
+            fetchDetails();
+          }
+          return null;
+        })
+        .catch(console.error);
+    }, 2000); // Опрос каждые 2 секунды
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [details, fetchDetails]);
+
   const handleOpenFile = () => {
     if (details?.path && details?.fileExists) {
       window.electron.ipcRenderer.sendMessage(

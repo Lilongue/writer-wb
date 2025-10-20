@@ -82,6 +82,27 @@ class FileSystemService {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(filePath, content);
   }
+
+  /**
+   * Gets the stats of a file.
+   * @param filePath - The absolute path to the file.
+   * @returns The stats of the file, or null if it doesn't exist.
+   */
+  public async getStats(filePath: string): Promise<fs.Stats | null> {
+    try {
+      return await fs.stat(filePath);
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ENOENT'
+      ) {
+        return null;
+      }
+      throw error;
+    }
+  }
 }
 
 export default new FileSystemService();

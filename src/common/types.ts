@@ -34,10 +34,11 @@ export interface CustomField {
 export interface ItemDetails {
   id: number;
   name: string;
-  path?: string;
-  fileExists?: boolean;
-  content?: string;
-  customFields?: CustomField[];
+  path: string | null;
+  content: string | null;
+  fileExists: boolean;
+  customFields?: { label: string; value: string }[];
+  mtime: number | null;
 }
 
 // export interface Connection { ... }

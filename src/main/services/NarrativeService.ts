@@ -37,14 +37,17 @@ export class NarrativeService {
     let content: string | undefined;
     let absolutePath: string | undefined;
     let fileExists = false;
+    let mtime: number | null = null;
 
     if (item.file_path && projectRoot) {
       absolutePath = path.join(projectRoot, item.file_path);
-      fileExists = await fileSystemService.pathExists(absolutePath);
+      const stats = await fileSystemService.getStats(absolutePath);
+      fileExists = stats !== null;
 
       if (fileExists) {
         try {
           content = await fileSystemService.readFile(absolutePath);
+          mtime = stats.mtimeMs;
         } catch (e) {
           console.error(`Error reading existing file ${absolutePath}`, e);
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
@@ -61,6 +64,7 @@ export class NarrativeService {
       path: absolutePath,
       content: content || item.description || '',
       fileExists,
+      mtime,
     };
   }
 

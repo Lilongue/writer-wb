@@ -77,6 +77,7 @@ export class WorldObjectService {
     let content: string | undefined;
     let absolutePath: string | undefined;
     let fileExists = false;
+    let mtime: number | null = null;
 
     if (projectRoot) {
       // Путь по соглашению: <root>/world/<template_name>/<object_name>/description.md
@@ -87,11 +88,13 @@ export class WorldObjectService {
         object.name,
         'description.md',
       );
-      fileExists = await fileSystemService.pathExists(absolutePath);
+      const stats = await fileSystemService.getStats(absolutePath);
+      fileExists = stats !== null;
 
       if (fileExists) {
         try {
           content = await fileSystemService.readFile(absolutePath);
+          mtime = stats.mtimeMs;
         } catch (e) {
           console.error(`Error reading existing file ${absolutePath}`, e);
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
@@ -109,6 +112,7 @@ export class WorldObjectService {
       content: content || object.description || '',
       customFields,
       fileExists,
+      mtime,
     };
   }
 }

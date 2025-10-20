@@ -20,7 +20,7 @@ import eventBus from './eventBus';
  * Add event listeners...
  */
 
-import {
+import projectService, {
   narrativeService,
   worldObjectService,
 } from './services/ProjectService';
@@ -121,6 +121,10 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', () => {
+  projectService.close();
+});
+
 // IPC MAIN
 ipcMain.handle('get-narrative-items', () => {
   return narrativeService.getNarrativeItems();
@@ -159,6 +163,10 @@ ipcMain.handle('create-file', async (_event, filePath: string) => {
     console.error('Failed to create file:', e);
     return { success: false };
   }
+});
+
+ipcMain.handle('fs-stat', async (_event, filePath: string) => {
+  return fileSystemService.getStats(filePath);
 });
 
 app
