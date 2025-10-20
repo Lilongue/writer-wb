@@ -1,11 +1,8 @@
-/* eslint-disable no-console */
-import React, { useEffect, useState } from 'react';
-import { Tree } from 'antd';
-import type { TreeProps } from 'antd';
+import { useState, useCallback, useEffect } from 'react';
+import { Tree, Dropdown, Menu, Modal, Input } from 'antd';
+import type { TreeProps } from 'antd/es/tree';
 import { NarrativeItem } from '../../common/types';
 
-// Утилитарная функция для преобразования плоского списка в дерево
-// Она отлично подходит и для Ant Design Tree, так что оставляем ее без изменений
 const buildTree = (items: NarrativeItem[]) => {
   type TreeNode = NarrativeItem & { children: TreeNode[] };
 
@@ -34,6 +31,7 @@ const buildTree = (items: NarrativeItem[]) => {
       ...node,
       key: node.id,
       title: node.name,
+      type: node.type, // Пробрасываем тип
       children: node.children ? convertToAntdTreeFormat(node.children) : [],
     }));
   };
@@ -42,119 +40,147 @@ const buildTree = (items: NarrativeItem[]) => {
 };
 
 interface NarrativeTreeProps {
-  onSelect: (id: string | null) => void;
+  onSelect: (id: number | null) => void;
 }
 
 function NarrativeTree({ onSelect }: NarrativeTreeProps) {
   const [treeData, setTreeData] = useState<any[]>([]);
+  const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number; node: any; }>({ visible: false, x: 0, y: 0, node: null });
+  const [modalState, setModalState] = useState<{ visible: boolean; type: 'create' | 'rename'; node: any; name: string; }>({ visible: false, type: 'create', node: null, name: '' });
+
+  const fetchNarrativeItems = useCallback(async () => {
+    try {
+      const items: NarrativeItem[] = await window.electron.ipcRenderer.invoke(
+        'get-narrative-items',
+      );
+      const hierarchy = buildTree(items);
+      setTreeData(hierarchy);
+    } catch (error) {
+      console.error('Failed to fetch narrative items:', error);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchNarrativeItems = async () => {
-      try {
-        const items: NarrativeItem[] = await window.electron.ipcRenderer.invoke(
-          'get-narrative-items',
-        );
-        const hierarchy = buildTree(items);
-        setTreeData(hierarchy);
-      } catch (error) {
-        console.error('Failed to fetch narrative items:', error);
-      }
-    };
-
     fetchNarrativeItems();
-  }, []);
+
+    const cleanup = window.electron.ipcRenderer.on('narrative-changed', () => {
+      fetchNarrativeItems();
+    });
+
+    return () => {
+      cleanup();
+    };
+  }, [fetchNarrativeItems]);
 
   const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
     if (selectedKeys.length > 0) {
-      onSelect(selectedKeys[0] as string);
+      onSelect(selectedKeys[0] as number);
     } else {
       onSelect(null);
     }
   };
 
-  const onDrop: TreeProps['onDrop'] = (info) => {
-    // info.dragNode - узел, который перетаскивают
-    // info.node - узел, на который бросают
-    // info.dropPosition - позиция относительно узла (0 - внутрь, 1 - после, -1 - до)
-    console.log('Dropped', info);
-    // TODO: Реализовать вызов ipcRenderer для сохранения нового порядка в базе данных.
-    // Пока просто обновляем состояние дерева на фронтенде для визуального отклика.
+  const onRightClick: TreeProps['onRightClick'] = ({ event, node }) => {
+    setContextMenu({ visible: true, x: event.clientX, y: event.clientY, node });
+  };
 
-    const dropKey = info.node.key;
-    const dragKey = info.dragNode.key;
-    const dropPos = info.node.pos.split('-');
-    const dropPosition =
-      info.dropPosition - Number(dropPos[dropPos.length - 1]);
-
-    const loop = (
-      data: typeof treeData,
-      key: React.Key,
-      callback: (node: any, i: number, data: any[]) => void,
-    ): boolean => {
-      for (let i = 0; i < data.length; i += 1) {
-        if (data[i].key === key) {
-          callback(data[i], i, data);
-          return true;
-        }
-        if (data[i].children) {
-          if (loop(data[i].children!, key, callback)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-    const data = [...treeData];
-
-    // Находим перетаскиваемый узел
-    let dragObj: any;
-    loop(data, dragKey, (item, index, arr) => {
-      arr.splice(index, 1);
-      dragObj = item;
-    });
-
-    if (!info.dropToGap) {
-      // Бросаем внутрь другого узла
-      loop(data, dropKey, (item) => {
-        item.children = item.children || [];
-        item.children.unshift(dragObj);
-      });
-    } else if (
-      ((info.node as any).props.children || []).length > 0 &&
-      (info.node as any).props.expanded &&
-      dropPosition === 1
-    ) {
-      loop(data, dropKey, (item) => {
-        item.children = item.children || [];
-        item.children.unshift(dragObj);
-      });
-    } else {
-      let ar: any[] = [];
-      let i: number = 0;
-      loop(data, dropKey, (_item, index, arr) => {
-        ar = arr;
-        i = index;
-      });
-      if (dropPosition === -1) {
-        ar.splice(i, 0, dragObj);
-      } else {
-        ar.splice(i + 1, 0, dragObj);
-      }
+  const getMenuItems = (node: any) => {
+    if (!node) {
+      return [];
     }
-    setTreeData(data);
+    const items = [];
+    if (node.type === 'part') {
+      items.push({ key: 'create-chapter', label: 'Создать главу' });
+    }
+    if (node.type === 'chapter') {
+      items.push({ key: 'create-scene', label: 'Создать сцену' });
+    }
+    items.push({ key: 'rename', label: 'Переименовать' });
+    items.push({ key: 'delete', label: 'Удалить', danger: true });
+    return items;
+  };
+
+  const handleMenuClick = ({ key, domEvent }: { key: string, domEvent: any }) => {
+    domEvent.stopPropagation();
+    const { node } = contextMenu;
+    setContextMenu({ ...contextMenu, visible: false });
+
+    if (key.startsWith('create-')) {
+      const itemType = key.split('-')[1];
+      setModalState({ visible: true, type: 'create', node: { ...node, itemType }, name: '' });
+    } else if (key === 'rename') {
+      setModalState({ visible: true, type: 'rename', node, name: node.title });
+    } else if (key === 'delete') {
+      Modal.confirm({
+        title: `Удалить "${node.title}"?`,
+        content: 'Это действие нельзя будет отменить.',
+        okText: 'Удалить',
+        okType: 'danger',
+        cancelText: 'Отмена',
+        onOk: async () => {
+          try {
+            await window.electron.ipcRenderer.invoke('narrative:delete', { itemId: node.key });
+          } catch (e: any) {
+            Modal.error({ title: 'Ошибка удаления', content: e.message });
+          }
+        },
+      });
+    }
+  };
+
+  const handleModalOk = async () => {
+    const { type, node, name } = modalState;
+    try {
+      if (type === 'create') {
+        await window.electron.ipcRenderer.invoke('narrative:create', {
+          parentId: node.key,
+          itemType: node.itemType,
+          name,
+        });
+      } else if (type === 'rename') {
+        await window.electron.ipcRenderer.invoke('narrative:rename', {
+          itemId: node.key,
+          newName: name,
+        });
+      }
+    } catch (e: any) {
+      Modal.error({ title: 'Ошибка', content: e.message });
+    } finally {
+      setModalState({ visible: false, type: 'create', node: null, name: '' });
+    }
   };
 
   return (
-    <div className="sidebar-section">
+    <div className="sidebar-section" onContextMenu={(e) => e.preventDefault()}>
       <h2>Повествование</h2>
-      <Tree
-        className="draggable-tree"
-        draggable
-        blockNode
-        onSelect={handleSelect}
-        onDrop={onDrop}
-        treeData={treeData}
-      />
+      <Dropdown
+        overlay={<Menu items={getMenuItems(contextMenu.node)} onClick={handleMenuClick} />}
+        trigger={['contextMenu']}
+        visible={contextMenu.visible}
+        onVisibleChange={(visible) => !visible && setContextMenu({ ...contextMenu, visible: false })}
+        placement="bottomLeft"
+      >
+        <Tree
+          blockNode
+          onSelect={handleSelect}
+          onRightClick={onRightClick}
+          treeData={treeData}
+        />
+      </Dropdown>
+      <Modal
+        title={modalState.type === 'create' ? 'Создать элемент' : 'Переименовать элемент'}
+        visible={modalState.visible}
+        onOk={handleModalOk}
+        onCancel={() => setModalState({ ...modalState, visible: false })}
+        okText={modalState.type === 'create' ? 'Создать' : 'Переименовать'}
+        cancelText="Отмена"
+      >
+        <Input
+          value={modalState.name}
+          onChange={(e) => setModalState({ ...modalState, name: e.target.value })}
+          onPressEnter={handleModalOk}
+        />
+      </Modal>
     </div>
   );
 }

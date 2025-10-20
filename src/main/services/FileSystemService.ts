@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import fs from 'fs/promises';
+import { Stats } from 'fs';
 import path from 'path';
 
 class FileSystemService {
@@ -88,7 +89,7 @@ class FileSystemService {
    * @param filePath - The absolute path to the file.
    * @returns The stats of the file, or null if it doesn't exist.
    */
-  public async getStats(filePath: string): Promise<fs.Stats | null> {
+  public async getStats(filePath: string): Promise<Stats | null> {
     try {
       return await fs.stat(filePath);
     } catch (error) {
@@ -100,6 +101,24 @@ class FileSystemService {
       ) {
         return null;
       }
+      throw error;
+    }
+  }
+
+  public async deleteFile(filePath: string): Promise<void> {
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ENOENT'
+      ) {
+        // Файл не существует, это нормально, ничего не делаем
+        return;
+      }
+      // Другая ошибка, пробрасываем ее
       throw error;
     }
   }

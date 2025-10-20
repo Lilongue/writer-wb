@@ -5,7 +5,8 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 export type Channels =
   | 'project-opened'
   | 'project-closed'
-  | 'open-in-external-editor';
+  | 'open-in-external-editor'
+  | 'narrative-changed';
 
 const electronHandler = {
   ipcRenderer: {

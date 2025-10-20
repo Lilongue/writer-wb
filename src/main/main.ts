@@ -99,6 +99,10 @@ const createWindow = async () => {
     mainWindow?.webContents.send('project-closed');
   });
 
+  eventBus.on('narrative-changed', () => {
+    mainWindow?.webContents.send('narrative-changed');
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -167,6 +171,30 @@ ipcMain.handle('create-file', async (_event, filePath: string) => {
 
 ipcMain.handle('fs-stat', async (_event, filePath: string) => {
   return fileSystemService.getStats(filePath);
+});
+
+// --- Narrative CRUD ---
+ipcMain.handle(
+  'narrative:create',
+  async (_event, { parentId, itemType, name }) => {
+    const newItemId = await narrativeService.createNarrativeItem(
+      parentId,
+      itemType,
+      name,
+    );
+    eventBus.emit('narrative-changed');
+    return newItemId;
+  },
+);
+
+ipcMain.handle('narrative:rename', async (_event, { itemId, newName }) => {
+  await narrativeService.renameNarrativeItem(itemId, newName);
+  eventBus.emit('narrative-changed');
+});
+
+ipcMain.handle('narrative:delete', async (_event, { itemId }) => {
+  await narrativeService.deleteNarrativeItem(itemId);
+  eventBus.emit('narrative-changed');
 });
 
 app

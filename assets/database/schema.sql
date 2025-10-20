@@ -10,13 +10,13 @@ CREATE TABLE entity_templates (
 CREATE TABLE narrative_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     template_id INTEGER NOT NULL,
-    parent_id INTEGER,   -- Ссылается на all_entities.id
+    parent_id INTEGER,   -- Ссылается на narrative_items.id
     name TEXT NOT NULL,
     description TEXT,
     file_path TEXT,
     sort_order INTEGER DEFAULT 0,
     FOREIGN KEY (template_id) REFERENCES entity_templates(id) ON DELETE RESTRICT,
-    FOREIGN KEY (parent_id) REFERENCES all_entities(id) ON DELETE CASCADE
+    FOREIGN KEY (parent_id) REFERENCES narrative_items(id) ON DELETE CASCADE
 );
 
 -- Таблица для объектов мира (гибкая структура)

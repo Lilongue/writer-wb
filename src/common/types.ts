@@ -6,6 +6,7 @@
 export interface NarrativeItem {
   id: number;
   name: string;
+  type: string; // part, chapter, scene, etc.
   parent_id: number | null;
   sort_order: number;
   file_path?: string;
