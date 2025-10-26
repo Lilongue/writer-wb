@@ -103,6 +103,10 @@ const createWindow = async () => {
     mainWindow?.webContents.send('narrative-changed');
   });
 
+  eventBus.on('world-objects-changed', (payload) => {
+    mainWindow?.webContents.send('world-objects-changed', payload);
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -196,6 +200,33 @@ ipcMain.handle('narrative:delete', async (_event, { itemId }) => {
   await narrativeService.deleteNarrativeItem(itemId);
   eventBus.emit('narrative-changed');
 });
+
+// --- World Object CRUD ---
+ipcMain.handle(
+  'world-object:create',
+  (_event, { name, typeId, properties }) => {
+    return worldObjectService.createObject({ name, typeId, properties });
+  },
+);
+
+ipcMain.handle('world-object:rename', (_event, { id, newName }) => {
+  worldObjectService.renameObject({ id, newName });
+});
+
+ipcMain.handle('world-object:delete', (_event, id) => {
+  worldObjectService.deleteObject(id);
+});
+
+ipcMain.handle('get-template-details', (_event, templateId) => {
+  return worldObjectService.getTemplateDetails(templateId);
+});
+
+ipcMain.handle(
+  'world-object:update-details',
+  (_event, { id, name, properties }) => {
+    worldObjectService.updateObjectDetails({ id, name, properties });
+  },
+);
 
 app
   .whenReady()

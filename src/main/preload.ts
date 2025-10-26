@@ -6,7 +6,8 @@ export type Channels =
   | 'project-opened'
   | 'project-closed'
   | 'open-in-external-editor'
-  | 'narrative-changed';
+  | 'narrative-changed'
+  | 'world-objects-changed';
 
 const electronHandler = {
   ipcRenderer: {

@@ -7,6 +7,7 @@ import {
   WorldObjectType,
 } from '../../common/types';
 import { GenericDao } from '../data/GenericDao';
+import eventBus from '../eventBus';
 import fileSystemService from './FileSystemService';
 
 /**
@@ -59,12 +60,11 @@ export class WorldObjectService {
 
         if (Array.isArray(schema)) {
           schema.forEach((field: { name: string; label: string }) => {
-            if (properties[field.name]) {
-              customFields.push({
-                label: field.label,
-                value: properties[field.name],
-              });
-            }
+            customFields.push({
+              key: field.name,
+              label: field.label,
+              value: properties[field.name] || '',
+            });
           });
         }
       } catch (e) {
@@ -89,12 +89,12 @@ export class WorldObjectService {
         'description.md',
       );
       const stats = await fileSystemService.getStats(absolutePath);
-      fileExists = stats !== null;
 
-      if (fileExists) {
+      if (stats) {
         try {
           content = await fileSystemService.readFile(absolutePath);
           mtime = stats.mtimeMs;
+          fileExists = true;
         } catch (e) {
           console.error(`Error reading existing file ${absolutePath}`, e);
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
@@ -102,18 +102,77 @@ export class WorldObjectService {
         }
       } else {
         content = `# Файл не найден\nНажмите кнопку ниже, чтобы создать его.`;
+        fileExists = false;
       }
     }
 
     return {
       id: object.id,
       name: object.name,
-      path: absolutePath,
+      path: absolutePath ?? null,
       content: content || object.description || '',
       customFields,
       fileExists,
       mtime,
     };
+  }
+
+  public createObject({
+    name,
+    typeId,
+    properties,
+  }: {
+    name: string;
+    typeId: number;
+    properties?: string;
+  }): number {
+    const newId = this.dao.createWorldObject(name, typeId, properties || '{}');
+    process.nextTick(() => {
+      eventBus.emit('world-objects-changed', { typeId });
+    });
+    return newId;
+  }
+
+  public renameObject({ id, newName }: { id: number; newName: string }): void {
+    const object = this.dao.getWorldObjectById(id);
+    if (object) {
+      this.dao.updateWorldObject(id, newName, object.properties || '{}');
+      process.nextTick(() => {
+        eventBus.emit('world-objects-changed', { typeId: object.template_id });
+      });
+    }
+  }
+
+  public deleteObject(id: number): void {
+    const object = this.dao.getWorldObjectById(id);
+    if (object) {
+      this.dao.deleteWorldObject(id);
+      process.nextTick(() => {
+        eventBus.emit('world-objects-changed', { typeId: object.template_id });
+      });
+    }
+  }
+
+  public updateObjectDetails({
+    id,
+    name,
+    properties,
+  }: {
+    id: number;
+    name: string;
+    properties: string;
+  }): void {
+    const object = this.dao.getWorldObjectById(id);
+    if (object) {
+      this.dao.updateWorldObject(id, name, properties);
+      process.nextTick(() => {
+        eventBus.emit('world-objects-changed', { typeId: object.template_id });
+      });
+    }
+  }
+
+  public getTemplateDetails(templateId: number) {
+    return this.dao.getTemplateById(templateId);
   }
 }
 

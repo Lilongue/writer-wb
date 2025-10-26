@@ -28,6 +28,7 @@ export interface WorldObject {
 }
 
 export interface CustomField {
+  key: string;
   label: string;
   value: string;
 }
@@ -38,7 +39,7 @@ export interface ItemDetails {
   path: string | null;
   content: string | null;
   fileExists: boolean;
-  customFields?: { label: string; value: string }[];
+  customFields?: CustomField[];
   mtime: number | null;
 }
 

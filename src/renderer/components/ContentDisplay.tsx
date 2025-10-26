@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Descriptions, Empty, Typography } from 'antd';
+import { Button, Card, Descriptions, Empty, Typography, Input } from 'antd';
 import ReactMarkdown from 'react-markdown';
 import { ItemDetails } from '../../common/types';
 
@@ -11,6 +11,8 @@ interface ContentDisplayProps {
 
 function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   const [details, setDetails] = useState<ItemDetails | null>(null);
+  const [editedDetails, setEditedDetails] =
+    useState<Partial<ItemDetails> | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchDetails = useCallback(() => {
@@ -32,6 +34,15 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   useEffect(() => {
     fetchDetails();
   }, [fetchDetails]);
+
+  useEffect(() => {
+    if (details) {
+      setEditedDetails({
+        name: details.name,
+        customFields: details.customFields,
+      });
+    }
+  }, [details]);
 
   useEffect(() => {
     if (!details?.path || !details.fileExists) {
@@ -83,7 +94,47 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     return Promise.resolve();
   };
 
-  if (!selectedId || !details) {
+  const handleFieldChange = (index: number, value: string) => {
+    if (!editedDetails?.customFields) return;
+    const newFields = [...editedDetails.customFields];
+    newFields[index] = { ...newFields[index], value };
+    setEditedDetails({ ...editedDetails, customFields: newFields });
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedDetails({ ...editedDetails, name: e.target.value });
+  };
+
+  const handleSave = () => {
+    if (!details || !editedDetails) return;
+
+    // Собираем properties из отредактированных полей
+    const properties =
+      editedDetails.customFields?.reduce(
+        (acc, field) => {
+          acc[field.key] = field.value;
+          return acc;
+        },
+        {} as Record<string, string>,
+      ) || {};
+
+    window.electron.ipcRenderer
+      .invoke('world-object:update-details', {
+        id: details.id,
+        name: editedDetails.name,
+        properties: JSON.stringify(properties),
+      })
+      .catch(console.error);
+  };
+
+  const isChanged =
+    details &&
+    editedDetails &&
+    (details.name !== editedDetails.name ||
+      JSON.stringify(details.customFields) !==
+        JSON.stringify(editedDetails.customFields));
+
+  if (!selectedId || !details || !editedDetails) {
     return (
       <div className="empty-details-container">
         <Empty description="Выберите элемент в дереве, чтобы увидеть детали" />
@@ -94,23 +145,38 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   return (
     <Card
       loading={loading}
-      title={details.name}
-      style={{ margin: 16, height: 'calc(100vh - 32px)', overflowY: 'auto' }}
+      title={
+        <Input
+          value={editedDetails.name}
+          onChange={handleNameChange}
+          disabled={selectedType !== 'world'}
+        />
+      }
+      className="content-display-card"
       extra={
-        <Button
-          onClick={handleOpenFile}
-          disabled={!details.path || !details.fileExists}
-        >
-          Открыть во внешнем редакторе
-        </Button>
+        <div className="card-extra-actions">
+          <Button type="primary" onClick={handleSave} disabled={!isChanged}>
+            Сохранить
+          </Button>
+          <Button
+            onClick={handleOpenFile}
+            disabled={!details.path || !details.fileExists}
+          >
+            Открыть во внешнем редакторе
+          </Button>
+        </div>
       }
     >
-      {details.customFields && details.customFields.length > 0 && (
+      {editedDetails.customFields && editedDetails.customFields.length > 0 && (
         <>
           <Descriptions bordered size="small" column={1}>
-            {details.customFields.map((field) => (
+            {editedDetails.customFields.map((field, index) => (
               <Descriptions.Item key={field.label} label={field.label}>
-                {field.value}
+                <Input
+                  value={field.value}
+                  onChange={(e) => handleFieldChange(index, e.target.value)}
+                  disabled={selectedType !== 'world'}
+                />
               </Descriptions.Item>
             ))}
           </Descriptions>

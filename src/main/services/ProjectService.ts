@@ -36,6 +36,7 @@ class ProjectService {
 
     const dbPath = path.join(projectPath, 'project.sqlite');
     this.db = this._initDatabase(dbPath);
+    this.db.pragma('journal_mode = WAL');
 
     await this._applySchema(this.db);
 
@@ -58,6 +59,7 @@ class ProjectService {
 
     const dbPath = path.join(projectPath, 'project.sqlite');
     this.db = this._connectToDatabase(dbPath);
+    this.db.pragma('journal_mode = WAL');
 
     this.projectRoot = projectPath;
     console.log(`Project opened at: ${projectPath}`);

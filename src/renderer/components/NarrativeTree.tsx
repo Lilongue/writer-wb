@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import { useState, useCallback, useEffect } from 'react';
-import { Tree, Dropdown, Menu, Modal, Input } from 'antd';
+import { Tree, Dropdown, Modal, Input } from 'antd';
 import type { TreeProps } from 'antd/es/tree';
 import { NarrativeItem } from '../../common/types';
 
@@ -45,8 +46,18 @@ interface NarrativeTreeProps {
 
 function NarrativeTree({ onSelect }: NarrativeTreeProps) {
   const [treeData, setTreeData] = useState<any[]>([]);
-  const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number; node: any; }>({ visible: false, x: 0, y: 0, node: null });
-  const [modalState, setModalState] = useState<{ visible: boolean; type: 'create' | 'rename'; node: any; name: string; }>({ visible: false, type: 'create', node: null, name: '' });
+  const [contextMenu, setContextMenu] = useState<{
+    open: boolean;
+    x: number;
+    y: number;
+    node: any;
+  }>({ open: false, x: 0, y: 0, node: null });
+  const [modalState, setModalState] = useState<{
+    open: boolean;
+    type: 'create' | 'rename';
+    node: any;
+    name: string;
+  }>({ open: false, type: 'create', node: null, name: '' });
 
   const fetchNarrativeItems = useCallback(async () => {
     try {
@@ -81,7 +92,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
   };
 
   const onRightClick: TreeProps['onRightClick'] = ({ event, node }) => {
-    setContextMenu({ visible: true, x: event.clientX, y: event.clientY, node });
+    setContextMenu({ open: true, x: event.clientX, y: event.clientY, node });
   };
 
   const getMenuItems = (node: any) => {
@@ -100,16 +111,27 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     return items;
   };
 
-  const handleMenuClick = ({ key, domEvent }: { key: string, domEvent: any }) => {
+  const handleMenuClick = ({
+    key,
+    domEvent,
+  }: {
+    key: string;
+    domEvent: any;
+  }) => {
     domEvent.stopPropagation();
     const { node } = contextMenu;
-    setContextMenu({ ...contextMenu, visible: false });
+    setContextMenu({ ...contextMenu, open: false });
 
     if (key.startsWith('create-')) {
       const itemType = key.split('-')[1];
-      setModalState({ visible: true, type: 'create', node: { ...node, itemType }, name: '' });
+      setModalState({
+        open: true,
+        type: 'create',
+        node: { ...node, itemType },
+        name: '',
+      });
     } else if (key === 'rename') {
-      setModalState({ visible: true, type: 'rename', node, name: node.title });
+      setModalState({ open: true, type: 'rename', node, name: node.title });
     } else if (key === 'delete') {
       Modal.confirm({
         title: `Удалить "${node.title}"?`,
@@ -119,7 +141,9 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
         cancelText: 'Отмена',
         onOk: async () => {
           try {
-            await window.electron.ipcRenderer.invoke('narrative:delete', { itemId: node.key });
+            await window.electron.ipcRenderer.invoke('narrative:delete', {
+              itemId: node.key,
+            });
           } catch (e: any) {
             Modal.error({ title: 'Ошибка удаления', content: e.message });
           }
@@ -146,7 +170,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     } catch (e: any) {
       Modal.error({ title: 'Ошибка', content: e.message });
     } finally {
-      setModalState({ visible: false, type: 'create', node: null, name: '' });
+      setModalState({ open: false, type: 'create', node: null, name: '' });
     }
   };
 
@@ -154,10 +178,13 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     <div className="sidebar-section" onContextMenu={(e) => e.preventDefault()}>
       <h2>Повествование</h2>
       <Dropdown
-        overlay={<Menu items={getMenuItems(contextMenu.node)} onClick={handleMenuClick} />}
+        menu={{
+          items: getMenuItems(contextMenu.node),
+          onClick: handleMenuClick,
+        }}
         trigger={['contextMenu']}
-        visible={contextMenu.visible}
-        onVisibleChange={(visible) => !visible && setContextMenu({ ...contextMenu, visible: false })}
+        open={contextMenu.open}
+        onOpenChange={(open) => setContextMenu({ ...contextMenu, open })}
         placement="bottomLeft"
       >
         <Tree
@@ -168,16 +195,22 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
         />
       </Dropdown>
       <Modal
-        title={modalState.type === 'create' ? 'Создать элемент' : 'Переименовать элемент'}
-        visible={modalState.visible}
+        title={
+          modalState.type === 'create'
+            ? 'Создать элемент'
+            : 'Переименовать элемент'
+        }
+        open={modalState.open}
         onOk={handleModalOk}
-        onCancel={() => setModalState({ ...modalState, visible: false })}
+        onCancel={() => setModalState({ ...modalState, open: false })}
         okText={modalState.type === 'create' ? 'Создать' : 'Переименовать'}
         cancelText="Отмена"
       >
         <Input
           value={modalState.name}
-          onChange={(e) => setModalState({ ...modalState, name: e.target.value })}
+          onChange={(e) =>
+            setModalState({ ...modalState, name: e.target.value })
+          }
           onPressEnter={handleModalOk}
         />
       </Modal>

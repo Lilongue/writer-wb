@@ -41,3 +41,23 @@
   text-align: center;
   padding: 20px;
 }
+
+.content-display-card {
+  margin: 16px;
+  height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.card-extra-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.form-field-container {
+  margin-bottom: 1rem;
+}
+
+.form-field-label {
+  display: block;
+  margin-bottom: 4px;
+}

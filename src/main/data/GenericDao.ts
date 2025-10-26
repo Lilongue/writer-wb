@@ -94,10 +94,11 @@ export class GenericDao {
 
   public findTemplateByName(
     name: string,
-    category: 'narrative' | 'world'
+    category: 'narrative' | 'world',
   ): { id: number } | undefined {
     const db = this.getDb();
-    const sql = 'SELECT id FROM entity_templates WHERE name = ? AND category = ?';
+    const sql =
+      'SELECT id FROM entity_templates WHERE name = ? AND category = ?';
     const stmt = db.prepare(sql);
     return stmt.get(name, category) as { id: number } | undefined;
   }
@@ -106,7 +107,9 @@ export class GenericDao {
     const db = this.getDb();
     const sql =
       'SELECT MAX(sort_order) as max_sort FROM narrative_items WHERE parent_id = ?';
-    const result = db.prepare(sql).get(parentId);
+    const result = db.prepare(sql).get(parentId) as {
+      max_sort: number | null;
+    };
     return result && typeof result.max_sort === 'number' ? result.max_sort : -1;
   }
 
@@ -114,7 +117,7 @@ export class GenericDao {
     const db = this.getDb();
     const countSql =
       'SELECT COUNT(*) as count FROM narrative_items WHERE parent_id = ?';
-    const result = db.prepare(countSql).get(itemId);
+    const result = db.prepare(countSql).get(itemId) as { count: number };
     return result.count;
   }
 
@@ -123,7 +126,7 @@ export class GenericDao {
     parentId: number | null,
     templateId: number,
     filePath: string,
-    sortOrder: number
+    sortOrder: number,
   ): number {
     const db = this.getDb();
     const createTransaction = db.transaction(() => {
@@ -156,6 +159,43 @@ export class GenericDao {
     // Запись в all_entities удалится каскадно благодаря FOREIGN KEY в all_entities
     const sql = 'DELETE FROM narrative_items WHERE id = ?';
     db.prepare(sql).run(itemId);
+  }
+
+  public createWorldObject(
+    name: string,
+    templateId: number,
+    properties: string,
+  ): number {
+    const db = this.getDb();
+    const createTransaction = db.transaction(() => {
+      const worldObjectSql = `
+        INSERT INTO world_objects (name, template_id, properties)
+        VALUES (?, ?, ?)
+      `;
+      const info = db.prepare(worldObjectSql).run(name, templateId, properties);
+      const newWorldObjectId = info.lastInsertRowid as number;
+
+      const entitySql = 'INSERT INTO all_entities (world_object_id) VALUES (?)';
+      db.prepare(entitySql).run(newWorldObjectId);
+
+      return newWorldObjectId;
+    });
+
+    return createTransaction();
+  }
+
+  public updateWorldObject(id: number, name: string, properties: string): void {
+    const db = this.getDb();
+    const sql =
+      'UPDATE world_objects SET name = ?, properties = ? WHERE id = ?';
+    db.prepare(sql).run(name, properties, id);
+  }
+
+  public deleteWorldObject(id: number): void {
+    const db = this.getDb();
+    // Запись в all_entities удалится каскадно
+    const sql = 'DELETE FROM world_objects WHERE id = ?';
+    db.prepare(sql).run(id);
   }
 }
 
