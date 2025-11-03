@@ -146,26 +146,35 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     <Card
       loading={loading}
       title={
-        <Input
-          value={editedDetails.name}
-          onChange={handleNameChange}
-          disabled={selectedType !== 'world'}
-        />
-      }
-      className="content-display-card"
-      extra={
-        <div className="card-extra-actions">
-          <Button type="primary" onClick={handleSave} disabled={!isChanged}>
-            Сохранить
-          </Button>
-          <Button
-            onClick={handleOpenFile}
-            disabled={!details.path || !details.fileExists}
-          >
-            Открыть во внешнем редакторе
-          </Button>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            alignItems: 'center',
+          }}
+        >
+          <Input
+            value={editedDetails.name}
+            onChange={handleNameChange}
+            disabled={selectedType !== 'world'}
+            style={{ flex: '1 1 auto', minWidth: '200px' }}
+          />
+          <div className="card-extra-actions">
+            <Button type="primary" onClick={handleSave} disabled={!isChanged}>
+              Сохранить
+            </Button>
+            <Button
+              onClick={handleOpenFile}
+              disabled={!details.path || !details.fileExists}
+            >
+              Открыть во внешнем редакторе
+            </Button>
+          </div>
         </div>
       }
+      className="content-display-card"
+      extra={null}
     >
       {editedDetails.customFields && editedDetails.customFields.length > 0 && (
         <>

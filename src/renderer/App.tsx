@@ -58,7 +58,11 @@ export default function App() {
               key={projectState.key}
               onSelect={handleNarrativeSelect}
             />
-            <WorldObjectTree onSelect={handleWorldObjectSelect} />
+            <WorldObjectTree
+              onSelect={handleWorldObjectSelect}
+              selectedId={selection.id}
+              selectedType={selection.type === 'world' ? 'world' : null}
+            />
           </>
         ) : (
           <div className="empty-project-container">

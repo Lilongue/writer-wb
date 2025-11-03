@@ -20,11 +20,13 @@ const convertToAntdTreeFormat = (nodes: TreeNode[], isLeaf: boolean) => {
 
 interface WorldObjectTreeProps {
   onSelect: (id: string | null) => void;
+  selectedId: number | null;
+  selectedType: 'world' | null;
 }
 
-function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
+function WorldObjectTree({ onSelect, selectedId, selectedType }: WorldObjectTreeProps) {
   const [treeData, setTreeData] = useState<any[]>([]);
-  const [treeKey, setTreeKey] = useState(0);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [contextMenu, setContextMenu] = useState<{
     open: boolean;
     x: number;
@@ -47,6 +49,8 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
     fieldValues: {},
   });
 
+  const selectedKeys = selectedType === 'world' && selectedId ? [`obj-${selectedId}`] : [];
+
   const fetchWorldObjectTypes = useCallback(async () => {
     try {
       const types: WorldObjectType[] = await window.electron.ipcRenderer.invoke(
@@ -61,18 +65,16 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
 
   useEffect(() => {
     fetchWorldObjectTypes()
-      .then((newTreeData) => {
-        setTreeData(newTreeData);
-        return null;
-      })
+      .then(setTreeData)
       .catch((err) =>
         console.error('[WorldObjectTree] Initial fetch failed:', err),
       );
+  }, [fetchWorldObjectTypes]);
 
+  useEffect(() => {
     const cleanup = window.electron.ipcRenderer.on(
       'world-objects-changed',
-      (payload: unknown) => {
-        // Type guard to ensure payload is an object with a numeric typeId
+      async (payload: unknown) => {
         if (
           typeof payload === 'object' &&
           payload !== null &&
@@ -80,31 +82,39 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
           typeof (payload as { typeId: unknown }).typeId === 'number'
         ) {
           const { typeId } = payload as { typeId: number };
-          fetchWorldObjectTypes()
-            .then((newTreeData) => {
-              const keyToUpdate = `type-${typeId}`;
+          const keyToUpdate = `type-${typeId}`;
 
-              const finalTreeData = newTreeData.map((node) => {
+          if (expandedKeys.includes(keyToUpdate)) {
+            try {
+              const objects: WorldObject[] =
+                await window.electron.ipcRenderer.invoke(
+                  'get-world-objects-by-type',
+                  typeId,
+                );
+              const formattedObjects = convertToAntdTreeFormat(objects, true);
+              setTreeData((origin) =>
+                origin.map((node) => {
+                  if (node.key === keyToUpdate) {
+                    return { ...node, children: formattedObjects };
+                  }
+                  return node;
+                }),
+              );
+            } catch (error) {
+              console.error('Failed to refresh world objects:', error);
+            }
+          } else {
+            setTreeData((origin) =>
+              origin.map((node) => {
                 if (node.key === keyToUpdate) {
-                  // Create a new object, omitting the children property
-                  // to force the Tree to call onLoadData again.
                   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { children, ...rest } = node as any;
+                  const { children, ...rest } = node;
                   return rest;
                 }
                 return node;
-              });
-
-              setTreeData(finalTreeData);
-              setTreeKey((prevKey) => prevKey + 1);
-              return null;
-            })
-            .catch((err) =>
-              console.error(
-                '[WorldObjectTree] Refetch after change failed:',
-                err,
-              ),
+              }),
             );
+          }
         }
       },
     );
@@ -112,7 +122,7 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
     return () => {
       cleanup();
     };
-  }, [fetchWorldObjectTypes]);
+  }, [expandedKeys]);
 
   // 2. Функция для динамической подгрузки данных
   const onLoadData: TreeProps['loadData'] = async ({ key, children }) => {
@@ -233,11 +243,17 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
       if (type === 'create') {
         const typeId = Number(node.key.split('-')[1]);
         const properties = JSON.stringify(fieldValues);
-        await window.electron.ipcRenderer.invoke('world-object:create', {
-          name,
-          typeId,
-          properties,
-        });
+        const newId = await window.electron.ipcRenderer.invoke(
+          'world-object:create',
+          {
+            name,
+            typeId,
+            properties,
+          },
+        );
+        if (newId) {
+          onSelect(newId.toString());
+        }
       } else if (type === 'rename') {
         const id = Number(node.key.split('-')[1]);
         await window.electron.ipcRenderer.invoke('world-object:rename', {
@@ -283,12 +299,14 @@ function WorldObjectTree({ onSelect }: WorldObjectTreeProps) {
         placement="bottomLeft"
       >
         <Tree
-          key={treeKey}
           loadData={onLoadData}
           treeData={treeData}
           onSelect={handleSelect}
           onRightClick={onRightClick}
           blockNode
+          expandedKeys={expandedKeys}
+          onExpand={setExpandedKeys}
+          selectedKeys={selectedKeys}
         />
       </Dropdown>
       <Modal
