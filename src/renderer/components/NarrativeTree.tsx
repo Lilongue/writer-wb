@@ -184,7 +184,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
         }}
         trigger={['contextMenu']}
         open={contextMenu.open}
-        onOpenChange={(open) => setContextMenu({ ...contextMenu, open })}
+        onOpenChange={(open) => setContextMenu((prev) => ({ ...prev, open }))}
         placement="bottomLeft"
       >
         <Tree

@@ -122,6 +122,10 @@ class FileSystemService {
       throw error;
     }
   }
+
+  public async deleteDirectory(dirPath: string): Promise<void> {
+    await fs.rm(dirPath, { recursive: true, force: true });
+  }
 }
 
 export default new FileSystemService();

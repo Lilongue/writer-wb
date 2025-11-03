@@ -80,13 +80,13 @@ export class WorldObjectService {
     let mtime: number | null = null;
 
     if (projectRoot) {
-      // Путь по соглашению: <root>/world/<template_name>/<object_name>/description.md
+      // Путь по соглашению: <root>/world/<template_name>/<object_id>/content.md
       absolutePath = path.join(
         projectRoot,
         'world',
         template.name,
-        object.name,
-        'description.md',
+        object.id.toString(),
+        'content.md',
       );
       const stats = await fileSystemService.getStats(absolutePath);
 
@@ -127,6 +127,22 @@ export class WorldObjectService {
     properties?: string;
   }): number {
     const newId = this.dao.createWorldObject(name, typeId, properties || '{}');
+
+    // Сразу создаем файловую структуру
+    const projectRoot = this.getProjectRoot();
+    const template = this.dao.getTemplateById(typeId);
+    if (projectRoot && template) {
+      const filePath = path.join(
+        projectRoot,
+        'world',
+        template.name,
+        newId.toString(),
+        'content.md',
+      );
+      // Не ждем завершения, чтобы не блокировать UI
+      fileSystemService.createFileWithDirs(filePath, '').catch(console.error);
+    }
+
     process.nextTick(() => {
       eventBus.emit('world-objects-changed', { typeId });
     });
@@ -146,6 +162,20 @@ export class WorldObjectService {
   public deleteObject(id: number): void {
     const object = this.dao.getWorldObjectById(id);
     if (object) {
+      // Сначала удаляем файловую структуру
+      const projectRoot = this.getProjectRoot();
+      const template = this.dao.getTemplateById(object.template_id);
+      if (projectRoot && template) {
+        const dirPath = path.join(
+          projectRoot,
+          'world',
+          template.name,
+          object.id.toString(),
+        );
+        // Не ждем завершения, чтобы не блокировать UI
+        fileSystemService.deleteDirectory(dirPath).catch(console.error);
+      }
+
       this.dao.deleteWorldObject(id);
       process.nextTick(() => {
         eventBus.emit('world-objects-changed', { typeId: object.template_id });

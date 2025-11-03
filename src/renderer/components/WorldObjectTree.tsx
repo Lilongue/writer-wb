@@ -24,7 +24,11 @@ interface WorldObjectTreeProps {
   selectedType: 'world' | null;
 }
 
-function WorldObjectTree({ onSelect, selectedId, selectedType }: WorldObjectTreeProps) {
+function WorldObjectTree({
+  onSelect,
+  selectedId,
+  selectedType,
+}: WorldObjectTreeProps) {
   const [treeData, setTreeData] = useState<any[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [contextMenu, setContextMenu] = useState<{
@@ -49,7 +53,8 @@ function WorldObjectTree({ onSelect, selectedId, selectedType }: WorldObjectTree
     fieldValues: {},
   });
 
-  const selectedKeys = selectedType === 'world' && selectedId ? [`obj-${selectedId}`] : [];
+  const selectedKeys =
+    selectedType === 'world' && selectedId ? [`obj-${selectedId}`] : [];
 
   const fetchWorldObjectTypes = useCallback(async () => {
     try {
@@ -158,9 +163,9 @@ function WorldObjectTree({ onSelect, selectedId, selectedType }: WorldObjectTree
     }
   };
 
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
-    if (selectedKeys.length > 0) {
-      const key = selectedKeys[0] as string;
+  const handleSelect: TreeProps['onSelect'] = (keys) => {
+    if (keys.length > 0) {
+      const key = keys[0] as string;
       if (key.startsWith('obj-')) {
         const id = key.split('-')[1];
         onSelect(id);

@@ -146,19 +146,12 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     <Card
       loading={loading}
       title={
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-            alignItems: 'center',
-          }}
-        >
+        <div className="content-display-title-wrapper">
           <Input
             value={editedDetails.name}
             onChange={handleNameChange}
             disabled={selectedType !== 'world'}
-            style={{ flex: '1 1 auto', minWidth: '200px' }}
+            className="content-display-name-input"
           />
           <div className="card-extra-actions">
             <Button type="primary" onClick={handleSave} disabled={!isChanged}>
