@@ -7,7 +7,8 @@ export type Channels =
   | 'project-closed'
   | 'open-in-external-editor'
   | 'narrative-changed'
-  | 'world-objects-changed';
+  | 'world-objects-changed'
+  | 'open-template-manager';
 
 const electronHandler = {
   ipcRenderer: {

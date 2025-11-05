@@ -27,6 +27,14 @@ export interface WorldObject {
   description?: string;
 }
 
+export interface EntityTemplate {
+  id: number;
+  name: string;
+  category: 'narrative' | 'world';
+  fields_schema: string; // JSON-схема полей
+  is_visible: 0 | 1;
+}
+
 export interface CustomField {
   key: string;
   label: string;

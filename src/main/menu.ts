@@ -1,7 +1,7 @@
+/* eslint-disable no-console */
 import {
   app,
   Menu,
-  shell,
   BrowserWindow,
   MenuItemConstructorOptions,
   dialog,
@@ -224,6 +224,18 @@ export default class MenuBuilder {
         ],
       },
       {
+        label: '&Data',
+        submenu: [
+          {
+            label: 'Manage &Types...',
+            accelerator: 'Ctrl+Shift+T',
+            click: () => {
+              this.mainWindow.webContents.send('open-template-manager');
+            },
+          },
+        ],
+      },
+      {
         label: '&View',
         submenu:
           process.env.NODE_ENV === 'development' ||
@@ -241,7 +253,7 @@ export default class MenuBuilder {
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
+                      !this.mainWindow.isFullScreen(),
                     );
                   },
                 },
@@ -252,7 +264,7 @@ export default class MenuBuilder {
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
+                      !this.mainWindow.isFullScreen(),
                     );
                   },
                 },

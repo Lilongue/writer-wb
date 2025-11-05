@@ -13,17 +13,21 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import fileSystemService from './services/FileSystemService';
-
 import eventBus from './eventBus';
+import projectService from './services/ProjectService';
+import { NarrativeService } from './services/NarrativeService';
+import { WorldObjectService } from './services/WorldObjectService';
+import { GenericDao } from './data/GenericDao';
+import { TemplateService } from './services/TemplateService';
 
-/**
- * Add event listeners...
- */
-
-import projectService, {
-  narrativeService,
-  worldObjectService,
-} from './services/ProjectService';
+const genericDao = new GenericDao(() => projectService.getDb());
+const narrativeService = new NarrativeService(genericDao, () =>
+  projectService.getProjectRoot(),
+);
+const worldObjectService = new WorldObjectService(genericDao, () =>
+  projectService.getProjectRoot(),
+);
+const templateService = new TemplateService(() => projectService.getDb());
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -218,6 +222,10 @@ ipcMain.handle('world-object:delete', (_event, id) => {
   worldObjectService.deleteObject(id);
 });
 
+ipcMain.on('world-objects-changed', () => {
+  eventBus.emit('world-objects-changed');
+});
+
 ipcMain.handle('get-template-details', (_event, templateId) => {
   return worldObjectService.getTemplateDetails(templateId);
 });
@@ -228,6 +236,35 @@ ipcMain.handle(
     worldObjectService.updateObjectDetails({ id, name, properties });
   },
 );
+
+// --- Template CRUD ---
+ipcMain.handle(
+  'templates:create',
+  (_event, { name, category, fieldLabels }) => {
+    return templateService.createTemplate(name, category, fieldLabels);
+  },
+);
+
+ipcMain.handle('templates:get', (_event, id) => {
+  return templateService.getTemplate(id);
+});
+
+ipcMain.handle('templates:getAll', (_event, includeArchived, category) => {
+  return templateService.getAllTemplates(includeArchived, category);
+});
+
+ipcMain.handle('templates:archive', (_event, id) => {
+  try {
+    templateService.archiveTemplate(id);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('templates:rename', (_event, { id, newName }) => {
+  templateService.renameTemplate(id, newName);
+});
 
 app
   .whenReady()

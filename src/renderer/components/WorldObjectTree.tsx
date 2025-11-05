@@ -80,6 +80,17 @@ function WorldObjectTree({
     const cleanup = window.electron.ipcRenderer.on(
       'world-objects-changed',
       async (payload: unknown) => {
+        if (payload === undefined) {
+          // This is a signal that the types themselves have changed (e.g., a new type was created).
+          // We need to re-fetch the entire tree.
+          fetchWorldObjectTypes()
+            .then(setTreeData)
+            .catch((err) =>
+              console.error('[WorldObjectTree] Refetch failed:', err),
+            );
+          return;
+        }
+
         if (
           typeof payload === 'object' &&
           payload !== null &&
@@ -127,7 +138,7 @@ function WorldObjectTree({
     return () => {
       cleanup();
     };
-  }, [expandedKeys]);
+  }, [expandedKeys, fetchWorldObjectTypes]);
 
   // 2. Функция для динамической подгрузки данных
   const onLoadData: TreeProps['loadData'] = async ({ key, children }) => {

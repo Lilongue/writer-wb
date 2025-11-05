@@ -6,6 +6,7 @@ import { Layout, Empty } from 'antd';
 import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
+import TemplateManagerModal from './components/TemplateManagerModal';
 
 const { Sider, Content } = Layout;
 
@@ -15,8 +16,16 @@ export default function App() {
     id: number | null;
     type: 'narrative' | 'world' | null;
   }>({ id: null, type: null });
+  const [templateManagerVisible, setTemplateManagerVisible] = useState(false);
 
   useEffect(() => {
+    const cleanupManager = window.electron.ipcRenderer.on(
+      'open-template-manager',
+      () => {
+        setTemplateManagerVisible(true);
+      },
+    );
+
     const cleanupOpened = window.electron.ipcRenderer.on(
       'project-opened',
       () => {
@@ -36,13 +45,14 @@ export default function App() {
     );
 
     return () => {
+      cleanupManager();
       cleanupOpened();
       cleanupClosed();
     };
   }, []);
 
-  const handleNarrativeSelect = (key: string | null) => {
-    setSelection({ id: key ? parseInt(key, 10) : null, type: 'narrative' });
+  const handleNarrativeSelect = (id: number | null) => {
+    setSelection({ id, type: 'narrative' });
   };
 
   const handleWorldObjectSelect = (key: string | null) => {
@@ -76,6 +86,10 @@ export default function App() {
           selectedType={selection.type}
         />
       </Content>
+      <TemplateManagerModal
+        visible={templateManagerVisible}
+        onClose={() => setTemplateManagerVisible(false)}
+      />
     </Layout>
   );
 }
