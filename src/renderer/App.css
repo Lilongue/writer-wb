@@ -71,5 +71,10 @@
 
 .content-display-name-input {
   flex: 1 1 auto;
-  min-width: 200px;
+} 
+
+.connections-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

@@ -13,6 +13,19 @@ export interface NarrativeItem {
   description?: string;
 }
 
+export interface RawConnection {
+  id: number;
+  description: string;
+  source_id: number;
+  target_id: number;
+}
+
+export interface ResolvedEntity {
+  allEntityId: number;
+  id: number;
+  type: 'narrative' | 'world';
+}
+
 // В будущем здесь появятся другие доменные типы:
 export interface WorldObjectType {
   id: number;
@@ -49,6 +62,7 @@ export interface ItemDetails {
   fileExists: boolean;
   customFields?: CustomField[];
   mtime: number | null;
+  connections?: any[];
 }
 
 // export interface Connection { ... }

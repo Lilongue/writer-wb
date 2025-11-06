@@ -1,7 +1,17 @@
 /* eslint-disable no-console */
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Descriptions, Empty, Typography, Input } from 'antd';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  Typography,
+  Input,
+  List,
+} from 'antd';
+import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
+import AddConnectionModal from './AddConnectionModal';
 import { ItemDetails } from '../../common/types';
 
 interface ContentDisplayProps {
@@ -14,6 +24,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   const [editedDetails, setEditedDetails] =
     useState<Partial<ItemDetails> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const fetchDetails = useCallback(() => {
     if (selectedId && selectedType) {
@@ -30,6 +42,54 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     setDetails(null);
     return null;
   }, [selectedId, selectedType]);
+
+  const debounce = (func: (...args: any[]) => void, delay: number) => {
+    let timeout: ReturnType<typeof setTimeout>;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
+  };
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      if (query && details) {
+        window.electron.ipcRenderer
+          .invoke('entities:search', { query, currentEntityId: details.id })
+          .then(setSearchResults)
+          .catch(console.error);
+      } else {
+        setSearchResults([]);
+      }
+    },
+    [details],
+  );
+
+  const debouncedSearch = useMemo(
+    () => debounce(handleSearch, 300),
+    [handleSearch],
+  );
+
+  const handleModalOk = (values: any) => {
+    if (!details || !selectedType) return;
+
+    const target = JSON.parse(values.target);
+
+    window.electron.ipcRenderer
+      .invoke('connections:create', {
+        sourceType: selectedType,
+        sourceId: details.id,
+        targetType: target.type,
+        targetId: target.id,
+        description: values.description || '',
+      })
+      .then(() => {
+        setIsModalVisible(false);
+        fetchDetails();
+        return null;
+      })
+      .catch(console.error);
+  };
 
   useEffect(() => {
     fetchDetails();
@@ -127,6 +187,13 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       .catch(console.error);
   };
 
+  const handleDeleteConnection = (connectionId: number) => {
+    window.electron.ipcRenderer
+      .invoke('connections:delete', connectionId)
+      .then(() => fetchDetails())
+      .catch(console.error);
+  };
+
   const isChanged =
     details &&
     editedDetails &&
@@ -143,68 +210,126 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   }
 
   return (
-    <Card
-      loading={loading}
-      title={
-        <div className="content-display-title-wrapper">
-          <Input
-            value={editedDetails.name}
-            onChange={handleNameChange}
-            disabled={selectedType !== 'world'}
-            className="content-display-name-input"
-          />
-          <div className="card-extra-actions">
-            <Button type="primary" onClick={handleSave} disabled={!isChanged}>
-              Сохранить
-            </Button>
+    <>
+      <Card
+        loading={loading}
+        title={
+          <div className="content-display-title-wrapper">
+            <Input
+              value={editedDetails.name}
+              onChange={handleNameChange}
+              disabled={selectedType !== 'world'}
+              className="content-display-name-input"
+            />
+            <div className="card-extra-actions">
+              <Button type="primary" onClick={handleSave} disabled={!isChanged}>
+                Сохранить
+              </Button>
+              <Button
+                onClick={handleOpenFile}
+                disabled={!details.path || !details.fileExists}
+              >
+                Открыть во внешнем редакторе
+              </Button>
+            </div>
+          </div>
+        }
+        className="content-display-card"
+        extra={null}
+      >
+        {editedDetails.customFields &&
+          editedDetails.customFields.length > 0 && (
+            <>
+              <Descriptions bordered size="small" column={1}>
+                {editedDetails.customFields.map((field, index) => (
+                  <Descriptions.Item key={field.label} label={field.label}>
+                    <Input
+                      value={field.value}
+                      onChange={(e) => handleFieldChange(index, e.target.value)}
+                      disabled={selectedType !== 'world'}
+                    />
+                  </Descriptions.Item>
+                ))}
+              </Descriptions>
+              <br />
+            </>
+          )}
+
+        <div className="connections-section">
+          <div className="connections-header">
+            <h3>Связи</h3>
+
             <Button
-              onClick={handleOpenFile}
-              disabled={!details.path || !details.fileExists}
+              type="primary"
+              shape="circle"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalVisible(true)}
+            />
+          </div>
+
+          {details.connections && details.connections.length > 0 && (
+            <>
+              <List
+                itemLayout="horizontal"
+                dataSource={details.connections}
+                renderItem={(item: any) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        type="primary"
+                        danger
+                        shape="circle"
+                        icon={<MinusOutlined />}
+                        onClick={() => handleDeleteConnection(item.id)}
+                      />,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={item.other_entity.name}
+                      description={item.description}
+                    />
+                  </List.Item>
+                )}
+              />
+
+              <br />
+            </>
+          )}
+        </div>
+
+        {details.fileExists ? (
+          <Typography.Text>
+            <ReactMarkdown>{details.content || ''}</ReactMarkdown>
+          </Typography.Text>
+        ) : (
+          <div className="create-file-container">
+            <Typography.Text type="secondary">
+              {details.content}
+            </Typography.Text>
+            <br />
+            <br />
+            <Button
+              type="primary"
+              onClick={handleCreateFile}
+              disabled={!details.path}
             >
-              Открыть во внешнем редакторе
+              Создать файл
             </Button>
           </div>
-        </div>
-      }
-      className="content-display-card"
-      extra={null}
-    >
-      {editedDetails.customFields && editedDetails.customFields.length > 0 && (
-        <>
-          <Descriptions bordered size="small" column={1}>
-            {editedDetails.customFields.map((field, index) => (
-              <Descriptions.Item key={field.label} label={field.label}>
-                <Input
-                  value={field.value}
-                  onChange={(e) => handleFieldChange(index, e.target.value)}
-                  disabled={selectedType !== 'world'}
-                />
-              </Descriptions.Item>
-            ))}
-          </Descriptions>
-          <br />
-        </>
-      )}
+        )}
+      </Card>
 
-      {details.fileExists ? (
-        <Typography.Text>
-          <ReactMarkdown>{details.content || ''}</ReactMarkdown>
-        </Typography.Text>
-      ) : (
-        <div className="create-file-container">
-          <Typography.Text type="secondary">{details.content}</Typography.Text>
-          <br />
-          <br />
-          <Button
-            type="primary"
-            onClick={handleCreateFile}
-            disabled={!details.path}
-          >
-            Создать файл
-          </Button>
-        </div>
-      )}
-    </Card>
+      <AddConnectionModal
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        onOk={handleModalOk}
+        options={searchResults.map((item) => ({
+          ...item,
+          value: JSON.stringify({ id: item.id, type: item.type }),
+        }))}
+        onSearch={debouncedSearch}
+      />
+    </>
   );
 }
 

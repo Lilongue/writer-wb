@@ -19,6 +19,7 @@ import { NarrativeService } from './services/NarrativeService';
 import { WorldObjectService } from './services/WorldObjectService';
 import { GenericDao } from './data/GenericDao';
 import { TemplateService } from './services/TemplateService';
+import ConnectionService from './services/ConnectionService';
 
 const genericDao = new GenericDao(() => projectService.getDb());
 const narrativeService = new NarrativeService(genericDao, () =>
@@ -28,6 +29,7 @@ const worldObjectService = new WorldObjectService(genericDao, () =>
   projectService.getProjectRoot(),
 );
 const templateService = new TemplateService(() => projectService.getDb());
+const connectionService = new ConnectionService(genericDao);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -154,13 +156,20 @@ ipcMain.handle('get-world-objects-by-type', (_event, typeId) => {
 ipcMain.handle(
   'get-item-details',
   async (_event, { id, type }: { id: number; type: 'narrative' | 'world' }) => {
+    let details;
     if (type === 'narrative') {
-      return narrativeService.getDetails(id);
+      details = await narrativeService.getDetails(id);
+    } else if (type === 'world') {
+      details = await worldObjectService.getDetails(id);
+    } else {
+      return null;
     }
-    if (type === 'world') {
-      return worldObjectService.getDetails(id);
+
+    if (details) {
+      details.connections = connectionService.getConnections(type, id);
     }
-    return null;
+
+    return details;
   },
 );
 
@@ -264,6 +273,28 @@ ipcMain.handle('templates:archive', (_event, id) => {
 
 ipcMain.handle('templates:rename', (_event, { id, newName }) => {
   templateService.renameTemplate(id, newName);
+});
+
+// --- Connections CRUD ---
+ipcMain.handle('entities:search', (_event, { query, currentEntityId }) => {
+  return connectionService.searchEntities(query, currentEntityId);
+});
+
+ipcMain.handle(
+  'connections:create',
+  (_event, { sourceType, sourceId, targetType, targetId, description }) => {
+    return connectionService.createConnection(
+      sourceType,
+      sourceId,
+      targetType,
+      targetId,
+      description,
+    );
+  },
+);
+
+ipcMain.handle('connections:delete', (_event, connectionId) => {
+  return connectionService.deleteConnection(connectionId);
 });
 
 app

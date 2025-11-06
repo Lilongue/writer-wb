@@ -36,12 +36,21 @@ INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 -- Персонажи
 INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Арагорн', 'Наследник Исилдура', '{"race": "Дунэдайн", "age": "87"}');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
+
 INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Гэндальф', 'Истари, мудрец и волшебник', '{"race": "Майар", "age": "Неизвестен"}');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
+
 INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'character'), 'Фродо Бэггинс', 'Хранитель Кольца', '{"race": "Хоббит", "age": "50"}');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
 
 -- Локации
 INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Шир', 'Родина хоббитов', '{"population": "~30000"}');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
+
 INSERT INTO world_objects (template_id, name, description, properties) VALUES ((SELECT id FROM entity_templates WHERE name = 'location'), 'Ривенделл', 'Скрытая долина эльфов', '{"population": "Неизвестно"}');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
 
 -- Предметы
 INSERT INTO world_objects (template_id, name, description) VALUES ((SELECT id FROM entity_templates WHERE name = 'item'), 'Кольцо Всевластия', 'Главный артефакт');
+INSERT INTO all_entities (world_object_id) VALUES (last_insert_rowid());
