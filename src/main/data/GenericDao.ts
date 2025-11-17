@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import {
+  EntityTemplate,
   NarrativeItem,
   RawConnection,
   ResolvedEntity,
@@ -49,7 +50,7 @@ export class GenericDao {
     const sql = `
         SELECT id, name
         FROM entity_templates
-        WHERE category = 'world'
+        WHERE category = 'world' AND is_visible = 1
         ORDER BY name ASC;
     `;
     const stmt = db.prepare(sql);
@@ -73,6 +74,11 @@ export class GenericDao {
     return stmt.all(typeId) as WorldObject[];
   }
 
+  /**
+   * Получает элемент повествования по его ID.
+   * @param {number} id ID элемента повествования.
+   * @returns {NarrativeItem} Объект элемента повествования.
+   */
   public getNarrativeItemById(id: number): NarrativeItem {
     const db = this.getDb();
     const sql = 'SELECT * FROM narrative_items WHERE id = ?';
@@ -80,6 +86,11 @@ export class GenericDao {
     return stmt.get(id) as NarrativeItem;
   }
 
+  /**
+   * Получает объект мира по его ID.
+   * @param {number} id ID объекта мира.
+   * @returns {WorldObject} Объект мира.
+   */
   public getWorldObjectById(id: number): WorldObject {
     const db = this.getDb();
     const sql = 'SELECT * FROM world_objects WHERE id = ?';
@@ -87,6 +98,11 @@ export class GenericDao {
     return stmt.get(id) as WorldObject;
   }
 
+  /**
+   * Получает шаблон объекта по его ID.
+   * @param {number} id ID шаблона.
+   * @returns {EntityTemplate} Объект шаблона.
+   */
   public getTemplateById(id: number): any {
     const db = this.getDb();
     const sql = 'SELECT * FROM entity_templates WHERE id = ?';
@@ -94,6 +110,12 @@ export class GenericDao {
     return stmt.get(id);
   }
 
+  /**
+   * Находит шаблон по его имени и категории.
+   * @param {string} name Имя шаблона.
+   * @param {'narrative' | 'world'} category Категория шаблона.
+   * @returns {EntityTemplate | undefined} Объект шаблона или undefined, если не найдено.
+   */
   public findTemplateByName(
     name: string,
     category: 'narrative' | 'world',
@@ -105,6 +127,11 @@ export class GenericDao {
     return stmt.get(name, category) as { id: number } | undefined;
   }
 
+  /**
+   * Получает максимальный порядок сортировки для дочерних элементов.
+   * @param {number | null} parentId ID родительского элемента повествования.
+   * @returns {number} Максимальный порядок сортировки.
+   */
   public getMaxSortOrder(parentId: number | null): number {
     const db = this.getDb();
     const sql =
@@ -115,6 +142,11 @@ export class GenericDao {
     return result && typeof result.max_sort === 'number' ? result.max_sort : -1;
   }
 
+  /**
+   * Подсчитывает количество дочерних элементов для заданного элемента повествования.
+   * @param {number} itemId ID элемента повествования.
+   * @returns {number} Количество дочерних элементов.
+   */
   public countChildrenOfNarrativeItem(itemId: number): number {
     const db = this.getDb();
     const countSql =
@@ -123,6 +155,15 @@ export class GenericDao {
     return result.count;
   }
 
+  /**
+   * Создает новый элемент повествования.
+   * @param {string} name Имя элемента повествования.
+   * @param {number | null} parentId ID родительского элемента повествования.
+   * @param {number} templateId ID шаблона элемента повествования.
+   * @param {string} filePath Путь к файлу элемента повествования.
+   * @param {number} sortOrder Порядок сортировки элемента повествования.
+   * @returns {number} ID созданного элемента повествования.
+   */
   public createNarrativeItem(
     name: string,
     parentId: number | null,
@@ -150,12 +191,21 @@ export class GenericDao {
     return createTransaction();
   }
 
+  /**
+   * Переименовывает элемент повествования.
+   * @param {number} itemId ID элемента повествования.
+   * @param {string} newName Новое имя элемента повествования.
+   */
   public renameNarrativeItem(itemId: number, newName: string): void {
     const db = this.getDb();
     const sql = 'UPDATE narrative_items SET name = ? WHERE id = ?';
     db.prepare(sql).run(newName, itemId);
   }
 
+  /**
+   * Удаляет элемент повествования.
+   * @param {number} itemId ID элемента повествования.
+   */
   public deleteNarrativeItem(itemId: number): void {
     const db = this.getDb();
     // Запись в all_entities удалится каскадно благодаря FOREIGN KEY в all_entities
@@ -163,6 +213,13 @@ export class GenericDao {
     db.prepare(sql).run(itemId);
   }
 
+  /**
+   * Создает новый объект мира.
+   * @param {string} name Имя объекта мира.
+   * @param {number} templateId ID шаблона объекта мира.
+   * @param {string} properties Свойства объекта мира в формате JSON.
+   * @returns {number} ID созданного объекта мира.
+   */
   public createWorldObject(
     name: string,
     templateId: number,
@@ -186,6 +243,12 @@ export class GenericDao {
     return createTransaction();
   }
 
+  /**
+   * Обновляет объект мира.
+   * @param {number} id ID объекта мира.
+   * @param {string} name Новое имя объекта мира.
+   * @param {string} properties Новые свойства объекта мира в формате JSON.
+   */
   public updateWorldObject(id: number, name: string, properties: string): void {
     const db = this.getDb();
     const sql =
@@ -193,13 +256,23 @@ export class GenericDao {
     db.prepare(sql).run(name, properties, id);
   }
 
-  public deleteWorldObject(id: number): void {
+  /**
+   * Удаляет объект мира.
+   * @param {number} id ID объекта мира.
+   */
+  public deleteWorldObject(id: number): boolean {
     const db = this.getDb();
-    // Запись в all_entities удалится каскадно
     const sql = 'DELETE FROM world_objects WHERE id = ?';
-    db.prepare(sql).run(id);
+    const info = db.prepare(sql).run(id);
+    return info.changes > 0;
   }
 
+  /**
+   * Ищет сущности по имени.
+   * @param {string} query Запрос для поиска.
+   * @param {number} currentEntityId ID текущей сущности, исключаемой из результатов.
+   * @returns {ResolvedEntity[]} Список найденных сущностей.
+   */
   public searchEntities(query: string, currentEntityId: number) {
     const db = this.getDb();
     const searchQuery = `%${query}%`;
@@ -233,6 +306,12 @@ export class GenericDao {
     return [...narrativeItems, ...worldObjects];
   }
 
+  /**
+   * Находит ID сущности из таблицы all_entities по типу и ID.
+   * @param {string} type Тип сущности ('narrative' или 'world').
+   * @param {number} id ID сущности.
+   * @returns {number | null} ID сущности в таблице all_entities или null, если сущность не найдена.
+   */
   public findEntityId(type: 'narrative' | 'world', id: number): number | null {
     const db = this.getDb();
     const column = type === 'narrative' ? 'narrative_id' : 'world_object_id';
@@ -241,6 +320,11 @@ export class GenericDao {
     return result?.id ?? null;
   }
 
+  /**
+   * Находит все связи, связанные с указанной сущностью.
+   * @param {number} allEntityId ID сущности в таблице all_entities.
+   * @returns {RawConnection[]} Список всех связей.
+   */
   public getConnections(allEntityId: number): RawConnection[] {
     const db = this.getDb();
     const sql = `
@@ -251,6 +335,11 @@ export class GenericDao {
     return db.prepare(sql).all(allEntityId, allEntityId) as RawConnection[];
   }
 
+  /**
+   * Получает реальные ID сущностей и их типы по списку ID из таблице all_entities.
+   * @param {number[]} allEntityIds Список ID сущностей в таблице all_entities.
+   * @returns {ResolvedEntity[]} Список разрешенных сущностей.
+   */
   public resolveAllEntityIds(allEntityIds: number[]): ResolvedEntity[] {
     if (allEntityIds.length === 0) {
       return [];
@@ -271,6 +360,11 @@ export class GenericDao {
     return db.prepare(sql).all(allEntityIds) as ResolvedEntity[];
   }
 
+  /**
+   * Получает информацию о narratrive_items по списку ID.
+   * @param {number[]} ids Список ID narratrive_items.
+   * @returns Список объектов с ID и именем.
+   */
   public getNarrativeItemsInfo(ids: number[]): { id: number; name: string }[] {
     if (ids.length === 0) {
       return [];
@@ -281,6 +375,11 @@ export class GenericDao {
     return db.prepare(sql).all(ids) as { id: number; name: string }[];
   }
 
+  /**
+   * Получает информацию о world_objects по списку ID.
+   * @param {number[]} ids Список ID world_objects.
+   * @returns Список объектов с ID и именем.
+   */
   public getWorldObjectsInfo(ids: number[]): { id: number; name: string }[] {
     if (ids.length === 0) {
       return [];
@@ -291,6 +390,13 @@ export class GenericDao {
     return db.prepare(sql).all(ids) as { id: number; name: string }[];
   }
 
+  /**
+   * Создает новую связь между двумя сущностями.
+   * @param {number} sourceAllId ID исходной сущности в таблице all_entities.
+   * @param {number} targetAllId ID целевой сущности в таблице all_entities.
+   * @param {string} description Описание связи.
+   * @returns {number} ID созданной связи.
+   */
   public createConnection(
     sourceAllId: number,
     targetAllId: number,
@@ -303,10 +409,117 @@ export class GenericDao {
     return result.lastInsertRowid as number;
   }
 
+  /**
+   * Удаляет связь по ID.
+   * @param {number} connectionId ID связи.
+   */
   public deleteConnection(connectionId: number): void {
     const db = this.getDb();
     const sql = 'DELETE FROM connections WHERE id = ?';
     db.prepare(sql).run(connectionId);
+  }
+
+  /**
+   * Создает новый шаблон сущности.
+   * @param {string} name Название шаблона.
+   * @param {'narrative' | 'world'} category Категория шаблона ('narrative' или 'world').
+   * @param {string} fieldsSchema JSON-схема полей шаблона.
+   * @returns {number} ID созданного шаблона.
+   */
+  public createTemplate(
+    name: string,
+    category: 'narrative' | 'world',
+    fieldsSchema: string,
+  ): number {
+    const db = this.getDb();
+    const stmt = db.prepare(
+      'INSERT INTO entity_templates (name, category, fields_schema) VALUES (?, ?, ?)',
+    );
+    const info = stmt.run(name, category, fieldsSchema);
+    return info.lastInsertRowid as number;
+  }
+
+  /**
+   * Получает шаблон сущности по ID.
+   * @param {number} id ID шаблона.
+   * @returns {EntityTemplate} Объект шаблона сущности.
+   */
+  public getTemplate(id: number): EntityTemplate {
+    const db = this.getDb();
+    const stmt = db.prepare('SELECT * FROM entity_templates WHERE id = ?');
+    return stmt.get(id) as EntityTemplate;
+  }
+
+  /**
+   * Получает все шаблоны сущностей.
+   * @param {boolean} includeArchived Включать ли архивированные шаблоны.
+   * @param {'narrative' | 'world' | undefined} category Фильтр по категории.
+   * @returns {EntityTemplate[]} Список шаблонов сущностей.
+   */
+  public getAllTemplates(
+    includeArchived: boolean = false,
+    category: 'narrative' | 'world' | undefined = undefined,
+  ): EntityTemplate[] {
+    const db = this.getDb();
+    let query = 'SELECT * FROM entity_templates';
+    const conditions = [];
+    const params: (string | number)[] = [];
+
+    if (!includeArchived) {
+      conditions.push('is_visible = 1');
+    }
+
+    if (category) {
+      conditions.push('category = ?');
+      params.push(category);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    const stmt = db.prepare(query);
+    return stmt.all(...params) as EntityTemplate[];
+  }
+
+  /**
+   * Подсчитывает количество world_objects, связанных с заданным шаблоном.
+   * @param {number} templateId ID шаблона.
+   * @returns {number} Количество world_objects, связанных с шаблоном.
+   */
+  public countWorldObjectsByTemplateId(templateId: number): number {
+    const db = this.getDb();
+    const checkStmt = db.prepare(
+      'SELECT COUNT(*) as count FROM world_objects WHERE template_id = ?',
+    );
+    const result = checkStmt.get(templateId) as { count: number };
+    return result.count;
+  }
+
+  /**
+   * Архивирует шаблон сущности по ID.
+   * @param {number} id ID шаблона.
+   */
+  public archiveTemplate(id: number): boolean {
+    const db = this.getDb();
+    const stmt = db.prepare(
+      'UPDATE entity_templates SET is_visible = 0 WHERE id = ?',
+    );
+    const info = stmt.run(id);
+    return info.changes > 0;
+  }
+
+  /**
+   * Переименовывает шаблон сущности по ID.
+   * @param {number} id ID шаблона.
+   * @param {string} newName Новое название шаблона.
+   */
+  public renameTemplate(id: number, newName: string): void {
+    const db = this.getDb();
+    const stmt = db.prepare(
+      'UPDATE entity_templates SET name = ? WHERE id = ?',
+    );
+    stmt.run(newName, id);
   }
 }
 

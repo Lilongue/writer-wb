@@ -244,7 +244,14 @@ function WorldObjectTree({
         onOk: async () => {
           try {
             const id = Number(node.key.split('-')[1]);
-            await window.electron.ipcRenderer.invoke('world-object:delete', id);
+            const result = await window.electron.ipcRenderer.invoke(
+              'world-object:delete',
+              id,
+            );
+            if (!result || !result.success) {
+              Modal.error({ title: 'Ошибка удаления', content: 'Не удалось удалить объект' });
+              return;
+            }
           } catch (e: any) {
             Modal.error({ title: 'Ошибка удаления', content: e.message });
           }

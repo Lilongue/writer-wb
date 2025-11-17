@@ -28,7 +28,7 @@ const narrativeService = new NarrativeService(genericDao, () =>
 const worldObjectService = new WorldObjectService(genericDao, () =>
   projectService.getProjectRoot(),
 );
-const templateService = new TemplateService(() => projectService.getDb());
+const templateService = new TemplateService(genericDao);
 const connectionService = new ConnectionService(genericDao);
 
 let mainWindow: BrowserWindow | null = null;
@@ -228,7 +228,7 @@ ipcMain.handle('world-object:rename', (_event, { id, newName }) => {
 });
 
 ipcMain.handle('world-object:delete', (_event, id) => {
-  worldObjectService.deleteObject(id);
+  return worldObjectService.deleteObject(id);
 });
 
 ipcMain.on('world-objects-changed', () => {
@@ -264,8 +264,8 @@ ipcMain.handle('templates:getAll', (_event, includeArchived, category) => {
 
 ipcMain.handle('templates:archive', (_event, id) => {
   try {
-    templateService.archiveTemplate(id);
-    return { success: true };
+    const ok = templateService.archiveTemplate(id);
+    return { success: ok };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

@@ -46,7 +46,7 @@ export class WorldObjectService {
       return null;
     }
 
-    const template = this.dao.getTemplateById(object.template_id);
+    const template = this.dao.getTemplate(object.template_id);
     if (!template) {
       return null;
     }
@@ -130,7 +130,7 @@ export class WorldObjectService {
 
     // Сразу создаем файловую структуру
     const projectRoot = this.getProjectRoot();
-    const template = this.dao.getTemplateById(typeId);
+    const template = this.dao.getTemplate(typeId);
     if (projectRoot && template) {
       const filePath = path.join(
         projectRoot,
@@ -159,28 +159,31 @@ export class WorldObjectService {
     }
   }
 
-  public deleteObject(id: number): void {
+  public deleteObject(id: number): { success: boolean; typeId?: number } {
     const object = this.dao.getWorldObjectById(id);
-    if (object) {
-      // Сначала удаляем файловую структуру
-      const projectRoot = this.getProjectRoot();
-      const template = this.dao.getTemplateById(object.template_id);
-      if (projectRoot && template) {
-        const dirPath = path.join(
-          projectRoot,
-          'world',
-          template.name,
-          object.id.toString(),
-        );
-        // Не ждем завершения, чтобы не блокировать UI
-        fileSystemService.deleteDirectory(dirPath).catch(console.error);
-      }
+    if (!object) {
+      return { success: false };
+    }
 
-      this.dao.deleteWorldObject(id);
+    const projectRoot = this.getProjectRoot();
+    const template = this.dao.getTemplate(object.template_id);
+    if (projectRoot && template) {
+      const dirPath = path.join(
+        projectRoot,
+        'world',
+        template.name,
+        object.id.toString(),
+      );
+      fileSystemService.deleteDirectory(dirPath).catch(console.error);
+    }
+
+    const ok = this.dao.deleteWorldObject(id);
+    if (ok) {
       process.nextTick(() => {
         eventBus.emit('world-objects-changed', { typeId: object.template_id });
       });
     }
+    return { success: ok, typeId: object.template_id };
   }
 
   public updateObjectDetails({
@@ -202,7 +205,7 @@ export class WorldObjectService {
   }
 
   public getTemplateDetails(templateId: number) {
-    return this.dao.getTemplateById(templateId);
+    return this.dao.getTemplate(templateId);
   }
 }
 

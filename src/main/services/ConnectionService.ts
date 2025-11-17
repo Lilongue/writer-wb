@@ -18,7 +18,8 @@ class ConnectionService {
       c.source_id === allEntityId ? c.target_id : c.source_id,
     );
 
-    const resolvedEntities = this.genericDao.resolveAllEntityIds(otherEntityIds);
+    const resolvedEntities =
+      this.genericDao.resolveAllEntityIds(otherEntityIds);
 
     const narrativeIds = resolvedEntities
       .filter((r) => r.type === 'narrative')
@@ -32,28 +33,36 @@ class ConnectionService {
 
     const infoMap = new Map<string, { id: number; name: string }>();
     [...narrativeInfo, ...worldInfo].forEach((info) =>
-      infoMap.set(`${resolvedEntities.find((r) => r.id === info.id)?.type}-${info.id}`, info),
+      infoMap.set(
+        `${resolvedEntities.find((r) => r.id === info.id)?.type}-${info.id}`,
+        info,
+      ),
     );
 
-    return rawConnections.map((raw) => {
-      const otherAllEntityId = raw.source_id === allEntityId ? raw.target_id : raw.source_id;
-      const resolved = resolvedEntities.find((r) => r.allEntityId === otherAllEntityId);
-      if (!resolved) return null;
+    return rawConnections
+      .map((raw) => {
+        const otherAllEntityId =
+          raw.source_id === allEntityId ? raw.target_id : raw.source_id;
+        const resolved = resolvedEntities.find(
+          (r) => r.allEntityId === otherAllEntityId,
+        );
+        if (!resolved) return null;
 
-      const info = infoMap.get(`${resolved.type}-${resolved.id}`);
-      if (!info) return null;
+        const info = infoMap.get(`${resolved.type}-${resolved.id}`);
+        if (!info) return null;
 
-      return {
-        id: raw.id,
-        description: raw.description,
-        other_entity: {
-          id: info.id,
-          name: info.name,
-          type: resolved.type,
-          entityId: otherAllEntityId,
-        },
-      };
-    }).filter(Boolean);
+        return {
+          id: raw.id,
+          description: raw.description,
+          other_entity: {
+            id: info.id,
+            name: info.name,
+            type: resolved.type,
+            entityId: otherAllEntityId,
+          },
+        };
+      })
+      .filter(Boolean);
   }
 
   createConnection(
@@ -70,12 +79,17 @@ class ConnectionService {
       throw new Error('Could not find one or both entities for connection');
     }
 
-    return this.genericDao.createConnection(sourceAllId, targetAllId, description);
+    return this.genericDao.createConnection(
+      sourceAllId,
+      targetAllId,
+      description,
+    );
   }
 
   deleteConnection(connectionId: number) {
     return this.genericDao.deleteConnection(connectionId);
   }
+
   searchEntities(query: string, currentEntityId: number) {
     return this.genericDao.searchEntities(query, currentEntityId);
   }

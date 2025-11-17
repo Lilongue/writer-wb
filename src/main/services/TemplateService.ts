@@ -1,19 +1,19 @@
-import Database from 'better-sqlite3';
+import GenericDao from '../data/GenericDao';
 import { EntityTemplate } from '../../common/types';
 
 /**
  * Сервис для управления шаблонами (типами) объектов.
  */
 export class TemplateService {
-  private getDb: () => Database.Database;
+  private dao: GenericDao;
 
-  constructor(getDb: () => Database.Database) {
-    this.getDb = getDb;
+  constructor(dao: GenericDao) {
+    this.dao = dao;
   }
 
   /**
    * Генерирует уникальное системное имя для поля.
-   * @returns уникальное имя (например, "field_1678886400000_a1b2c3d4e")
+   * @returns {string} Уникальное имя (например, "field_1678886400000_a1b2c3d4e")
    */
   private static generateFieldName(): string {
     const randomPart = Math.random().toString(36).substring(2, 11);
@@ -32,74 +32,37 @@ export class TemplateService {
       })),
     );
 
-    const db = this.getDb();
-    const stmt = db.prepare(
-      'INSERT INTO entity_templates (name, category, fields_schema) VALUES (?, ?, ?)',
-    );
-    const info = stmt.run(name, category, fieldsSchema);
-    const newId = info.lastInsertRowid as number;
-
-    return this.getTemplate(newId);
+    const newId = this.dao.createTemplate(name, category, fieldsSchema);
+    return this.dao.getTemplate(newId);
   }
 
   getTemplate(id: number): EntityTemplate {
-    const db = this.getDb();
-    const stmt = db.prepare('SELECT * FROM entity_templates WHERE id = ?');
-    return stmt.get(id) as EntityTemplate;
+    return this.dao.getTemplate(id);
   }
 
   getAllTemplates(
     includeArchived: boolean = false,
     category: 'narrative' | 'world' | undefined = undefined,
   ): EntityTemplate[] {
-    const db = this.getDb();
-    let query = 'SELECT * FROM entity_templates';
-    const conditions = [];
-    const params: (string | number)[] = [];
-
-    if (!includeArchived) {
-      conditions.push('is_visible = 1');
-    }
-
-    if (category) {
-      conditions.push('category = ?');
-      params.push(category);
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
-    const stmt = db.prepare(query);
-    return stmt.all(...params) as EntityTemplate[];
+    return this.dao.getAllTemplates(includeArchived, category);
   }
 
-  archiveTemplate(id: number): void {
-    const db = this.getDb();
-    // Перед архивацией проверяем, используется ли шаблон
-    const checkStmt = db.prepare(
-      'SELECT COUNT(*) as count FROM world_objects WHERE template_id = ?',
-    );
-    const result = checkStmt.get(id) as { count: number };
-
-    if (result.count > 0) {
+  archiveTemplate(id: number): boolean {
+    const count = this.dao.countWorldObjectsByTemplateId(id);
+    if (count > 0) {
       throw new Error(
-        `Нельзя архивировать шаблон, так как он используется ${result.count} объектом(ами).`,
+        `Нельзя архивировать шаблон, так как он используется ${count} объектом(ами).`,
       );
     }
-
-    const stmt = db.prepare(
-      'UPDATE entity_templates SET is_visible = 0 WHERE id = ?',
-    );
-    stmt.run(id);
+    const success = this.dao.archiveTemplate(id);
+    if (!success) {
+      throw new Error('Шаблон не найден или уже архивирован');
+    }
+    return success;
   }
 
   renameTemplate(id: number, newName: string): void {
-    const db = this.getDb();
-    const stmt = db.prepare(
-      'UPDATE entity_templates SET name = ? WHERE id = ?',
-    );
-    stmt.run(newName, id);
+    this.dao.renameTemplate(id, newName);
   }
 }
 
