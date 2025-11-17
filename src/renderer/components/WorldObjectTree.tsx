@@ -39,7 +39,7 @@ function WorldObjectTree({
   }>({ open: false, x: 0, y: 0, node: null });
   const [modalState, setModalState] = useState<{
     open: boolean;
-    type: 'create' | 'rename';
+    type: 'create' | 'rename' | 'delete';
     node: any;
     name: string;
     schema: any[] | null;
@@ -206,7 +206,8 @@ function WorldObjectTree({
     return items;
   };
 
-  const handleMenuClick = async ({ key }: { key: string }) => {
+  const handleMenuClick = async ({ key, domEvent }: { key: string; domEvent: any }) => {
+    domEvent.stopPropagation();
     const { node } = contextMenu;
     setContextMenu({ ...contextMenu, open: false });
 
@@ -235,27 +236,13 @@ function WorldObjectTree({
         fieldValues: {},
       });
     } else if (key === 'delete') {
-      Modal.confirm({
-        title: `Удалить "${node.title}"?`,
-        content: 'Это действие нельзя будет отменить.',
-        okText: 'Удалить',
-        okType: 'danger',
-        cancelText: 'Отмена',
-        onOk: async () => {
-          try {
-            const id = Number(node.key.split('-')[1]);
-            const result = await window.electron.ipcRenderer.invoke(
-              'world-object:delete',
-              id,
-            );
-            if (!result || !result.success) {
-              Modal.error({ title: 'Ошибка удаления', content: 'Не удалось удалить объект' });
-              return;
-            }
-          } catch (e: any) {
-            Modal.error({ title: 'Ошибка удаления', content: e.message });
-          }
-        },
+      setModalState({
+        open: true,
+        type: 'delete',
+        node,
+        name: '',
+        schema: null,
+        fieldValues: {},
       });
     }
   };
@@ -283,6 +270,29 @@ function WorldObjectTree({
           id,
           newName: name,
         });
+      } else if (type === 'delete') {
+        const id = Number(node.key.split('-')[1]);
+        const result = await window.electron.ipcRenderer.invoke(
+          'world-object:delete',
+          id,
+        );
+        if (!result || !result.success) {
+          Modal.error({ title: 'Ошибка удаления', content: 'Не удалось удалить объект' });
+          return;
+        }
+        setTreeData((origin) =>
+          origin.map((typeNode) => {
+            if (Array.isArray(typeNode.children) && typeNode.children.length > 0) {
+              const filteredChildren = typeNode.children.filter(
+                (child: any) => child.key !== `obj-${id}`,
+              );
+              if (filteredChildren.length !== typeNode.children.length) {
+                return { ...typeNode, children: filteredChildren };
+              }
+            }
+            return typeNode;
+          }),
+        );
       }
     } catch (e: any) {
       Modal.error({ title: 'Ошибка', content: e.message });
@@ -336,23 +346,37 @@ function WorldObjectTree({
         title={
           modalState.type === 'create'
             ? 'Создать объект'
-            : 'Переименовать объект'
+            : modalState.type === 'rename'
+            ? 'Переименовать объект'
+            : 'Удалить объект'
         }
         open={modalState.open}
         onOk={handleModalOk}
         onCancel={() => setModalState({ ...modalState, open: false })}
-        okText={modalState.type === 'create' ? 'Создать' : 'Переименовать'}
+        okText={
+          modalState.type === 'create'
+            ? 'Создать'
+            : modalState.type === 'rename'
+            ? 'Переименовать'
+            : 'Удалить'
+        }
         cancelText="Отмена"
         width={600}
       >
-        <Input
-          value={modalState.name}
-          onChange={(e) =>
-            setModalState({ ...modalState, name: e.target.value })
-          }
-          placeholder="Имя объекта"
-          style={{ marginBottom: '1rem' }}
-        />
+        {modalState.type !== 'delete' ? (
+          <Input
+            value={modalState.name}
+            onChange={(e) =>
+              setModalState({ ...modalState, name: e.target.value })
+            }
+            placeholder="Имя объекта"
+            style={{ marginBottom: '1rem' }}
+          />
+        ) : (
+          <div style={{ marginBottom: '1rem' }}>
+            Вы уверены, что хотите удалить "{modalState.node?.title}"? Это действие нельзя будет отменить.
+          </div>
+        )}
         {modalState.type === 'create' &&
           modalState.schema?.map((field) => (
             <div key={field.name} className="form-field-container">
