@@ -108,6 +108,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     }
     items.push({ key: 'rename', label: 'Переименовать' });
     items.push({ key: 'delete', label: 'Удалить', danger: true });
+    items.push({ key: 'export-narrative', label: 'Экспортировать рукопись' });
     return items;
   };
 
@@ -149,6 +150,8 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
           }
         },
       });
+    } else if (key === 'export-narrative') {
+      handleExport(node);
     }
   };
 
@@ -171,6 +174,30 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
       Modal.error({ title: 'Ошибка', content: e.message });
     } finally {
       setModalState({ open: false, type: 'create', node: null, name: '' });
+    }
+  };
+
+  const handleExport = async (node: any) => {
+    try {
+      const result = await window.electron.exportNarrative(node.key as number, false); // rootItemId and includeHeaders set to false
+      if (result.success) {
+        Modal.success({
+          title: 'Рукопись успешно экспортирована',
+          content: `Файл сохранен по пути: ${result.filePath}`,
+        });
+      } else if (result.canceled) {
+        // User canceled the save dialog, do nothing
+      } else {
+        Modal.error({
+          title: 'Ошибка экспорта',
+          content: result.error || 'Произошла неизвестная ошибка.',
+        });
+      }
+    } catch (e: any) {
+      Modal.error({
+        title: 'Ошибка экспорта',
+        content: e.message,
+      });
     }
   };
 

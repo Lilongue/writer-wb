@@ -31,6 +31,8 @@ export class GenericDao {
         ni.name,
         ni.parent_id,
         ni.sort_order,
+        ni.file_path,
+        ni.description,
         et.name as type
       FROM narrative_items ni
       JOIN entity_templates et ON ni.template_id = et.id

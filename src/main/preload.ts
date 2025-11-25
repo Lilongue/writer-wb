@@ -27,12 +27,23 @@ const electronHandler = {
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
-    invoke(channel: string, ...args: unknown[]) {
+    invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
       return ipcRenderer.invoke(channel, ...args);
     },
   },
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+export type ElectronAPI = typeof electronHandler & {
+  exportNarrative: (
+    rootItemId: number | null,
+    includeHeaders: boolean,
+  ) => Promise<{ success: boolean; filePath?: string; error?: string; canceled?: boolean }>;
+};
+
+contextBridge.exposeInMainWorld('electron', {
+  ...electronHandler,
+  exportNarrative: (rootItemId: number | null, includeHeaders: boolean) =>
+    ipcRenderer.invoke('export-narrative', { rootItemId, includeHeaders }),
+});
 
 export type ElectronHandler = typeof electronHandler;

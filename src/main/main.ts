@@ -9,7 +9,8 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
+import fs from 'fs';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import fileSystemService from './services/FileSystemService';
@@ -20,9 +21,13 @@ import { WorldObjectService } from './services/WorldObjectService';
 import { GenericDao } from './data/GenericDao';
 import { TemplateService } from './services/TemplateService';
 import ConnectionService from './services/ConnectionService';
+import { ManuscriptService } from './services/ManuscriptService';
 
 const genericDao = new GenericDao(() => projectService.getDb());
 const narrativeService = new NarrativeService(genericDao, () =>
+  projectService.getProjectRoot(),
+);
+const manuscriptService = new ManuscriptService(genericDao, () =>
   projectService.getProjectRoot(),
 );
 const worldObjectService = new WorldObjectService(genericDao, () =>
@@ -296,6 +301,37 @@ ipcMain.handle(
 ipcMain.handle('connections:delete', (_event, connectionId) => {
   return connectionService.deleteConnection(connectionId);
 });
+
+// --- Export Narrative ---
+ipcMain.handle(
+  'export-narrative',
+  async (_event, { rootItemId, includeHeaders }) => {
+    try {
+      const assembledContent = await manuscriptService.assembleNarrative(
+        rootItemId,
+        includeHeaders,
+      );
+
+      const { canceled, filePath } = await dialog.showSaveDialog(
+        mainWindow!,
+        {
+          title: 'Сохранить рукопись как Markdown',
+          defaultPath: `manuscript.md`,
+          filters: [{ name: 'Markdown Files', extensions: ['md'] }],
+        },
+      );
+
+      if (!canceled && filePath) {
+        fs.writeFileSync(filePath, assembledContent);
+        return { success: true, filePath };
+      }
+      return { success: false, canceled: true };
+    } catch (error: any) {
+      console.error('Error exporting narrative:', error);
+      return { success: false, error: error.message };
+    }
+  },
+);
 
 app
   .whenReady()
