@@ -46,4 +46,4 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.invoke('export-narrative', { rootItemId, includeHeaders }),
 });
 
-export type ElectronHandler = typeof electronHandler;
+export type ElectronHandler = ElectronAPI;

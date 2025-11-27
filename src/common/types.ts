@@ -60,6 +60,7 @@ export interface ItemDetails {
   name: string;
   path: string | null;
   content: string | null;
+  description?: string;
   fileExists: boolean;
   customFields?: CustomField[];
   mtime: number | null;

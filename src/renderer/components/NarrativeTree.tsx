@@ -54,7 +54,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
   }>({ open: false, x: 0, y: 0, node: null });
   const [modalState, setModalState] = useState<{
     open: boolean;
-    type: 'create' | 'rename';
+    type: 'create' | 'rename' | 'delete';
     node: any;
     name: string;
   }>({ open: false, type: 'create', node: null, name: '' });
@@ -100,10 +100,11 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
       return [];
     }
     const items = [];
-    if (node.type === 'part') {
+    if (node.parent_id === null) {
+      items.push({ key: 'create-part', label: 'Создать часть' });
+    } else if (node.type === 'part') {
       items.push({ key: 'create-chapter', label: 'Создать главу' });
-    }
-    if (node.type === 'chapter') {
+    } else if (node.type === 'chapter') {
       items.push({ key: 'create-scene', label: 'Создать сцену' });
     }
     items.push({ key: 'rename', label: 'Переименовать' });
@@ -161,22 +162,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     } else if (key === 'rename') {
       setModalState({ open: true, type: 'rename', node, name: node.title });
     } else if (key === 'delete') {
-      Modal.confirm({
-        title: `Удалить "${node.title}"?`,
-        content: 'Это действие нельзя будет отменить.',
-        okText: 'Удалить',
-        okType: 'danger',
-        cancelText: 'Отмена',
-        onOk: async () => {
-          try {
-            await window.electron.ipcRenderer.invoke('narrative:delete', {
-              itemId: node.key,
-            });
-          } catch (e: any) {
-            Modal.error({ title: 'Ошибка удаления', content: e.message });
-          }
-        },
-      });
+      setModalState({ open: true, type: 'delete', node, name: node.title });
     } else if (key === 'export-narrative') {
       handleExport(node);
     }
@@ -196,6 +182,8 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
           itemId: node.key,
           newName: name,
         });
+      } else if (type === 'delete') {
+        await window.electron.ipcRenderer.invoke('narrative:delete', node.key);
       }
     } catch (e: any) {
       Modal.error({ title: 'Ошибка', content: e.message });
@@ -228,21 +216,37 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
         title={
           modalState.type === 'create'
             ? 'Создать элемент'
-            : 'Переименовать элемент'
+            : modalState.type === 'rename'
+              ? 'Переименовать элемент'
+              : 'Удалить элемент'
         }
         open={modalState.open}
         onOk={handleModalOk}
         onCancel={() => setModalState({ ...modalState, open: false })}
-        okText={modalState.type === 'create' ? 'Создать' : 'Переименовать'}
+        okText={
+          modalState.type === 'create'
+            ? 'Создать'
+            : modalState.type === 'rename'
+              ? 'Переименовать'
+              : 'Удалить'
+        }
         cancelText="Отмена"
+        okButtonProps={{ danger: modalState.type === 'delete' }}
       >
-        <Input
-          value={modalState.name}
-          onChange={(e) =>
-            setModalState({ ...modalState, name: e.target.value })
-          }
-          onPressEnter={handleModalOk}
-        />
+        {modalState.type === 'delete' ? (
+          <p>
+            Вы уверены, что хотите удалить &quot;{modalState.name}&quot;? Это
+            действие нельзя будет отменить.
+          </p>
+        ) : (
+          <Input
+            value={modalState.name}
+            onChange={(e) =>
+              setModalState({ ...modalState, name: e.target.value })
+            }
+            onPressEnter={handleModalOk}
+          />
+        )}
       </Modal>
     </div>
   );

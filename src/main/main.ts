@@ -215,7 +215,7 @@ ipcMain.handle('narrative:rename', async (_event, { itemId, newName }) => {
   eventBus.emit('narrative-changed');
 });
 
-ipcMain.handle('narrative:delete', async (_event, { itemId }) => {
+ipcMain.handle('narrative:delete', async (_event, itemId) => {
   await narrativeService.deleteNarrativeItem(itemId);
   eventBus.emit('narrative-changed');
 });
