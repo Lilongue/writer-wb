@@ -57,7 +57,7 @@ export class NarrativeService {
         }
       } else {
         fileExists = false;
-        content = `# Файл не найден\nНажмите кнопку ниже, чтобы создать его.`;
+        content = '# Файл не найден\\nНажмите кнопку ниже, чтобы создать его.';
       }
     }
 
@@ -65,7 +65,9 @@ export class NarrativeService {
       id: item.id,
       name: item.name,
       path: absolutePath ?? null,
-      content: content || item.description || '',
+      content: content || '', // Content now strictly comes from the file or error message
+      description: item.description, // Pass description separately
+      plan: item.plan, // Pass plan separately
       fileExists,
       mtime,
     };
@@ -119,6 +121,22 @@ export class NarrativeService {
   ): Promise<void> {
     // Пока что просто меняем имя в БД, без переименования файла
     this.dao.renameNarrativeItem(itemId, newName);
+  }
+
+  /**
+   * Обновляет детали элемента повествования (имя, описание, план).
+   * @param {number} itemId ID элемента повествования.
+   * @param {string} name Новое имя элемента.
+   * @param {string | undefined} description Новое описание (основная мысль).
+   * @param {string | undefined} plan Новый план (чек-лист).
+   */
+  public async updateNarrativeItemDetails(
+    itemId: number,
+    name: string,
+    description: string | undefined,
+    plan: string | undefined,
+  ): Promise<void> {
+    this.dao.updateNarrativeItemDetails(itemId, name, description, plan);
   }
 
   public async deleteNarrativeItem(itemId: number): Promise<void> {

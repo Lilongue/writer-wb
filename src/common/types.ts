@@ -11,6 +11,7 @@ export interface NarrativeItem {
   sort_order: number;
   file_path?: string;
   description?: string;
+  plan?: string;
 }
 
 export interface RawConnection {
@@ -63,6 +64,12 @@ export interface ItemDetails {
   customFields?: CustomField[];
   mtime: number | null;
   connections?: any[];
+  plan?: string;
+}
+
+export interface ChecklistItem {
+  text: string;
+  checked: boolean;
 }
 
 // export interface Connection { ... }

@@ -220,6 +220,14 @@ ipcMain.handle('narrative:delete', async (_event, { itemId }) => {
   eventBus.emit('narrative-changed');
 });
 
+ipcMain.handle(
+  'narrative:update-details',
+  async (_event, { id, name, description, plan }) => {
+    await narrativeService.updateNarrativeItemDetails(id, name, description, plan);
+    eventBus.emit('narrative-changed');
+  },
+);
+
 // --- World Object CRUD ---
 ipcMain.handle(
   'world-object:create',

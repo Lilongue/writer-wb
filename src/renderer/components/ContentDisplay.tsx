@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
@@ -12,6 +11,7 @@ import {
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import AddConnectionModal from './AddConnectionModal';
+import ChecklistEditor from './ChecklistEditor'; // Import ChecklistEditor
 import { ItemDetails } from '../../common/types';
 
 interface ContentDisplayProps {
@@ -100,6 +100,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       setEditedDetails({
         name: details.name,
         customFields: details.customFields,
+        description: details.description, // Initialize description
+        plan: details.plan, // Initialize plan
       });
     }
   }, [details]);
@@ -165,26 +167,48 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     setEditedDetails({ ...editedDetails, name: e.target.value });
   };
 
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedDetails({ ...editedDetails, description: e.target.value });
+  };
+
+  const handlePlanChange = (value: string) => {
+    setEditedDetails({ ...editedDetails, plan: value });
+  };
+
   const handleSave = () => {
-    if (!details || !editedDetails) return;
+    if (!details || !editedDetails || !selectedType) return;
 
-    // Собираем properties из отредактированных полей
-    const properties =
-      editedDetails.customFields?.reduce(
-        (acc, field) => {
-          acc[field.key] = field.value;
-          return acc;
-        },
-        {} as Record<string, string>,
-      ) || {};
+    if (selectedType === 'world') {
+      const properties =
+        editedDetails.customFields?.reduce(
+          (acc, field) => {
+            acc[field.key] = field.value;
+            return acc;
+          },
+          {} as Record<string, string>,
+        ) || {};
 
-    window.electron.ipcRenderer
-      .invoke('world-object:update-details', {
-        id: details.id,
-        name: editedDetails.name,
-        properties: JSON.stringify(properties),
-      })
-      .catch(console.error);
+      window.electron.ipcRenderer
+        .invoke('world-object:update-details', {
+          id: details.id,
+          name: editedDetails.name,
+          properties: JSON.stringify(properties),
+        })
+        .catch(console.error);
+    } else if (selectedType === 'narrative') {
+      window.electron.ipcRenderer
+        .invoke('narrative:update-details', {
+          id: details.id,
+          name: editedDetails.name,
+          description: editedDetails.description,
+          plan: editedDetails.plan,
+        })
+        .then(() => {
+          fetchDetails(); // Refresh to show updated values
+          return null;
+        })
+        .catch(console.error);
+    }
   };
 
   const handleDeleteConnection = (connectionId: number) => {
@@ -194,12 +218,23 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       .catch(console.error);
   };
 
-  const isChanged =
-    details &&
-    editedDetails &&
-    (details.name !== editedDetails.name ||
-      JSON.stringify(details.customFields) !==
-        JSON.stringify(editedDetails.customFields));
+  const isChanged = useMemo(() => {
+    if (!details || !editedDetails) return false;
+
+    if (details.name !== editedDetails.name) return true;
+
+    if (selectedType === 'world') {
+      return JSON.stringify(details.customFields) !==
+             JSON.stringify(editedDetails.customFields);
+    }
+
+    if (selectedType === 'narrative') {
+      if (details.description !== editedDetails.description) return true;
+      if (details.plan !== editedDetails.plan) return true;
+    }
+
+    return false;
+  }, [details, editedDetails, selectedType]);
 
   if (!selectedId || !details || !editedDetails) {
     return (
@@ -218,7 +253,7 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
             <Input
               value={editedDetails.name}
               onChange={handleNameChange}
-              disabled={selectedType !== 'world'}
+              disabled={false} // Name is editable for both types
               className="content-display-name-input"
             />
             <div className="card-extra-actions">
@@ -237,16 +272,17 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         className="content-display-card"
         extra={null}
       >
-        {editedDetails.customFields &&
+        {selectedType === 'world' && editedDetails.customFields &&
           editedDetails.customFields.length > 0 && (
             <>
+              <h3>Дополнительные поля</h3>
               <Descriptions bordered size="small" column={1}>
                 {editedDetails.customFields.map((field, index) => (
                   <Descriptions.Item key={field.label} label={field.label}>
                     <Input
                       value={field.value}
                       onChange={(e) => handleFieldChange(index, e.target.value)}
-                      disabled={selectedType !== 'world'}
+                      disabled={false} // Custom fields for world objects are editable
                     />
                   </Descriptions.Item>
                 ))}
@@ -254,6 +290,24 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
               <br />
             </>
           )}
+
+        {selectedType === 'narrative' && (
+          <>
+            <h3>Основная мысль</h3>
+            <Input.TextArea
+              value={editedDetails.description}
+              onChange={handleDescriptionChange}
+              autoSize={{ minRows: 3, maxRows: 10 }}
+              style={{ marginBottom: 16 }}
+            />
+            <h3>План</h3>
+            <ChecklistEditor
+              value={editedDetails.plan || ''}
+              onChange={handlePlanChange}
+            />
+            <br />
+          </>
+        )}
 
         <div className="connections-section">
           <div className="connections-header">

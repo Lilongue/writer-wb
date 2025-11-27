@@ -33,6 +33,7 @@ export class GenericDao {
         ni.sort_order,
         ni.file_path,
         ni.description,
+        ni.plan,
         et.name as type
       FROM narrative_items ni
       JOIN entity_templates et ON ni.template_id = et.id
@@ -202,6 +203,25 @@ export class GenericDao {
     const db = this.getDb();
     const sql = 'UPDATE narrative_items SET name = ? WHERE id = ?';
     db.prepare(sql).run(newName, itemId);
+  }
+
+  /**
+   * Обновляет детали элемента повествования (имя, описание, план).
+   * @param {number} itemId ID элемента повествования.
+   * @param {string} name Новое имя элемента.
+   * @param {string | undefined} description Новое описание (основная мысль).
+   * @param {string | undefined} plan Новый план (чек-лист).
+   */
+  public updateNarrativeItemDetails(
+    itemId: number,
+    name: string,
+    description: string | undefined,
+    plan: string | undefined,
+  ): void {
+    const db = this.getDb();
+    const sql =
+      'UPDATE narrative_items SET name = ?, description = ?, plan = ? WHERE id = ?';
+    db.prepare(sql).run(name, description, plan, itemId);
   }
 
   /**

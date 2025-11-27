@@ -14,6 +14,7 @@ CREATE TABLE narrative_items (
     parent_id INTEGER,   -- Ссылается на narrative_items.id
     name TEXT NOT NULL,
     description TEXT,
+    plan TEXT,
     file_path TEXT,
     sort_order INTEGER DEFAULT 0,
     FOREIGN KEY (template_id) REFERENCES entity_templates(id) ON DELETE RESTRICT,
