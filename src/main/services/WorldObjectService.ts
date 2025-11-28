@@ -59,13 +59,16 @@ export class WorldObjectService {
         const properties = JSON.parse(object.properties);
 
         if (Array.isArray(schema)) {
-          schema.forEach((field: { name: string; label: string }) => {
-            customFields.push({
-              key: field.name,
-              label: field.label,
-              value: properties[field.name] || '',
-            });
-          });
+          schema.forEach(
+            (field: { name: string; label: string; comment?: string }) => {
+              customFields.push({
+                key: field.name,
+                label: field.label,
+                value: properties[field.name] || '',
+                comment: field.comment,
+              });
+            },
+          );
         }
       } catch (e) {
         console.error('Error parsing custom fields JSON', e);

@@ -25,7 +25,7 @@ function TemplateManagerModal({
   const [loading, setLoading] = useState(false);
   const [editModalState, setEditModalState] = useState<{
     open: boolean;
-    mode: 'create' | 'rename' | 'copy';
+    mode: 'create' | 'rename' | 'copy' | 'edit-fields';
     template: Partial<EntityTemplate> | null;
   }>({ open: false, mode: 'create', template: null });
 
@@ -55,19 +55,23 @@ function TemplateManagerModal({
 
   useEffect(() => {
     if (editModalState.open) {
-      if (editModalState.mode === 'rename' && editModalState.template) {
-        form.setFieldsValue({ name: editModalState.template.name });
-      } else if (editModalState.mode === 'copy' && editModalState.template) {
-        const fields = JSON.parse(
-          editModalState.template.fields_schema || '[]',
-        ).map((f: any) => f.label);
+      const { mode, template } = editModalState;
+      form.resetFields(); // Reset form on every modal open
+
+      if (mode === 'rename' && template) {
+        form.setFieldsValue({ name: template.name });
+      } else if (mode === 'copy' && template) {
+        const schema = JSON.parse(template.fields_schema || '[]');
         form.setFieldsValue({
-          name: `${editModalState.template.name} (копия)`,
-          fields,
+          name: `${template.name} (копия)`,
+          fields: schema,
         });
+      } else if (mode === 'edit-fields' && template) {
+        const schema = JSON.parse(template.fields_schema || '[]');
+        form.setFieldsValue({ fields: schema });
       } else {
-        form.resetFields();
-        form.setFieldsValue({ name: '' });
+        // 'create' mode
+        form.setFieldsValue({ name: '', fields: [] });
       }
     }
   }, [editModalState, form]);
@@ -94,7 +98,7 @@ function TemplateManagerModal({
         await window.electron.ipcRenderer.invoke('templates:create', {
           name: values.name,
           category: 'world',
-          fieldLabels: values.fields || [],
+          fields: values.fields || [],
         });
         message.success(`Template ${values.name} created`);
       } else if (mode === 'rename' && template) {
@@ -103,6 +107,12 @@ function TemplateManagerModal({
           newName: values.name,
         });
         message.success(`Template renamed to ${values.name}`);
+      } else if (mode === 'edit-fields' && template) {
+        await window.electron.ipcRenderer.invoke('templates:updateSchema', {
+          id: template.id,
+          schema: values.fields || [],
+        });
+        message.success(`Fields for ${template.name} updated`);
       }
 
       setEditModalState({ open: false, mode: 'create', template: null });
@@ -134,34 +144,43 @@ function TemplateManagerModal({
       );
     }
 
+    // Unified UI for create, copy, and edit-fields
     return (
       <Form form={form} layout="vertical" name="form_in_modal">
-        <Form.Item
-          name="name"
-          label="Template Name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input the name of the template!',
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
+        {mode !== 'edit-fields' && (
+          <Form.Item
+            name="name"
+            label="Template Name"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the name of the template!',
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        )}
         <Form.List name="fields">
           {(fields, { add, remove }) => (
             <>
-              {fields.map(({ key, name }) => (
+              {fields.map(({ key, name, ...restField }) => (
                 <Space
                   key={key}
                   style={{ display: 'flex', marginBottom: 8 }}
                   align="baseline"
                 >
                   <Form.Item
-                    name={name}
-                    rules={[{ required: true, message: 'Missing field label' }]}
+                    {...restField}
+                    name={[name, 'label']}
+                    rules={[
+                      { required: true, message: 'Missing field label' },
+                    ]}
                   >
                     <Input placeholder="Field Label" />
+                  </Form.Item>
+                  <Form.Item {...restField} name={[name, 'comment']}>
+                    <Input placeholder="Comment / Hint" />
                   </Form.Item>
                   <MinusCircleOutlined onClick={() => remove(name)} />
                 </Space>
@@ -169,7 +188,7 @@ function TemplateManagerModal({
               <Form.Item>
                 <Button
                   type="dashed"
-                  onClick={() => add()}
+                  onClick={() => add({ label: '', comment: '' })}
                   block
                   icon={<PlusOutlined />}
                 >
@@ -235,6 +254,18 @@ function TemplateManagerModal({
               >
                 Rename
               </Button>,
+              <Button
+                key="edit-fields"
+                onClick={() =>
+                  setEditModalState({
+                    open: true,
+                    mode: 'edit-fields',
+                    template,
+                  })
+                }
+              >
+                Edit Fields
+              </Button>,
               !template.is_visible ? null : (
                 <Button
                   key="archive"
@@ -265,6 +296,9 @@ function TemplateManagerModal({
           }
           if (editModalState.mode === 'copy') {
             return 'Copy Template';
+          }
+          if (editModalState.mode === 'edit-fields') {
+            return `Edit Fields for ${editModalState.template?.name}`;
           }
           return 'Rename Template';
         })()}

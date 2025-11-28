@@ -543,6 +543,19 @@ export class GenericDao {
     );
     stmt.run(newName, id);
   }
+
+  /**
+   * Обновляет схему полей для шаблона.
+   * @param {number} id ID шаблона.
+   * @param {string} schemaJson Новая схема в формате JSON.
+   */
+  public updateTemplateSchema(id: number, schemaJson: string): void {
+    const db = this.getDb();
+    const stmt = db.prepare(
+      'UPDATE entity_templates SET fields_schema = ? WHERE id = ?',
+    );
+    stmt.run(schemaJson, id);
+  }
 }
 
 export default GenericDao;

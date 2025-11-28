@@ -262,8 +262,8 @@ ipcMain.handle(
 // --- Template CRUD ---
 ipcMain.handle(
   'templates:create',
-  (_event, { name, category, fieldLabels }) => {
-    return templateService.createTemplate(name, category, fieldLabels);
+  (_event, { name, category, fields }) => {
+    return templateService.createTemplate(name, category, fields);
   },
 );
 
@@ -286,6 +286,10 @@ ipcMain.handle('templates:archive', (_event, id) => {
 
 ipcMain.handle('templates:rename', (_event, { id, newName }) => {
   templateService.renameTemplate(id, newName);
+});
+
+ipcMain.handle('templates:updateSchema', (_event, { id, schema }) => {
+  return templateService.updateTemplateSchema(id, schema);
 });
 
 // --- Connections CRUD ---

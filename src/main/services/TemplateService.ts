@@ -23,12 +23,13 @@ export class TemplateService {
   createTemplate(
     name: string,
     category: 'narrative' | 'world',
-    fieldLabels: string[],
+    fields: { label: string; comment?: string }[],
   ): EntityTemplate {
     const fieldsSchema = JSON.stringify(
-      fieldLabels.map((label) => ({
+      fields.map((field) => ({
         name: TemplateService.generateFieldName(),
-        label,
+        label: field.label,
+        comment: field.comment,
       })),
     );
 
@@ -63,6 +64,23 @@ export class TemplateService {
 
   renameTemplate(id: number, newName: string): void {
     this.dao.renameTemplate(id, newName);
+  }
+
+  updateTemplateSchema(
+    id: number,
+    fields: { name?: string; label: string; comment?: string }[],
+  ): EntityTemplate {
+    const finalSchema = fields.map((field) => {
+      return {
+        name: field.name || TemplateService.generateFieldName(),
+        label: field.label,
+        comment: field.comment,
+      };
+    });
+
+    this.dao.updateTemplateSchema(id, JSON.stringify(finalSchema));
+
+    return this.getTemplate(id);
   }
 }
 

@@ -53,6 +53,7 @@ export interface CustomField {
   key: string;
   label: string;
   value: string;
+  comment?: string;
 }
 
 export interface ItemDetails {

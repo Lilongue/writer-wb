@@ -7,8 +7,13 @@ import {
   Typography,
   Input,
   List,
+  Tooltip,
 } from 'antd';
-import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  MinusOutlined,
+  PlusOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import AddConnectionModal from './AddConnectionModal';
 import ChecklistEditor from './ChecklistEditor'; // Import ChecklistEditor
@@ -278,7 +283,21 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
               <h3>Дополнительные поля</h3>
               <Descriptions bordered size="small" column={1}>
                 {editedDetails.customFields.map((field, index) => (
-                  <Descriptions.Item key={field.label} label={field.label}>
+                  <Descriptions.Item
+                    key={field.key}
+                    label={
+                      <span>
+                        {field.label}
+                        {field.comment && (
+                          <Tooltip title={field.comment}>
+                            <InfoCircleOutlined
+                              style={{ marginLeft: 4, color: '#888' }}
+                            />
+                          </Tooltip>
+                        )}
+                      </span>
+                    }
+                  >
                     <Input
                       value={field.value}
                       onChange={(e) => handleFieldChange(index, e.target.value)}
