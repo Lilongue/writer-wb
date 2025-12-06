@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
@@ -37,9 +38,9 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       setLoading(true);
       return window.electron.ipcRenderer
         .invoke('get-item-details', { id: selectedId, type: selectedType })
-        .then((result) => {
-          setDetails(result);
-          return result;
+        .then((result: unknown) => {
+          setDetails(result as ItemDetails | null);
+          return result as ItemDetails | null;
         })
         .catch(console.error)
         .finally(() => setLoading(false));
@@ -61,7 +62,7 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       if (query && details) {
         window.electron.ipcRenderer
           .invoke('entities:search', { query, currentEntityId: details.id })
-          .then(setSearchResults)
+          .then((result: unknown) => setSearchResults(result as any[]))
           .catch(console.error);
       } else {
         setSearchResults([]);
@@ -119,8 +120,9 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     const intervalId = setInterval(() => {
       window.electron.ipcRenderer
         .invoke('fs-stat', details.path)
-        .then((stats) => {
-          if (stats && details.mtime !== stats.mtimeMs) {
+        .then((stats: unknown) => {
+          const fileStats = stats as { mtimeMs: number } | null;
+          if (fileStats && details.mtime !== fileStats.mtimeMs) {
             console.log('File changed on poll, reloading...', details.path);
             fetchDetails();
           }
@@ -148,12 +150,13 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
       setLoading(true);
       return window.electron.ipcRenderer
         .invoke('create-file', details.path)
-        .then((result) => {
-          if (result.success) {
+        .then((result: unknown) => {
+          const createFileResult = result as { success: boolean };
+          if (createFileResult.success) {
             // Перезагружаем детали, чтобы показать пустой файл
             fetchDetails();
           }
-          return result;
+          return createFileResult;
         })
         .catch(console.error)
         .finally(() => setLoading(false));
@@ -172,7 +175,9 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     setEditedDetails({ ...editedDetails, name: e.target.value });
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
     setEditedDetails({ ...editedDetails, description: e.target.value });
   };
 
@@ -229,8 +234,10 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     if (details.name !== editedDetails.name) return true;
 
     if (selectedType === 'world') {
-      return JSON.stringify(details.customFields) !==
-             JSON.stringify(editedDetails.customFields);
+      return (
+        JSON.stringify(details.customFields) !==
+        JSON.stringify(editedDetails.customFields)
+      );
     }
 
     if (selectedType === 'narrative') {
@@ -277,7 +284,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         className="content-display-card"
         extra={null}
       >
-        {selectedType === 'world' && editedDetails.customFields &&
+        {selectedType === 'world' &&
+          editedDetails.customFields &&
           editedDetails.customFields.length > 0 && (
             <>
               <h3>Дополнительные поля</h3>

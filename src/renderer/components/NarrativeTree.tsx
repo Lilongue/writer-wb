@@ -214,21 +214,21 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
       </Dropdown>
       <Modal
         title={
-          modalState.type === 'create'
-            ? 'Создать элемент'
-            : modalState.type === 'rename'
-              ? 'Переименовать элемент'
-              : 'Удалить элемент'
+          {
+            create: 'Создать элемент',
+            rename: 'Переименовать элемент',
+            delete: 'Удалить элемент',
+          }[modalState.type]
         }
         open={modalState.open}
         onOk={handleModalOk}
         onCancel={() => setModalState({ ...modalState, open: false })}
         okText={
-          modalState.type === 'create'
-            ? 'Создать'
-            : modalState.type === 'rename'
-              ? 'Переименовать'
-              : 'Удалить'
+          {
+            create: 'Создать',
+            rename: 'Переименовать',
+            delete: 'Удалить',
+          }[modalState.type]
         }
         cancelText="Отмена"
         okButtonProps={{ danger: modalState.type === 'delete' }}

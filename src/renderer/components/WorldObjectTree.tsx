@@ -1,8 +1,13 @@
 /* eslint-disable no-console */
 import React, { useEffect, useState, useCallback } from 'react';
-import { Tree, Dropdown, Modal, Input } from 'antd';
+import { Tree, Dropdown, Modal, Input, Tooltip } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import type { TreeProps } from 'antd/es/tree';
-import { WorldObject, WorldObjectType } from '../../common/types';
+import {
+  EntityTemplate,
+  WorldObject,
+  WorldObjectType,
+} from '../../common/types';
 
 // Узел дерева может быть либо типом, либо объектом
 // Добавляем `children` в тип для возможности динамической подгрузки
@@ -11,6 +16,7 @@ type TreeNode = (WorldObjectType & { children?: any[] }) | WorldObject;
 // Конвертируем данные в формат, понятный Ant Design Tree
 const convertToAntdTreeFormat = (nodes: TreeNode[], isLeaf: boolean) => {
   return nodes.map((node) => ({
+    // eslint-disable-next-line react/jsx-props-no-spreading
     ...node,
     key: `${isLeaf ? 'obj' : 'type'}-${node.id}`,
     title: node.name,
@@ -84,7 +90,21 @@ function WorldObjectTree({
           // This is a signal that the types themselves have changed (e.g., a new type was created).
           // We need to re-fetch the entire tree.
           fetchWorldObjectTypes()
-            .then(setTreeData)
+            .then((newTreeData) => {
+              setTreeData((oldTreeData) => {
+                const oldDataMap = new Map(
+                  oldTreeData.map((node) => [node.key, node]),
+                );
+                return newTreeData.map((newNode) => {
+                  const oldNode = oldDataMap.get(newNode.key);
+                  if (oldNode && oldNode.children) {
+                    return { ...newNode, children: oldNode.children };
+                  }
+                  return newNode;
+                });
+              });
+              return undefined; // Explicitly return undefined to satisfy promise/always-return
+            })
             .catch((err) =>
               console.error('[WorldObjectTree] Refetch failed:', err),
             );
@@ -206,17 +226,23 @@ function WorldObjectTree({
     return items;
   };
 
-  const handleMenuClick = async ({ key, domEvent }: { key: string; domEvent: any }) => {
+  const handleMenuClick = async ({
+    key,
+    domEvent,
+  }: {
+    key: string;
+    domEvent: any;
+  }) => {
     domEvent.stopPropagation();
     const { node } = contextMenu;
     setContextMenu({ ...contextMenu, open: false });
 
     if (key === 'create') {
       const typeId = Number(node.key.split('-')[1]);
-      const template = await window.electron.ipcRenderer.invoke(
+      const template = (await window.electron.ipcRenderer.invoke(
         'get-template-details',
         typeId,
-      );
+      )) as EntityTemplate;
       const schema = JSON.parse(template.fields_schema || '[]');
       setModalState({
         open: true,
@@ -272,17 +298,23 @@ function WorldObjectTree({
         });
       } else if (type === 'delete') {
         const id = Number(node.key.split('-')[1]);
-        const result = await window.electron.ipcRenderer.invoke(
+        const result = (await window.electron.ipcRenderer.invoke(
           'world-object:delete',
           id,
-        );
+        )) as { success: boolean; error?: string };
         if (!result || !result.success) {
-          Modal.error({ title: 'Ошибка удаления', content: 'Не удалось удалить объект' });
+          Modal.error({
+            title: 'Ошибка удаления',
+            content: 'Не удалось удалить объект',
+          });
           return;
         }
         setTreeData((origin) =>
           origin.map((typeNode) => {
-            if (Array.isArray(typeNode.children) && typeNode.children.length > 0) {
+            if (
+              Array.isArray(typeNode.children) &&
+              typeNode.children.length > 0
+            ) {
               const filteredChildren = typeNode.children.filter(
                 (child: any) => child.key !== `obj-${id}`,
               );
@@ -344,21 +376,21 @@ function WorldObjectTree({
       </Dropdown>
       <Modal
         title={
-          modalState.type === 'create'
-            ? 'Создать объект'
-            : modalState.type === 'rename'
-            ? 'Переименовать объект'
-            : 'Удалить объект'
+          {
+            create: 'Создать объект',
+            rename: 'Переименовать объект',
+            delete: 'Удалить объект',
+          }[modalState.type]
         }
         open={modalState.open}
         onOk={handleModalOk}
         onCancel={() => setModalState({ ...modalState, open: false })}
         okText={
-          modalState.type === 'create'
-            ? 'Создать'
-            : modalState.type === 'rename'
-            ? 'Переименовать'
-            : 'Удалить'
+          {
+            create: 'Создать',
+            rename: 'Переименовать',
+            delete: 'Удалить',
+          }[modalState.type]
         }
         cancelText="Отмена"
         width={600}
@@ -370,11 +402,12 @@ function WorldObjectTree({
               setModalState({ ...modalState, name: e.target.value })
             }
             placeholder="Имя объекта"
-            style={{ marginBottom: '1rem' }}
+            className="modal-input-margin-bottom"
           />
         ) : (
-          <div style={{ marginBottom: '1rem' }}>
-            Вы уверены, что хотите удалить "{modalState.node?.title}"? Это действие нельзя будет отменить.
+          <div className="modal-input-margin-bottom">
+            Вы уверены, что хотите удалить &quot;{modalState.node?.title}&quot;?
+            Это действие нельзя будет отменить.
           </div>
         )}
         {modalState.type === 'create' &&
@@ -385,6 +418,13 @@ function WorldObjectTree({
                 className="form-field-label"
               >
                 {field.label}
+                {field.comment && (
+                  <Tooltip title={field.comment}>
+                    <InfoCircleOutlined
+                      style={{ marginLeft: 4, color: '#888' }}
+                    />
+                  </Tooltip>
+                )}
               </label>
               <Input
                 id={`field-${field.name}`}

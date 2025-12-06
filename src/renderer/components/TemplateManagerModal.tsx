@@ -34,11 +34,11 @@ function TemplateManagerModal({
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await window.electron.ipcRenderer.invoke(
+      const result = (await window.electron.ipcRenderer.invoke(
         'templates:getAll',
         includeArchived,
         'world',
-      );
+      )) as EntityTemplate[];
       setTemplates(result);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
@@ -77,10 +77,10 @@ function TemplateManagerModal({
   }, [editModalState, form]);
 
   const handleArchive = async (id: number) => {
-    const result = await window.electron.ipcRenderer.invoke(
+    const result = (await window.electron.ipcRenderer.invoke(
       'templates:archive',
       id,
-    );
+    )) as { success: boolean; error?: string };
     if (result.success) {
       message.success('Template archived');
       fetchTemplates();
@@ -171,15 +171,16 @@ function TemplateManagerModal({
                   align="baseline"
                 >
                   <Form.Item
-                    {...restField}
+                    {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'label']}
-                    rules={[
-                      { required: true, message: 'Missing field label' },
-                    ]}
+                    rules={[{ required: true, message: 'Missing field label' }]}
                   >
                     <Input placeholder="Field Label" />
                   </Form.Item>
-                  <Form.Item {...restField} name={[name, 'comment']}>
+                  <Form.Item
+                    {...restField} // eslint-disable-line react/jsx-props-no-spreading
+                    name={[name, 'comment']}
+                  >
                     <Input placeholder="Comment / Hint" />
                   </Form.Item>
                   <MinusCircleOutlined onClick={() => remove(name)} />

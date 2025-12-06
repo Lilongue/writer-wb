@@ -223,7 +223,12 @@ ipcMain.handle('narrative:delete', async (_event, itemId) => {
 ipcMain.handle(
   'narrative:update-details',
   async (_event, { id, name, description, plan }) => {
-    await narrativeService.updateNarrativeItemDetails(id, name, description, plan);
+    await narrativeService.updateNarrativeItemDetails(
+      id,
+      name,
+      description,
+      plan,
+    );
     eventBus.emit('narrative-changed');
   },
 );
@@ -260,12 +265,9 @@ ipcMain.handle(
 );
 
 // --- Template CRUD ---
-ipcMain.handle(
-  'templates:create',
-  (_event, { name, category, fields }) => {
-    return templateService.createTemplate(name, category, fields);
-  },
-);
+ipcMain.handle('templates:create', (_event, { name, category, fields }) => {
+  return templateService.createTemplate(name, category, fields);
+});
 
 ipcMain.handle('templates:get', (_event, id) => {
   return templateService.getTemplate(id);
@@ -324,14 +326,11 @@ ipcMain.handle(
         includeHeaders,
       );
 
-      const { canceled, filePath } = await dialog.showSaveDialog(
-        mainWindow!,
-        {
-          title: 'Сохранить рукопись как Markdown',
-          defaultPath: `manuscript.md`,
-          filters: [{ name: 'Markdown Files', extensions: ['md'] }],
-        },
-      );
+      const { canceled, filePath } = await dialog.showSaveDialog(mainWindow!, {
+        title: 'Сохранить рукопись как Markdown',
+        defaultPath: `manuscript.md`,
+        filters: [{ name: 'Markdown Files', extensions: ['md'] }],
+      });
 
       if (!canceled && filePath) {
         fs.writeFileSync(filePath, assembledContent);

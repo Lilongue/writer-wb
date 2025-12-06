@@ -37,7 +37,12 @@ export type ElectronAPI = typeof electronHandler & {
   exportNarrative: (
     rootItemId: number | null,
     includeHeaders: boolean,
-  ) => Promise<{ success: boolean; filePath?: string; error?: string; canceled?: boolean }>;
+  ) => Promise<{
+    success: boolean;
+    filePath?: string;
+    error?: string;
+    canceled?: boolean;
+  }>;
 };
 
 contextBridge.exposeInMainWorld('electron', {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-named-as-default
 import GenericDao from '../data/GenericDao';
 import { EntityTemplate } from '../../common/types';
 

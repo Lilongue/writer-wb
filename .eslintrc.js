@@ -13,6 +13,9 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
+    'react/require-default-props': 'off',
+    'react/function-component-definition': 'off',
+    'react/no-array-index-key': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,
