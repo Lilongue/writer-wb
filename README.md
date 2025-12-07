@@ -1,105 +1,32 @@
 # WriterWorldBuilder
 
-A desktop application for writers to build and manage fictional worlds.
+WriterWorldBuilder — это настольное приложение для писателей, помогающее создавать и управлять мирами, в которых происходят их истории.
 
-WriterWorldBuilder helps writers create consistent and logically structured worlds for their stories. It allows for the creation and management of relationships between various elements like objects, scenes, and characters. A key feature is its integration with external markdown editors, allowing you to use your favorite tools to write detailed descriptions, which are then seamlessly reflected within the application.
+---
 
-## Core Features (MVP)
+**Надоело теряться в собственных заметках? Забывать, какого цвета глаза у второстепенного персонажа или как работает вымышленная технология? WriterWorldBuilder создан, чтобы решить эти проблемы.**
 
-* **Project Management:** Create and open projects.
-* **Narrative Structure:** Create, rename, delete, and reorder narrative elements (Parts, Chapters, Scenes) with drag-and-drop.
-* **World Building:**
-  * Create, rename, and delete world objects.
-  * Use predefined object types like "Character" and "Location".
-  * Link objects to markdown files for detailed descriptions.
-* **Relationship Management:**
-  * Create and delete simple relationships between any two objects.
-  * Add textual descriptions to relationships (e.g., "ally," "owns").
-  * View relationships as a list on an object's page.
-* **External Editor Integration:** Open and edit object description files in your favorite markdown editor, with changes reflected in the application.
+Это не очередной текстовый редактор. Это ваша личная база знаний и рабочее пространство, которое объединяет структурированное описание мира и свободное написание текста.
 
-## Future Features
+WriterWorldBuilder помогает писателям создавать последовательные и логически структурированные миры для своих историй. Он позволяет создавать и управлять связями между различными элементами, такими как объекты, сцены и персонажи. Ключевыми особенностями являются:
 
-* Full-text search
-* Customizable UI
-* Light/Dark themes
-* Multi-language support
-* Custom world object templates
-* Tagging system
-* Visual relationship graph (mind map)
-* Timelines
+- интеграция с внешними редакторами разметки, что позволяет использовать ваши любимые инструменты для создания подробных описаний, которые затем легко отображаются в приложении.
+- гибкая настраиваемая структура объектов. Например, кроме стандартных персонажей, локаций и фентезийных объектов, которые есть в похожих приложениях вы можете решить добавить **"Улики"**, если пишете в детективном жанре или **"Технологии"** и **"Космические карабли"** если пишете в жанре научная фантастика, а может быть вам просто нужны **"Кафе"** или **"Выставки"** для сборника рецензий - все это легко реализуемо!
+- ваши данные хранятся только у вас в открытом и понятном формате - они не "утекут" и Вы не потеряете доступ к ним из-за проблем с сетью, недобросовестности или ошибок со стороны поставщика ПО
 
-## Tech Stack
+## Ключевые возможности
 
-* [Electron](https://www.electronjs.org/)
-* [React](https://reactjs.org/)
-* [TypeScript](https://www.typescriptlang.org/)
-* [Webpack](https://webpack.js.org/)
+- **Создавайте собственную вики:** Определяйте любые типы объектов (персонажей, локации, расы, что-угодно-еще) с помощью настраиваемых полей. Больше не нужно подстраиваться под чужие шаблоны — создайте структуру, которая нужна именно вашему миру.
+- **Пишите в любимом редакторе:** Для каждого объекта вы можете создать подробное описание в формате Markdown. Приложение интегрируется с вашим любимым текстовым редактором (VS Code, Obsidian, Typora и др.), позволяя вам работать в привычной среде.
+- **Отслеживайте связи:** Соединяйте любые объекты между собой, чтобы визуализировать отношения, сюжетные арки и иерархии. Кто кому враг? Где происходит ключевая сцена? Теперь ответы на эти вопросы всегда под рукой.
+- **Структурируйте повествование:** Организуйте вашу рукопись в виде дерева частей, глав и сцен, параллельно имея доступ ко всей информации о вашем мире.
 
-## Getting Started
+WriterWorldBuilder помогает поддерживать логику и целостность повествования, освобождая ваше время для самого главного — творчества.
 
-### Prerequisites
+## Для пользователей
 
-* [Node.js](https://nodejs.org/) (>=14.x)
-* [npm](https://www.npmjs.com/) (>=7.x)
+Если вы хотите получить представление об использовании приложения, обратитесь к **[Руководству пользователя](./docs/USER_GUIDE.md)**.
 
-### Installation
+## Для разработчиков
 
-```bash
-npm install
-```
-
-### Development
-
-To run the application in development mode with hot reloading:
-
-```bash
-npm start
-```
-
-### Build
-
-To build the application for production:
-
-```bash
-npm run build
-```
-
-### Package
-
-To package the application for distribution:
-
-```bash
-npm run package
-```
-
-### Tests
-
-To run the test suite:
-
-```bash
-npm test
-```
-
-### Lint
-
-To lint the codebase:
-
-```bash
-npm run lint
-```
-
-## Project Structure
-
-The project is divided into two main processes:
-
-* `src/main`: The main Electron process. It handles the application's lifecycle, window management, and communication with the operating system. It also provides services for accessing the file system and managing project data.
-* `src/renderer`: The renderer process. It renders the user interface using React and communicates with the main process to access data and application services.
-
-## Contributing
-
-Contributions are welcome! Please adhere to the project's coding standards by using ESLint and Prettier.
-
-## License
-
-This project is licensed under the MIT License.
+Если вы хотите принять участие в разработке проекта, обратитесь к **[Руководству для разработчика](./docs/DEVELOPER_GUIDE.md)** (на английском языке).
