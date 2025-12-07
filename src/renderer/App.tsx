@@ -6,7 +6,7 @@ import { Layout, Empty } from 'antd';
 import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
-import TemplateManagerModal from './components/TemplateManagerModal';
+import TemplateManagerModal from './components/TemplateManager';
 
 const { Sider, Content } = Layout;
 
