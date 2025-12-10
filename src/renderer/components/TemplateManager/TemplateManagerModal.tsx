@@ -65,7 +65,7 @@ function TemplateManagerModal({
   return (
     <Modal
       title="Template Manager"
-      visible={visible}
+      open={visible}
       onCancel={onClose}
       footer={[
         <Button key="close" onClick={onClose}>

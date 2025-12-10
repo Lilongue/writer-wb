@@ -294,6 +294,11 @@ ipcMain.handle('templates:updateSchema', (_event, { id, schema }) => {
   return templateService.updateTemplateSchema(id, schema);
 });
 
+// Project State
+ipcMain.handle('project:isProjectOpen', () => {
+  return projectService.getProjectRoot() !== null;
+});
+
 // --- Connections CRUD ---
 ipcMain.handle('entities:search', (_event, { query, currentEntityId }) => {
   return connectionService.searchEntities(query, currentEntityId);

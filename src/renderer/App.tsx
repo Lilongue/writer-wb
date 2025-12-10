@@ -7,11 +7,13 @@ import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
 import TemplateManagerModal from './components/TemplateManager';
+import { useProject } from './contexts/ProjectContext'; // Import useProject
 
 const { Sider, Content } = Layout;
 
 export default function App() {
-  const [projectState, setProjectState] = useState({ isOpen: false, key: 0 });
+  const { isProjectOpen } = useProject(); // Use the hook to get project state
+
   const [selection, setSelection] = useState<{
     id: number | null;
     type: 'narrative' | 'world' | null;
@@ -19,6 +21,7 @@ export default function App() {
   const [templateManagerVisible, setTemplateManagerVisible] = useState(false);
 
   useEffect(() => {
+    // Keep only the template manager listener
     const cleanupManager = window.electron.ipcRenderer.on(
       'open-template-manager',
       () => {
@@ -26,30 +29,15 @@ export default function App() {
       },
     );
 
-    const cleanupOpened = window.electron.ipcRenderer.on(
-      'project-opened',
-      () => {
-        setProjectState((prevState) => ({
-          isOpen: true,
-          key: prevState.key + 1,
-        }));
-      },
-    );
-
-    const cleanupClosed = window.electron.ipcRenderer.on(
-      'project-closed',
-      () => {
-        setProjectState({ isOpen: false, key: 0 });
-        setSelection({ id: null, type: null });
-      },
-    );
+    // If project is closed, clear selection
+    if (!isProjectOpen) {
+      setSelection({ id: null, type: null });
+    }
 
     return () => {
       cleanupManager();
-      cleanupOpened();
-      cleanupClosed();
     };
-  }, []);
+  }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 
   const handleNarrativeSelect = (id: number | null) => {
     setSelection({ id, type: 'narrative' });
@@ -62,10 +50,9 @@ export default function App() {
   return (
     <Layout style={{ height: '100vh' }}>
       <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
-        {projectState.isOpen ? (
+        {isProjectOpen ? ( // Use isProjectOpen from context
           <>
             <NarrativeTree
-              key={projectState.key}
               onSelect={handleNarrativeSelect}
             />
             <WorldObjectTree
