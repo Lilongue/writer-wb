@@ -7,6 +7,7 @@ import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
 import TemplateManagerModal from './components/TemplateManager';
+import ProjectSettingsModal from './components/ProjectSettingsModal'; // Import ProjectSettingsModal
 import { useProject } from './contexts/ProjectContext'; // Import useProject
 
 const { Sider, Content } = Layout;
@@ -19,6 +20,7 @@ export default function App() {
     type: 'narrative' | 'world' | null;
   }>({ id: null, type: null });
   const [templateManagerVisible, setTemplateManagerVisible] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false); // State for settings modal
 
   useEffect(() => {
     // Keep only the template manager listener
@@ -29,6 +31,14 @@ export default function App() {
       },
     );
 
+    // Listener for opening project settings modal
+    const cleanupSettings = window.electron.ipcRenderer.on(
+      'open-project-settings',
+      () => {
+        setShowSettingsModal(true);
+      },
+    );
+
     // If project is closed, clear selection
     if (!isProjectOpen) {
       setSelection({ id: null, type: null });
@@ -36,6 +46,7 @@ export default function App() {
 
     return () => {
       cleanupManager();
+      cleanupSettings();
     };
   }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 
@@ -76,6 +87,10 @@ export default function App() {
       <TemplateManagerModal
         visible={templateManagerVisible}
         onClose={() => setTemplateManagerVisible(false)}
+      />
+      <ProjectSettingsModal
+        show={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
       />
     </Layout>
   );

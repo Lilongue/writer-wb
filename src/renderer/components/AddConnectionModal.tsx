@@ -22,7 +22,7 @@ function AddConnectionModal({
   return (
     <Modal
       title="Добавить новую связь"
-      visible={visible}
+      open={visible}
       onCancel={onCancel}
       onOk={() => {
         form

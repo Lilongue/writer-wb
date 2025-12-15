@@ -215,6 +215,14 @@ export default class MenuBuilder {
           },
           { type: 'separator' },
           {
+            label: '&Settings',
+            accelerator: 'Ctrl+,', // Common shortcut for settings
+            click: () => {
+              this.mainWindow.webContents.send('open-project-settings');
+            },
+          },
+          { type: 'separator' },
+          {
             label: 'E&xit',
             accelerator: 'Ctrl+W',
             click: () => {

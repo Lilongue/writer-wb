@@ -71,5 +71,37 @@ INSERT INTO entity_templates (name, category, fields_schema) VALUES ('concept', 
 -- Начальные данные: корневой элемент для всего повествования.
 -- 1. Создаем сам элемент повествования
 INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), NULL, 'Произведение', 0);
+
+
+
 -- 2. Создаем для него запись в прокси-таблице
+
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
+
+
+
+CREATE TABLE IF NOT EXISTS project_settings (
+
+    key         TEXT PRIMARY KEY, -- Уникальный ключ настройки (например, 'ui.window.width')
+
+    value       TEXT,             -- Значение настройки
+
+    name        TEXT NOT NULL,    -- Человекочитаемое имя (например, 'Ширина окна')
+
+    description TEXT,             -- Описание, поясняющее назначение настройки
+
+    category    TEXT NOT NULL,    -- Категория для группировки в UI (например, 'Интерфейс')
+
+    type        TEXT NOT NULL DEFAULT 'text' -- Тип для рендеринга в UI ('text', 'boolean', 'number')
+
+);
+
+-- Начальные данные для настроек проекта
+INSERT INTO project_settings (key, value, name, description, category, type) VALUES
+('project.author', 'Автор', 'Автор проекта', 'Имя автора, которое может использоваться при экспорте.', 'Общие', 'text'),
+('project.name', 'Мой проект', 'Название проекта', 'Общее название проекта или произведения.', 'Общие', 'text'),
+('project.location', '', 'Место расположения проекта', 'Путь к корневой папке проекта. Только для чтения.', 'Общие', 'text'),
+('ui.theme', 'light', 'Тема интерфейса', 'На данный момент не используется, задел на будущее.', 'Интерфейс', 'text'),
+('editor.mdPath', '', 'Редактор Markdown', 'Путь к внешнему редактору для файлов Markdown.', 'Редакторы', 'text'),
+('app.version', '1.0.0', 'Версия ПО', 'Текущая версия приложения.', 'Приложение', 'text'),
+('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text');

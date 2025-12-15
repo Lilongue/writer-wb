@@ -22,6 +22,7 @@ import { GenericDao } from './data/GenericDao';
 import { TemplateService } from './services/TemplateService';
 import ConnectionService from './services/ConnectionService';
 import { ManuscriptService } from './services/ManuscriptService';
+import ProjectSettingsService from './services/ProjectSettingsService';
 
 const genericDao = new GenericDao(() => projectService.getDb());
 const narrativeService = new NarrativeService(genericDao, () =>
@@ -35,6 +36,7 @@ const worldObjectService = new WorldObjectService(genericDao, () =>
 );
 const templateService = new TemplateService(genericDao);
 const connectionService = new ConnectionService(genericDao);
+const projectSettingsService = new ProjectSettingsService(genericDao);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -348,6 +350,15 @@ ipcMain.handle(
     }
   },
 );
+
+// --- Project Settings ---
+ipcMain.handle('project-settings:get-all', () => {
+  return projectSettingsService.getAllSettings();
+});
+
+ipcMain.handle('project-settings:update', (_event, settings) => {
+  return projectSettingsService.updateSettings(settings);
+});
 
 app
   .whenReady()

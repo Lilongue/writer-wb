@@ -74,4 +74,13 @@ export interface ChecklistItem {
   checked: boolean;
 }
 
+export interface ProjectSetting {
+  key: string;
+  value: any; // The actual value can be string, number, boolean, etc.
+  name: string;
+  description?: string;
+  category: string;
+  type: 'text' | 'boolean' | 'number';
+}
+
 // export interface Connection { ... }

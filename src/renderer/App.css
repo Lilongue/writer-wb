@@ -82,3 +82,15 @@
 .modal-input-margin-bottom {
   margin-bottom: 1rem;
 }
+
+.settings-modal-body {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+
+
+.settings-category-group {
+  margin-bottom: 24px;
+}
