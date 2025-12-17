@@ -79,21 +79,13 @@ INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((
 INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
 
 
-
 CREATE TABLE IF NOT EXISTS project_settings (
-
     key         TEXT PRIMARY KEY, -- Уникальный ключ настройки (например, 'ui.window.width')
-
     value       TEXT,             -- Значение настройки
-
     name        TEXT NOT NULL,    -- Человекочитаемое имя (например, 'Ширина окна')
-
     description TEXT,             -- Описание, поясняющее назначение настройки
-
     category    TEXT NOT NULL,    -- Категория для группировки в UI (например, 'Интерфейс')
-
     type        TEXT NOT NULL DEFAULT 'text' -- Тип для рендеринга в UI ('text', 'boolean', 'number')
-
 );
 
 -- Начальные данные для настроек проекта

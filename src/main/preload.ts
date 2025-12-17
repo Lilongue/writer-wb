@@ -1,6 +1,7 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { EntityTemplate, PredefinedTemplate } from '../common/types';
 
 export type Channels =
   | 'project-opened'
@@ -43,12 +44,24 @@ export type ElectronAPI = typeof electronHandler & {
     error?: string;
     canceled?: boolean;
   }>;
+  template: {
+    getPredefinedTemplates: () => Promise<PredefinedTemplate[]>;
+    importTemplate: (
+      templateData: PredefinedTemplate,
+    ) => Promise<EntityTemplate>;
+  };
 };
 
 contextBridge.exposeInMainWorld('electron', {
   ...electronHandler,
   exportNarrative: (rootItemId: number | null, includeHeaders: boolean) =>
     ipcRenderer.invoke('export-narrative', { rootItemId, includeHeaders }),
+  template: {
+    getPredefinedTemplates: () =>
+      ipcRenderer.invoke('templates:get-predefined'),
+    importTemplate: (templateData: PredefinedTemplate) =>
+      ipcRenderer.invoke('templates:import', templateData),
+  },
 });
 
 export type ElectronHandler = ElectronAPI;

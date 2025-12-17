@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, List, Checkbox } from 'antd';
+import { Modal, Button, List, Checkbox, Dropdown, Menu } from 'antd';
 import useTemplates from './useTemplates';
 import TemplateEditorModal, {
   TemplateEditModalState,
@@ -15,11 +15,13 @@ function TemplateManagerModal({
 }) {
   const {
     templates,
+    predefinedTemplates,
     includeArchived,
     setIncludeArchived,
     loading,
     fetchTemplates,
     handleArchive,
+    handleImportTemplate,
   } = useTemplates('world'); // Assuming category 'world'
 
   const [editModalState, setEditModalState] = useState<TemplateEditModalState>({
@@ -62,6 +64,26 @@ function TemplateManagerModal({
     }
   };
 
+  const existingTemplateNames = templates.map((t) => t.name);
+  const availableToImport = predefinedTemplates.filter(
+    (pt) => !existingTemplateNames.includes(pt.name),
+  );
+
+  const importMenu = (
+    <Menu
+      onClick={({ key }) => {
+        const templateToImport = availableToImport.find((t) => t.name === key);
+        if (templateToImport) {
+          handleImportTemplate(templateToImport);
+        }
+      }}
+    >
+      {availableToImport.map((template) => (
+        <Menu.Item key={template.name}>{template.name}</Menu.Item>
+      ))}
+    </Menu>
+  );
+
   return (
     <Modal
       title="Template Manager"
@@ -92,6 +114,9 @@ function TemplateManagerModal({
       >
         Create New
       </Button>
+      <Dropdown overlay={importMenu} disabled={availableToImport.length === 0}>
+        <Button style={{ marginLeft: 8 }}>Import from Library</Button>
+      </Dropdown>
       <List
         loading={loading}
         dataSource={templates}

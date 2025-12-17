@@ -1,12 +1,15 @@
 /* eslint-disable no-console */
 import { useState, useEffect, useCallback } from 'react';
 import { message } from 'antd';
-import { EntityTemplate } from '../../../common/types';
+import { EntityTemplate, PredefinedTemplate } from '../../../common/types';
 import { useProject } from '../../contexts/ProjectContext'; // Import useProject
 
 const useTemplates = (category: string) => {
   const { isProjectOpen } = useProject(); // Get isProjectOpen from context
   const [templates, setTemplates] = useState<EntityTemplate[]>([]);
+  const [predefinedTemplates, setPredefinedTemplates] = useState<
+    PredefinedTemplate[]
+  >([]);
   const [includeArchived, setIncludeArchived] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +38,21 @@ const useTemplates = (category: string) => {
     fetchTemplates();
   }, [fetchTemplates]);
 
+  useEffect(() => {
+    if (isProjectOpen) {
+      window.electron.template
+        .getPredefinedTemplates()
+        .then((pTemplates) => {
+          setPredefinedTemplates(pTemplates);
+          return null;
+        })
+        .catch((err) => {
+          console.error('Failed to load predefined templates', err);
+          message.error('Failed to load predefined templates');
+        });
+    }
+  }, [isProjectOpen]);
+
   const handleArchive = useCallback(
     async (id: number) => {
       const result = (await window.electron.ipcRenderer.invoke(
@@ -51,13 +69,30 @@ const useTemplates = (category: string) => {
     [fetchTemplates],
   );
 
+  const handleImportTemplate = useCallback(
+    async (template: PredefinedTemplate) => {
+      try {
+        await window.electron.template.importTemplate(template);
+        message.success(`Template "${template.name}" imported`);
+        fetchTemplates();
+        window.electron.ipcRenderer.sendMessage('world-objects-changed');
+      } catch (err) {
+        console.error('Failed to import template', err);
+        message.error(`Failed to import template: ${err}`);
+      }
+    },
+    [fetchTemplates],
+  );
+
   return {
     templates,
+    predefinedTemplates,
     includeArchived,
     setIncludeArchived,
     loading,
     fetchTemplates,
     handleArchive,
+    handleImportTemplate,
   };
 };
 

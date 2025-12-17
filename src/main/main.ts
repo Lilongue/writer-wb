@@ -267,6 +267,14 @@ ipcMain.handle(
 );
 
 // --- Template CRUD ---
+ipcMain.handle('templates:get-predefined', () => {
+  return TemplateService.getPredefinedTemplates();
+});
+
+ipcMain.handle('templates:import', (_event, templateData) => {
+  return templateService.importTemplate(templateData);
+});
+
 ipcMain.handle('templates:create', (_event, { name, category, fields }) => {
   return templateService.createTemplate(name, category, fields);
 });

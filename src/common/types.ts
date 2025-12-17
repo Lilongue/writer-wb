@@ -84,3 +84,25 @@ export interface ProjectSetting {
 }
 
 // export interface Connection { ... }
+
+/**
+ * Используется для "типизации" JSON-файлов с предустановленными шаблонами.
+ * Не является сущностью БД.
+ */
+export type PredefinedTemplate = {
+  name: string;
+  category: 'world' | 'narrative';
+  fields: {
+    name: string; // системное имя
+    label: string; // имя для юзера
+    comment?: string;
+  }[];
+};
+
+/**
+ * Описывает структуру файла `predefined-templates.json`.
+ */
+export type PredefinedTemplatesFile = {
+  world_templates: PredefinedTemplate[];
+  narrative_templates?: PredefinedTemplate[]; // Для будущего использования
+};

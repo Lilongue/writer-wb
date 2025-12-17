@@ -28,7 +28,7 @@ export class WorldObjectService {
    * @returns {WorldObjectType[]} Массив типов объектов мира.
    */
   public getWorldObjectTypes(): WorldObjectType[] {
-    return this.dao.getWorldObjectTypes();
+    return this.dao.getAllTemplates(false, 'world');
   }
 
   /**

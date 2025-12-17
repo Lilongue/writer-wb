@@ -1,6 +1,14 @@
+/* eslint-disable no-console */
+import { app } from 'electron';
+import path from 'path';
+import fs from 'fs/promises';
 // eslint-disable-next-line import/no-named-as-default
 import GenericDao from '../data/GenericDao';
-import { EntityTemplate } from '../../common/types';
+import {
+  EntityTemplate,
+  PredefinedTemplate,
+  PredefinedTemplatesFile,
+} from '../../common/types';
 
 /**
  * Сервис для управления шаблонами (типами) объектов.
@@ -13,12 +21,52 @@ export class TemplateService {
   }
 
   /**
+   * Возвращает корректный путь к файлу с ресурсами (assets).
+   * В режиме разработки и в собранном приложении пути различаются.
+   * @param filename - имя файла внутри директории assets
+   */
+  private static getAssetPath(filename: string): string {
+    if (app.isPackaged) {
+      // Путь в собранном приложении (production)
+      // process.resourcesPath указывает на директорию resources
+      return path.join(process.resourcesPath, 'assets', filename);
+    }
+    // Путь в режиме разработки (development)
+    return path.join(app.getAppPath(), 'assets', filename);
+  }
+
+  /**
    * Генерирует уникальное системное имя для поля.
    * @returns {string} Уникальное имя (например, "field_1678886400000_a1b2c3d4e")
    */
   private static generateFieldName(): string {
     const randomPart = Math.random().toString(36).substring(2, 11);
     return `field_${Date.now()}_${randomPart}`;
+  }
+
+  static async getPredefinedTemplates(): Promise<PredefinedTemplate[]> {
+    const filePath = TemplateService.getAssetPath('predefined-templates.json');
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const data = JSON.parse(content) as PredefinedTemplatesFile;
+      return data.world_templates || [];
+    } catch (error) {
+      console.error('Failed to read predefined templates file:', error);
+      return [];
+    }
+  }
+
+  async importTemplate(
+    templateData: PredefinedTemplate,
+  ): Promise<EntityTemplate> {
+    const { name, category, fields } = templateData;
+
+    // Просто преобразуем массив полей в JSON-строку как есть,
+    // так как структура полностью соответствует `fields_schema`.
+    const fieldsSchema = JSON.stringify(fields);
+
+    const newId = this.dao.createTemplate(name, category, fieldsSchema);
+    return this.dao.getTemplate(newId);
   }
 
   createTemplate(
