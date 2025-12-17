@@ -84,6 +84,30 @@ const useTemplates = (category: string) => {
     [fetchTemplates],
   );
 
+  const handleBulkImport = useCallback(
+    async (templatesToImport: PredefinedTemplate[]) => {
+      if (templatesToImport.length === 0) return;
+
+      try {
+        await Promise.all(
+          templatesToImport.map((template) =>
+            window.electron.template.importTemplate(template),
+          ),
+        );
+
+        message.success(
+          `Successfully imported ${templatesToImport.length} templates.`,
+        );
+        fetchTemplates();
+        window.electron.ipcRenderer.sendMessage('world-objects-changed');
+      } catch (err) {
+        console.error('Failed to import templates', err);
+        message.error(`Failed to import templates: ${err}`);
+      }
+    },
+    [fetchTemplates],
+  );
+
   return {
     templates,
     predefinedTemplates,
@@ -93,6 +117,7 @@ const useTemplates = (category: string) => {
     fetchTemplates,
     handleArchive,
     handleImportTemplate,
+    handleBulkImport,
   };
 };
 

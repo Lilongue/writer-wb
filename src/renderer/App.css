@@ -94,3 +94,43 @@
 .settings-category-group {
   margin-bottom: 24px;
 }
+
+/* Styles for ImportTemplatesModal */
+.import-modal-layout {
+  background: #fff;
+}
+
+.import-modal-sider {
+  background: #fff !important; /* Use !important to override Ant Design's default sider background */
+  padding-right: 16px;
+}
+
+.import-modal-content {
+  padding-left: 16px;
+}
+
+.template-list-container {
+  height: 400px;
+  overflow: auto;
+}
+
+.template-list-item {
+  cursor: pointer;
+}
+
+.template-list-item-focused {
+  background-color: #e6f7ff;
+}
+
+.template-list-item-label {
+  margin-left: 8px;
+}
+
+.empty-details-pane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+}

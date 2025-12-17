@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, List, Checkbox, Dropdown, Menu } from 'antd';
+import { Modal, Button, List, Checkbox } from 'antd';
 import useTemplates from './useTemplates';
 import TemplateEditorModal, {
   TemplateEditModalState,
 } from './components/TemplateEditorModal';
+import ImportTemplatesModal from './components/ImportTemplatesModal';
 
 function TemplateManagerModal({
   visible,
@@ -21,7 +22,7 @@ function TemplateManagerModal({
     loading,
     fetchTemplates,
     handleArchive,
-    handleImportTemplate,
+    handleBulkImport,
   } = useTemplates('world'); // Assuming category 'world'
 
   const [editModalState, setEditModalState] = useState<TemplateEditModalState>({
@@ -29,6 +30,8 @@ function TemplateManagerModal({
     mode: 'create',
     template: null,
   });
+
+  const [isImportModalVisible, setImportModalVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -69,20 +72,10 @@ function TemplateManagerModal({
     (pt) => !existingTemplateNames.includes(pt.name),
   );
 
-  const importMenu = (
-    <Menu
-      onClick={({ key }) => {
-        const templateToImport = availableToImport.find((t) => t.name === key);
-        if (templateToImport) {
-          handleImportTemplate(templateToImport);
-        }
-      }}
-    >
-      {availableToImport.map((template) => (
-        <Menu.Item key={template.name}>{template.name}</Menu.Item>
-      ))}
-    </Menu>
-  );
+  const onTemplatesImport = (selectedTemplates: any[]) => {
+    handleBulkImport(selectedTemplates);
+    setImportModalVisible(false);
+  };
 
   return (
     <Modal
@@ -114,9 +107,13 @@ function TemplateManagerModal({
       >
         Create New
       </Button>
-      <Dropdown overlay={importMenu} disabled={availableToImport.length === 0}>
-        <Button style={{ marginLeft: 8 }}>Import from Library</Button>
-      </Dropdown>
+      <Button
+        style={{ marginLeft: 8 }}
+        disabled={availableToImport.length === 0}
+        onClick={() => setImportModalVisible(true)}
+      >
+        Import from Library
+      </Button>
       <List
         loading={loading}
         dataSource={templates}
@@ -181,6 +178,14 @@ function TemplateManagerModal({
         }
         onSave={handleEditModalSave}
       />
+      {isImportModalVisible && (
+        <ImportTemplatesModal
+          visible={isImportModalVisible}
+          templatesToImport={availableToImport}
+          onClose={() => setImportModalVisible(false)}
+          onImport={onTemplatesImport}
+        />
+      )}
     </Modal>
   );
 }
