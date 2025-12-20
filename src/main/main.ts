@@ -152,6 +152,10 @@ ipcMain.handle('get-narrative-items', () => {
   return narrativeService.getNarrativeItems();
 });
 
+ipcMain.handle('get-narrative-templates', () => {
+  return templateService.getNarrativeTemplates();
+});
+
 ipcMain.handle('get-world-object-types', () => {
   return worldObjectService.getWorldObjectTypes();
 });
@@ -201,10 +205,10 @@ ipcMain.handle('fs-stat', async (_event, filePath: string) => {
 // --- Narrative CRUD ---
 ipcMain.handle(
   'narrative:create',
-  async (_event, { parentId, itemType, name }) => {
+  async (_event, { parentId, templateId, name }) => {
     const newItemId = await narrativeService.createNarrativeItem(
       parentId,
-      itemType,
+      templateId,
       name,
     );
     eventBus.emit('narrative-changed');

@@ -1,10 +1,10 @@
--- Таблица шаблонов для типов сущностей
 CREATE TABLE entity_templates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     category TEXT NOT NULL, -- 'narrative' или 'world'
     fields_schema TEXT, -- JSON-схема полей (только для 'world')
-    is_visible BOOLEAN NOT NULL DEFAULT 1
+    is_visible BOOLEAN NOT NULL DEFAULT 1,
+    weight INTEGER NOT NULL DEFAULT 0
 );
 
 -- Таблица для элементов повествования (жесткая структура)
@@ -59,9 +59,9 @@ CREATE INDEX idx_connections_source_id ON connections(source_id);
 CREATE INDEX idx_connections_target_id ON connections(target_id);
 
 -- Начальные данные: предустановленные шаблоны
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('part', 'narrative', '[]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('chapter', 'narrative', '[]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('scene', 'narrative', '[]');
+INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Часть', 'narrative', '[]', 40);
+INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Глава', 'narrative', '[]', 20);
+INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Сцена', 'narrative', '[]', 10);
 
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('character', 'world', '[{"name": "race", "label": "Раса"}, {"name": "age", "label": "Возраст"}]');
 INSERT INTO entity_templates (name, category, fields_schema) VALUES ('location', 'world', '[{"name": "population", "label": "Население"}]');
@@ -70,7 +70,7 @@ INSERT INTO entity_templates (name, category, fields_schema) VALUES ('concept', 
 
 -- Начальные данные: корневой элемент для всего повествования.
 -- 1. Создаем сам элемент повествования
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'part'), NULL, 'Произведение', 0);
+INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'Часть'), NULL, 'Произведение', 0);
 
 
 
@@ -96,4 +96,5 @@ INSERT INTO project_settings (key, value, name, description, category, type) VAL
 ('ui.theme', 'light', 'Тема интерфейса', 'На данный момент не используется, задел на будущее.', 'Интерфейс', 'text'),
 ('editor.mdPath', '', 'Редактор Markdown', 'Путь к внешнему редактору для файлов Markdown.', 'Редакторы', 'text'),
 ('app.version', '1.0.0', 'Версия ПО', 'Текущая версия приложения.', 'Приложение', 'text'),
-('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text');
+('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text'),
+('narrative.structure', '["part", "chapter", "scene"]', 'Структура повествования', 'JSON-массив, определяющий активные уровни иерархии повествования.', 'Структура', 'json');

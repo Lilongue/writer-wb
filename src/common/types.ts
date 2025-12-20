@@ -6,7 +6,7 @@
 export interface NarrativeItem {
   id: number;
   name: string;
-  type: string; // part, chapter, scene, etc.
+  template_id: number;
   parent_id: number | null;
   sort_order: number;
   file_path?: string;
@@ -47,6 +47,7 @@ export interface EntityTemplate {
   category: 'narrative' | 'world';
   fields_schema: string; // JSON-схема полей
   is_visible: 0 | 1;
+  weight: number;
 }
 
 export interface CustomField {

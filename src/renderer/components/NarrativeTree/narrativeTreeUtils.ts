@@ -28,7 +28,7 @@ export const buildTree = (items: NarrativeItem[]) => {
       ...node,
       key: node.id,
       title: node.name,
-      type: node.type, // Пробрасываем тип
+      template_id: node.template_id, // Пробрасываем template_id
       children: node.children ? convertToAntdTreeFormat(node.children) : [],
     }));
   };

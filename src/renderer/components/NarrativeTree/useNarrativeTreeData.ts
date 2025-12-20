@@ -3,11 +3,13 @@ import { useState, useCallback, useEffect } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
+import { useProject } from '../../contexts/ProjectContext';
 import { NarrativeItem } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
 
 const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
+  const { narrativeTemplates } = useProject();
   const [treeData, setTreeData] = useState<any[]>([]);
   const [contextMenu, setContextMenu] = useState<{
     open: boolean;
@@ -89,12 +91,15 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     setContextMenu({ ...contextMenu, open: false });
 
     if (key.startsWith('create-')) {
-      const itemType = key.split('-')[1];
+      const templateId = parseInt(key.split('-')[1], 10);
+      const template = narrativeTemplates.find((t) => t.id === templateId);
       setModalState({
         open: true,
         type: 'create',
-        node: { ...node, itemType },
+        node,
         name: '',
+        templateId,
+        templateName: template?.name,
       });
     } else if (key === 'rename') {
       setModalState({ open: true, type: 'rename', node, name: node.title });
@@ -106,12 +111,12 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
   };
 
   const handleModalOk = async () => {
-    const { type, node, name } = modalState;
+    const { type, node, name, templateId } = modalState;
     try {
       if (type === 'create') {
         await window.electron.ipcRenderer.invoke('narrative:create', {
           parentId: node.key,
-          itemType: node.itemType,
+          templateId,
           name,
         });
       } else if (type === 'rename') {

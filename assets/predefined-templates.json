@@ -1,4 +1,41 @@
 {
+  "narrative_templates": [
+    {
+      "name": "book",
+      "label": "Том",
+      "weight": 50,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "part",
+      "label": "Часть",
+      "weight": 40,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "act",
+      "label": "Акт",
+      "weight": 30,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "chapter",
+      "label": "Глава",
+      "weight": 20,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "scene",
+      "label": "Сцена",
+      "weight": 10,
+      "category": "narrative",
+      "fields": []
+    }
+  ],
   "world_templates": [
     {
       "name": "Фентези мир: Персонаж",

@@ -65,7 +65,10 @@ export class TemplateService {
     // так как структура полностью соответствует `fields_schema`.
     const fieldsSchema = JSON.stringify(fields);
 
-    const newId = this.dao.createTemplate(name, category, fieldsSchema);
+    // HACK: PredefinedTemplate isn't typed with weight, but we know it's there for narrative templates
+    const weight = (templateData as any).weight || 0;
+
+    const newId = this.dao.createTemplate(name, category, fieldsSchema, weight);
     return this.dao.getTemplate(newId);
   }
 
@@ -73,6 +76,7 @@ export class TemplateService {
     name: string,
     category: 'narrative' | 'world',
     fields: { label: string; comment?: string }[],
+    weight: number = 0,
   ): EntityTemplate {
     const fieldsSchema = JSON.stringify(
       fields.map((field) => ({
@@ -82,12 +86,22 @@ export class TemplateService {
       })),
     );
 
-    const newId = this.dao.createTemplate(name, category, fieldsSchema);
+    const newId = this.dao.createTemplate(name, category, fieldsSchema, weight);
     return this.dao.getTemplate(newId);
   }
 
   getTemplate(id: number): EntityTemplate {
     return this.dao.getTemplate(id);
+  }
+
+  /**
+   * Получает все шаблоны повествования, отсортированные по весу.
+   * @returns {EntityTemplate[]} Отсортированный список шаблонов повествования.
+   */
+  getNarrativeTemplates(): EntityTemplate[] {
+    const templates = this.dao.getAllTemplates(false, 'narrative');
+    // Сортировка по убыванию: чем больше вес, тем "выше" уровень (например, Книга > Часть)
+    return templates.sort((a, b) => b.weight - a.weight);
   }
 
   getAllTemplates(

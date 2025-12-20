@@ -75,7 +75,7 @@ export class NarrativeService {
 
   public async createNarrativeItem(
     parentId: number | null,
-    itemType: string,
+    templateId: number,
     name: string,
   ): Promise<number> {
     const projectRoot = this.getProjectRoot();
@@ -83,10 +83,10 @@ export class NarrativeService {
       throw new Error('Проект не открыт');
     }
 
-    const template = this.dao.findTemplateByName(itemType, 'narrative');
-    if (!template) {
-      throw new Error(`Не найден шаблон для типа '${itemType}'`);
-    }
+    // const template = this.dao.findTemplateByName(itemType, 'narrative');
+    // if (!template) {
+    //   throw new Error(`Не найден шаблон для типа '${itemType}'`);
+    // }
 
     let parentPath = 'narrative';
     if (parentId) {
@@ -104,7 +104,7 @@ export class NarrativeService {
     const newItemId = this.dao.createNarrativeItem(
       name,
       parentId,
-      template.id,
+      templateId,
       relativeFilePath,
       sortOrder,
     );

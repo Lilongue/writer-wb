@@ -35,9 +35,8 @@ export class GenericDao {
         ni.file_path,
         ni.description,
         ni.plan,
-        et.name as type
+        ni.template_id
       FROM narrative_items ni
-      JOIN entity_templates et ON ni.template_id = et.id
       ORDER BY ni.sort_order ASC
     `;
     const stmt = db.prepare(sql);
@@ -447,18 +446,20 @@ export class GenericDao {
    * @param {string} name Название шаблона.
    * @param {'narrative' | 'world'} category Категория шаблона ('narrative' или 'world').
    * @param {string} fieldsSchema JSON-схема полей шаблона.
+   * @param {number} weight Вес для сортировки.
    * @returns {number} ID созданного шаблона.
    */
   public createTemplate(
     name: string,
     category: 'narrative' | 'world',
     fieldsSchema: string,
+    weight: number = 0,
   ): number {
     const db = this.getDb();
     const stmt = db.prepare(
-      'INSERT INTO entity_templates (name, category, fields_schema) VALUES (?, ?, ?)',
+      'INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES (?, ?, ?, ?)',
     );
-    const info = stmt.run(name, category, fieldsSchema);
+    const info = stmt.run(name, category, fieldsSchema, weight);
     return info.lastInsertRowid as number;
   }
 

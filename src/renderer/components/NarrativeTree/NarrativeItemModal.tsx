@@ -6,6 +6,8 @@ export interface NarrativeModalState {
   type: 'create' | 'rename' | 'delete';
   node: any;
   name: string;
+  templateId?: number;
+  templateName?: string;
 }
 
 interface NarrativeItemModalProps {
@@ -23,17 +25,21 @@ const NarrativeItemModal: React.FC<NarrativeItemModalProps> = ({
   onNameChange,
   onPressEnter,
 }) => {
-  const { type, open, name } = modalState;
+  const { type, open, name, templateName } = modalState;
+
+  const getTitle = () => {
+    if (type === 'create') {
+      return `Создать: ${templateName || 'элемент'}`;
+    }
+    if (type === 'rename') {
+      return 'Переименовать элемент';
+    }
+    return 'Удалить элемент';
+  };
 
   return (
     <Modal
-      title={
-        {
-          create: 'Создать элемент',
-          rename: 'Переименовать элемент',
-          delete: 'Удалить элемент',
-        }[type]
-      }
+      title={getTitle()}
       open={open}
       onOk={onOk}
       onCancel={onCancel}
