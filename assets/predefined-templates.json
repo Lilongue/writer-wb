@@ -3,27 +3,41 @@
     {
       "name": "book",
       "label": "Том",
-      "weight": 50,
+      "weight": 70,
       "category": "narrative",
       "fields": []
     },
     {
       "name": "part",
       "label": "Часть",
-      "weight": 40,
+      "weight": 60,
       "category": "narrative",
       "fields": []
     },
     {
       "name": "act",
       "label": "Акт",
-      "weight": 30,
+      "weight": 50,
       "category": "narrative",
       "fields": []
     },
     {
       "name": "chapter",
       "label": "Глава",
+      "weight": 40,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "action",
+      "label": "Действие",
+      "weight": 30,
+      "category": "narrative",
+      "fields": []
+    },
+    {
+      "name": "section",
+      "label": "Параграф",
       "weight": 20,
       "category": "narrative",
       "fields": []

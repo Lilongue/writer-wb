@@ -1,7 +1,12 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { EntityTemplate, PredefinedTemplate } from '../common/types';
+import {
+  EntityTemplate,
+  PredefinedTemplate,
+  PredefinedWorldTemplate,
+  PredefinedNarrativeTemplate,
+} from '../common/types';
 
 export type Channels =
   | 'project-opened'
@@ -9,7 +14,9 @@ export type Channels =
   | 'open-in-external-editor'
   | 'narrative-changed'
   | 'world-objects-changed'
-  | 'open-template-manager';
+  | 'open-template-manager'
+  | 'open-project-settings'
+  | 'open-project-wizard';
 
 const electronHandler = {
   ipcRenderer: {
@@ -45,10 +52,23 @@ export type ElectronAPI = typeof electronHandler & {
     canceled?: boolean;
   }>;
   template: {
-    getPredefinedTemplates: () => Promise<PredefinedTemplate[]>;
+    getPredefinedNarrativeTemplates: () => Promise<
+      PredefinedNarrativeTemplate[]
+    >;
+    getPredefinedTemplates: () => Promise<PredefinedWorldTemplate[]>;
     importTemplate: (
       templateData: PredefinedTemplate,
     ) => Promise<EntityTemplate>;
+  };
+  dialog: {
+    showOpenDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>;
+  };
+  project: {
+    create: (projectData: {
+      location: string;
+      projectName: string;
+      narrativeStructure: string[];
+    }) => Promise<void>;
   };
 };
 
@@ -57,10 +77,22 @@ contextBridge.exposeInMainWorld('electron', {
   exportNarrative: (rootItemId: number | null, includeHeaders: boolean) =>
     ipcRenderer.invoke('export-narrative', { rootItemId, includeHeaders }),
   template: {
+    getPredefinedNarrativeTemplates: () =>
+      ipcRenderer.invoke('templates:get-predefined-narrative'),
     getPredefinedTemplates: () =>
       ipcRenderer.invoke('templates:get-predefined'),
     importTemplate: (templateData: PredefinedTemplate) =>
       ipcRenderer.invoke('templates:import', templateData),
+  },
+  dialog: {
+    showOpenDialog: () => ipcRenderer.invoke('dialog:show-open-dialog'),
+  },
+  project: {
+    create: (projectData: {
+      location: string;
+      projectName: string;
+      narrativeStructure: string[];
+    }) => ipcRenderer.invoke('project:create', projectData),
   },
 });
 

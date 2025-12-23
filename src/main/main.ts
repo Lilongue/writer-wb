@@ -148,6 +148,16 @@ app.on('before-quit', () => {
 });
 
 // IPC MAIN
+ipcMain.handle('dialog:show-open-dialog', async () => {
+  if (!mainWindow) {
+    return { canceled: true, filePaths: [] };
+  }
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+  });
+  return { canceled, filePaths };
+});
+
 ipcMain.handle('get-narrative-items', () => {
   return narrativeService.getNarrativeItems();
 });
@@ -271,6 +281,10 @@ ipcMain.handle(
 );
 
 // --- Template CRUD ---
+ipcMain.handle('templates:get-predefined-narrative', () => {
+  return TemplateService.getPredefinedNarrativeTemplates();
+});
+
 ipcMain.handle('templates:get-predefined', () => {
   return TemplateService.getPredefinedTemplates();
 });
@@ -309,6 +323,15 @@ ipcMain.handle('templates:updateSchema', (_event, { id, schema }) => {
 });
 
 // Project State
+ipcMain.handle('project:create', (_event, projectData) => {
+  return projectService.createProject(
+    projectData,
+    templateService,
+    projectSettingsService,
+    narrativeService,
+  );
+});
+
 ipcMain.handle('project:isProjectOpen', () => {
   return projectService.getProjectRoot() !== null;
 });

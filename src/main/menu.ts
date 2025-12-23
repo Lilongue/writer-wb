@@ -175,18 +175,8 @@ export default class MenuBuilder {
           {
             label: '&New Project',
             accelerator: 'Ctrl+N',
-            async click() {
-              const { canceled, filePaths } = await dialog.showOpenDialog({
-                properties: ['openDirectory', 'createDirectory'],
-                title: 'Выберите папку для нового проекта',
-              });
-              if (canceled) return;
-              try {
-                await ProjectService.create(filePaths[0]);
-              } catch (e) {
-                console.error('Failed to create project', e);
-                // TODO: Показать ошибку пользователю
-              }
+            click: () => {
+              this.mainWindow.webContents.send('open-project-wizard');
             },
           },
           {

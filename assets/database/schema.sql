@@ -58,26 +58,6 @@ CREATE INDEX idx_world_template_id ON world_objects(template_id);
 CREATE INDEX idx_connections_source_id ON connections(source_id);
 CREATE INDEX idx_connections_target_id ON connections(target_id);
 
--- Начальные данные: предустановленные шаблоны
-INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Часть', 'narrative', '[]', 40);
-INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Глава', 'narrative', '[]', 20);
-INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES ('Сцена', 'narrative', '[]', 10);
-
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('character', 'world', '[{"name": "race", "label": "Раса"}, {"name": "age", "label": "Возраст"}]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('location', 'world', '[{"name": "population", "label": "Население"}]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('item', 'world', '[]');
-INSERT INTO entity_templates (name, category, fields_schema) VALUES ('concept', 'world', '[]');
-
--- Начальные данные: корневой элемент для всего повествования.
--- 1. Создаем сам элемент повествования
-INSERT INTO narrative_items (template_id, parent_id, name, sort_order) VALUES ((SELECT id FROM entity_templates WHERE name = 'Часть'), NULL, 'Произведение', 0);
-
-
-
--- 2. Создаем для него запись в прокси-таблице
-
-INSERT INTO all_entities (narrative_id) VALUES (last_insert_rowid());
-
 
 CREATE TABLE IF NOT EXISTS project_settings (
     key         TEXT PRIMARY KEY, -- Уникальный ключ настройки (например, 'ui.window.width')
@@ -96,5 +76,4 @@ INSERT INTO project_settings (key, value, name, description, category, type) VAL
 ('ui.theme', 'light', 'Тема интерфейса', 'На данный момент не используется, задел на будущее.', 'Интерфейс', 'text'),
 ('editor.mdPath', '', 'Редактор Markdown', 'Путь к внешнему редактору для файлов Markdown.', 'Редакторы', 'text'),
 ('app.version', '1.0.0', 'Версия ПО', 'Текущая версия приложения.', 'Приложение', 'text'),
-('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text'),
-('narrative.structure', '["part", "chapter", "scene"]', 'Структура повествования', 'JSON-массив, определяющий активные уровни иерархии повествования.', 'Структура', 'json');
+('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text');

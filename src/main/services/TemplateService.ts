@@ -7,6 +7,8 @@ import GenericDao from '../data/GenericDao';
 import {
   EntityTemplate,
   PredefinedTemplate,
+  PredefinedWorldTemplate,
+  PredefinedNarrativeTemplate,
   PredefinedTemplatesFile,
 } from '../../common/types';
 
@@ -44,7 +46,27 @@ export class TemplateService {
     return `field_${Date.now()}_${randomPart}`;
   }
 
-  static async getPredefinedTemplates(): Promise<PredefinedTemplate[]> {
+  static async getPredefinedNarrativeTemplates(): Promise<
+    PredefinedNarrativeTemplate[]
+  > {
+    const filePath = TemplateService.getAssetPath('predefined-templates.json');
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const data = JSON.parse(content) as PredefinedTemplatesFile;
+      // Сортируем по убыванию веса, чтобы более крупные сущности были вверху
+      return (data.narrative_templates || []).sort(
+        (a, b) => b.weight - a.weight,
+      );
+    } catch (error) {
+      console.error(
+        'Failed to read predefined narrative templates file:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  static async getPredefinedTemplates(): Promise<PredefinedWorldTemplate[]> {
     const filePath = TemplateService.getAssetPath('predefined-templates.json');
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -61,12 +83,11 @@ export class TemplateService {
   ): Promise<EntityTemplate> {
     const { name, category, fields } = templateData;
 
-    // Просто преобразуем массив полей в JSON-строку как есть,
-    // так как структура полностью соответствует `fields_schema`.
     const fieldsSchema = JSON.stringify(fields);
 
-    // HACK: PredefinedTemplate isn't typed with weight, but we know it's there for narrative templates
-    const weight = (templateData as any).weight || 0;
+    // Вес есть только у шаблонов повествования
+    const weight =
+      templateData.category === 'narrative' ? templateData.weight : 0;
 
     const newId = this.dao.createTemplate(name, category, fieldsSchema, weight);
     return this.dao.getTemplate(newId);

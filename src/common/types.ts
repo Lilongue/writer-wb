@@ -87,12 +87,12 @@ export interface ProjectSetting {
 // export interface Connection { ... }
 
 /**
- * Используется для "типизации" JSON-файлов с предустановленными шаблонами.
+ * Тип для предустановленных шаблонов мира из JSON.
  * Не является сущностью БД.
  */
-export type PredefinedTemplate = {
+export type PredefinedWorldTemplate = {
   name: string;
-  category: 'world' | 'narrative';
+  category: 'world';
   fields: {
     name: string; // системное имя
     label: string; // имя для юзера
@@ -101,9 +101,32 @@ export type PredefinedTemplate = {
 };
 
 /**
+ * Тип для предустановленных шаблонов повествования из JSON, включая вес.
+ * Не является сущностью БД.
+ */
+export type PredefinedNarrativeTemplate = {
+  name: string;
+  label: string;
+  category: 'narrative';
+  weight: number;
+  fields: {
+    name: string;
+    label: string;
+    comment?: string;
+  }[];
+};
+
+/**
+ * Объединенный тип для всех предустановленных шаблонов.
+ */
+export type PredefinedTemplate =
+  | PredefinedWorldTemplate
+  | PredefinedNarrativeTemplate;
+
+/**
  * Описывает структуру файла `predefined-templates.json`.
  */
 export type PredefinedTemplatesFile = {
-  world_templates: PredefinedTemplate[];
-  narrative_templates?: PredefinedTemplate[]; // Для будущего использования
+  world_templates: PredefinedWorldTemplate[];
+  narrative_templates: PredefinedNarrativeTemplate[];
 };

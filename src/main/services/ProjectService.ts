@@ -10,6 +10,8 @@ import { GenericDao } from '../data/GenericDao';
 import { NarrativeService } from './NarrativeService';
 import { WorldObjectService } from './WorldObjectService';
 import eventBus from '../eventBus';
+import { TemplateService } from './TemplateService';
+import ProjectSettingsService from './ProjectSettingsService';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
 const SCHEMA_PATH = app.isPackaged
@@ -23,7 +25,19 @@ class ProjectService {
 
   // --- Public API ---
 
-  public async create(projectPath: string): Promise<void> {
+  public async createProject(
+    projectData: {
+      location: string;
+      projectName: string;
+      narrativeStructure: string[];
+    },
+    templateService: TemplateService,
+    projectSettingsService: ProjectSettingsService,
+    narrativeService: NarrativeService,
+  ): Promise<void> {
+    const { location, projectName, narrativeStructure } = projectData;
+    const projectPath = path.join(location, projectName);
+    
     // TODO: Добавить проверку, не создается ли проект внутри другого проекта
     if (this.db) {
       this.close();
@@ -38,7 +52,46 @@ class ProjectService {
     this.db = this._initDatabase(dbPath);
     this.db.pragma('journal_mode = WAL');
 
+    // Устанавливаем корень проекта ДО того, как другие сервисы начнут его использовать
+    this.projectRoot = projectPath;
+
     await this._applySchema(this.db);
+
+    // 1. Получаем все предопределенные шаблоны повествования
+    const allNarrativeTemplates =
+      await TemplateService.getPredefinedNarrativeTemplates();
+
+    // 2. Фильтруем их, оставляя только те, что выбрал пользователь
+    const selectedTemplatesData = allNarrativeTemplates.filter((t) =>
+      narrativeStructure.includes(t.name),
+    );
+
+    // 3. Импортируем выбранные шаблоны в БД и сохраняем результат
+    const importedTemplates = await Promise.all(
+      selectedTemplatesData.map((template) =>
+        templateService.importTemplate(template),
+      ),
+    );
+
+    // 4. Находим шаблон с самым большим весом (самый верхний уровень)
+    if (importedTemplates.length > 0) {
+      const topLevelTemplate = importedTemplates.reduce((prev, current) =>
+        prev.weight > current.weight ? prev : current,
+      );
+
+      // 5. Создаем корневой элемент повествования
+      await narrativeService.createNarrativeItem(
+        null, // Нет родителя
+        topLevelTemplate.id,
+        'Произведение',
+      );
+    }
+
+    // 6. Сохраняем настройки проекта
+    await projectSettingsService.updateSettings([
+      { key: 'project.name', value: projectName },
+      { key: 'narrative.structure', value: JSON.stringify(narrativeStructure) },
+    ]);
 
     this.projectRoot = projectPath;
     console.log(`Project created at: ${projectPath}`);
@@ -121,16 +174,5 @@ class ProjectService {
 }
 
 const projectService = new ProjectService();
-
-// Создаем DAO, передавая ему функцию для получения активной БД
-export const genericDao = new GenericDao(() => projectService.getDb());
-
-// Создаем сервисы
-export const narrativeService = new NarrativeService(genericDao, () =>
-  projectService.getProjectRoot(),
-);
-export const worldObjectService = new WorldObjectService(genericDao, () =>
-  projectService.getProjectRoot(),
-);
 
 export default projectService;
