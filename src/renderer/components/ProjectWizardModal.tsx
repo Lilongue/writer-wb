@@ -54,8 +54,12 @@ const ProjectWizardModal: React.FC<ProjectWizardModalProps> = ({
   }, [visible]);
 
   const handleSelectLocation = async () => {
-    const { canceled, filePaths } =
-      await window.electron.dialog.showOpenDialog();
+    const { canceled, filePaths } = await window.electron.dialog.showOpenDialog(
+      {
+        properties: ['openDirectory'],
+        title: 'Выберите папку для нового проекта',
+      },
+    );
     if (!canceled && filePaths.length > 0) {
       form.setFieldsValue({ location: filePaths[0] });
     }
@@ -140,7 +144,10 @@ const ProjectWizardModal: React.FC<ProjectWizardModalProps> = ({
           >
             <Input autoFocus />
           </Form.Item>
-          <Form.Item label="Расположение">
+          <Form.Item
+            label="Папка проекта"
+            tooltip="Проект будет создан непосредственно в этой папке"
+          >
             <Space.Compact style={{ width: '100%' }}>
               <Form.Item
                 name="location"
@@ -154,7 +161,7 @@ const ProjectWizardModal: React.FC<ProjectWizardModalProps> = ({
               >
                 <Input
                   readOnly
-                  placeholder="Нажмите 'Выбрать...', чтобы указать папку"
+                  placeholder="Выберите существующую или создайте новую папку для проекта"
                 />
               </Form.Item>
               <Button onClick={handleSelectLocation}>Выбрать...</Button>

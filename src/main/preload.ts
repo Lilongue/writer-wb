@@ -1,6 +1,11 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import {
+  contextBridge,
+  ipcRenderer,
+  IpcRendererEvent,
+  OpenDialogOptions,
+} from 'electron';
 import {
   EntityTemplate,
   PredefinedTemplate,
@@ -61,7 +66,9 @@ export type ElectronAPI = typeof electronHandler & {
     ) => Promise<EntityTemplate>;
   };
   dialog: {
-    showOpenDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>;
+    showOpenDialog: (
+      options?: OpenDialogOptions,
+    ) => Promise<{ canceled: boolean; filePaths: string[] }>;
   };
   project: {
     create: (projectData: {
@@ -85,7 +92,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('templates:import', templateData),
   },
   dialog: {
-    showOpenDialog: () => ipcRenderer.invoke('dialog:show-open-dialog'),
+    showOpenDialog: (options?: OpenDialogOptions) =>
+      ipcRenderer.invoke('dialog:show-open-dialog', options),
   },
   project: {
     create: (projectData: {

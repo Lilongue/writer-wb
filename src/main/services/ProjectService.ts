@@ -36,8 +36,8 @@ class ProjectService {
     narrativeService: NarrativeService,
   ): Promise<void> {
     const { location, projectName, narrativeStructure } = projectData;
-    const projectPath = path.join(location, projectName);
-    
+    const projectPath = location; // Project is created directly in the selected location
+
     // TODO: Добавить проверку, не создается ли проект внутри другого проекта
     if (this.db) {
       this.close();
@@ -91,7 +91,11 @@ class ProjectService {
     await projectSettingsService.updateSettings([
       { key: 'project.name', value: projectName },
       { key: 'narrative.structure', value: JSON.stringify(narrativeStructure) },
+      { key: 'project.appVersion', value: app.getVersion() },
     ]);
+
+    const markerFilePath = path.join(projectPath, `${projectName}.wwb`);
+    await fs.writeFile(markerFilePath, '');
 
     this.projectRoot = projectPath;
     console.log(`Project created at: ${projectPath}`);

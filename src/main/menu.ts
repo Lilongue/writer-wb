@@ -6,6 +6,7 @@ import {
   MenuItemConstructorOptions,
   dialog,
 } from 'electron';
+import path from 'path'; // Добавлено
 import ProjectService from './services/ProjectService';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -184,12 +185,22 @@ export default class MenuBuilder {
             accelerator: 'Ctrl+O',
             async click() {
               const { canceled, filePaths } = await dialog.showOpenDialog({
-                properties: ['openDirectory'],
-                title: 'Выберите папку проекта',
+                properties: ['openFile'],
+                filters: [
+                  {
+                    name: 'Writer World Builder Project',
+                    extensions: ['wwb'],
+                  },
+                ],
+                title: 'Выберите файл проекта Writer World Builder',
               });
-              if (canceled) return;
+              if (canceled || filePaths.length === 0) return;
+
               try {
-                await ProjectService.open(filePaths[0]);
+                const projectFilePath = filePaths[0];
+                const projectRoot = path.dirname(projectFilePath);
+
+                await ProjectService.open(projectRoot);
               } catch (e) {
                 console.error('Failed to open project', e);
                 // TODO: Показать ошибку пользователю
