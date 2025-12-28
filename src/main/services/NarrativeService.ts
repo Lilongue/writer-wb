@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
 import { ItemDetails, NarrativeItem } from '../../common/types';
-import { GenericDao } from '../data/GenericDao';
+import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
 
 import { slugify } from '../util';
@@ -10,12 +10,12 @@ import { slugify } from '../util';
  * Сервис для управления бизнес-логикой, связанной с элементами повествования.
  */
 export class NarrativeService {
-  private dao: GenericDao;
+  private narrativeDao: NarrativeDao;
 
   private getProjectRoot: () => string | null;
 
-  constructor(dao: GenericDao, getProjectRoot: () => string | null) {
-    this.dao = dao;
+  constructor(narrativeDao: NarrativeDao, getProjectRoot: () => string | null) {
+    this.narrativeDao = narrativeDao;
     this.getProjectRoot = getProjectRoot;
   }
 
@@ -26,11 +26,11 @@ export class NarrativeService {
    */
   public getNarrativeItems(): NarrativeItem[] {
     // На данный момент просто проксирует вызов к DAO.
-    return this.dao.getNarrativeItems();
+    return this.narrativeDao.getNarrativeItems();
   }
 
   public async getDetails(id: number): Promise<ItemDetails | null> {
-    const item = this.dao.getNarrativeItemById(id);
+    const item = this.narrativeDao.getNarrativeItemById(id);
     if (!item) {
       return null;
     }
@@ -55,10 +55,10 @@ export class NarrativeService {
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
           fileExists = false; // It exists but is unreadable
         }
-      } else {
-        fileExists = false;
-        content = '# Файл не найден\\nНажмите кнопку ниже, чтобы создать его.';
       }
+    } else {
+      fileExists = false;
+      content = '# Файл не найден\\nНажмите кнопку ниже, чтобы создать его.';
     }
 
     return {
@@ -83,14 +83,14 @@ export class NarrativeService {
       throw new Error('Проект не открыт');
     }
 
-    // const template = this.dao.findTemplateByName(itemType, 'narrative');
+    // const template = this.narrativeDao.findTemplateByName(itemType, 'narrative');
     // if (!template) {
     //   throw new Error(`Не найден шаблон для типа '${itemType}'`);
     // }
 
     let parentPath = 'narrative';
     if (parentId) {
-      const parent = this.dao.getNarrativeItemById(parentId);
+      const parent = this.narrativeDao.getNarrativeItemById(parentId);
       if (parent && parent.file_path) {
         parentPath = path.dirname(parent.file_path);
       }
@@ -99,9 +99,9 @@ export class NarrativeService {
     const newFileName = `${slugify(name)}.md`;
     const relativeFilePath = path.join(parentPath, newFileName);
 
-    const sortOrder = this.dao.getMaxSortOrder(parentId) + 1;
+    const sortOrder = this.narrativeDao.getMaxSortOrder(parentId) + 1;
 
-    const newItemId = this.dao.createNarrativeItem(
+    const newItemId = this.narrativeDao.createNarrativeItem(
       name,
       parentId,
       templateId,
@@ -120,7 +120,7 @@ export class NarrativeService {
     newName: string,
   ): Promise<void> {
     // Пока что просто меняем имя в БД, без переименования файла
-    this.dao.renameNarrativeItem(itemId, newName);
+    this.narrativeDao.renameNarrativeItem(itemId, newName);
   }
 
   /**
@@ -136,11 +136,17 @@ export class NarrativeService {
     description: string | undefined,
     plan: string | undefined,
   ): Promise<void> {
-    this.dao.updateNarrativeItemDetails(itemId, name, description, plan);
+    this.narrativeDao.updateNarrativeItemDetails(
+      itemId,
+      name,
+      description,
+      plan,
+    );
   }
 
   public async deleteNarrativeItem(itemId: number): Promise<void> {
-    const childrenCount = this.dao.countChildrenOfNarrativeItem(itemId);
+    const childrenCount =
+      this.narrativeDao.countChildrenOfNarrativeItem(itemId);
     if (childrenCount > 0) {
       throw new Error(
         'Нельзя удалить элемент, у которого есть дочерние элементы.',
@@ -148,10 +154,10 @@ export class NarrativeService {
     }
 
     const projectRoot = this.getProjectRoot();
-    const item = this.dao.getNarrativeItemById(itemId);
+    const item = this.narrativeDao.getNarrativeItemById(itemId);
 
     // Сначала удаляем из БД
-    this.dao.deleteNarrativeItem(itemId);
+    this.narrativeDao.deleteNarrativeItem(itemId);
 
     // Затем удаляем файл, если он есть
     if (item && item.file_path && projectRoot) {

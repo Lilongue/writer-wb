@@ -1,11 +1,11 @@
-import { GenericDao } from '../data/GenericDao';
+import { SettingsDao } from '../data/daos/SettingsDao';
 import { ProjectSetting } from '../../common/types';
 
 class ProjectSettingsService {
-  private genericDao: GenericDao;
+  private settingsDao: SettingsDao;
 
-  constructor(genericDao: GenericDao) {
-    this.genericDao = genericDao;
+  constructor(settingsDao: SettingsDao) {
+    this.settingsDao = settingsDao;
   }
 
   /**
@@ -13,7 +13,7 @@ class ProjectSettingsService {
    * @returns {Promise<ProjectSetting[]>} Массив объектов ProjectSetting.
    */
   public async getAllSettings(): Promise<ProjectSetting[]> {
-    const settings = this.genericDao.getAllProjectSettings();
+    const settings = this.settingsDao.getAllProjectSettings();
     return settings.map((setting) => {
       // Конвертация строкового значения из БД в соответствующий тип
       let parsedValue: any;
@@ -43,7 +43,7 @@ class ProjectSettingsService {
       key: s.key,
       value: String(s.value), // Всегда сохраняем как строку в БД
     }));
-    this.genericDao.updateProjectSettings(settingsToUpdate);
+    this.settingsDao.updateProjectSettings(settingsToUpdate);
   }
 }
 

@@ -1,17 +1,29 @@
-import { GenericDao } from '../data/GenericDao';
+import { ConnectionDao } from '../data/daos/ConnectionDao';
+import { NarrativeDao } from '../data/daos/NarrativeDao';
+import { WorldObjectDao } from '../data/daos/WorldObjectDao';
 
 class ConnectionService {
-  private genericDao: GenericDao;
+  private connectionDao: ConnectionDao;
 
-  constructor(genericDao: GenericDao) {
-    this.genericDao = genericDao;
+  private narrativeDao: NarrativeDao;
+
+  private worldObjectDao: WorldObjectDao;
+
+  constructor(
+    connectionDao: ConnectionDao,
+    narrativeDao: NarrativeDao,
+    worldObjectDao: WorldObjectDao,
+  ) {
+    this.connectionDao = connectionDao;
+    this.narrativeDao = narrativeDao;
+    this.worldObjectDao = worldObjectDao;
   }
 
   getConnections(type: 'narrative' | 'world', id: number) {
-    const allEntityId = this.genericDao.findEntityId(type, id);
+    const allEntityId = this.connectionDao.findEntityId(type, id);
     if (!allEntityId) return [];
 
-    const rawConnections = this.genericDao.getConnections(allEntityId);
+    const rawConnections = this.connectionDao.getConnections(allEntityId);
     if (rawConnections.length === 0) return [];
 
     const otherEntityIds = rawConnections.map((c) =>
@@ -19,7 +31,7 @@ class ConnectionService {
     );
 
     const resolvedEntities =
-      this.genericDao.resolveAllEntityIds(otherEntityIds);
+      this.connectionDao.resolveAllEntityIds(otherEntityIds);
 
     const narrativeIds = resolvedEntities
       .filter((r) => r.type === 'narrative')
@@ -28,8 +40,8 @@ class ConnectionService {
       .filter((r) => r.type === 'world')
       .map((r) => r.id);
 
-    const narrativeInfo = this.genericDao.getNarrativeItemsInfo(narrativeIds);
-    const worldInfo = this.genericDao.getWorldObjectsInfo(worldIds);
+    const narrativeInfo = this.narrativeDao.getNarrativeItemsInfo(narrativeIds);
+    const worldInfo = this.worldObjectDao.getWorldObjectsInfo(worldIds);
 
     const infoMap = new Map<string, { id: number; name: string }>();
     [...narrativeInfo, ...worldInfo].forEach((info) =>
@@ -72,14 +84,14 @@ class ConnectionService {
     targetId: number,
     description: string,
   ) {
-    const sourceAllId = this.genericDao.findEntityId(sourceType, sourceId);
-    const targetAllId = this.genericDao.findEntityId(targetType, targetId);
+    const sourceAllId = this.connectionDao.findEntityId(sourceType, sourceId);
+    const targetAllId = this.connectionDao.findEntityId(targetType, targetId);
 
     if (!sourceAllId || !targetAllId) {
       throw new Error('Could not find one or both entities for connection');
     }
 
-    return this.genericDao.createConnection(
+    return this.connectionDao.createConnection(
       sourceAllId,
       targetAllId,
       description,
@@ -87,11 +99,11 @@ class ConnectionService {
   }
 
   deleteConnection(connectionId: number) {
-    return this.genericDao.deleteConnection(connectionId);
+    return this.connectionDao.deleteConnection(connectionId);
   }
 
   searchEntities(query: string, currentEntityId: number) {
-    return this.genericDao.searchEntities(query, currentEntityId);
+    return this.connectionDao.searchEntities(query, currentEntityId);
   }
 }
 

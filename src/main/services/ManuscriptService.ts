@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
 import { NarrativeItem } from '../../common/types';
-import { GenericDao } from '../data/GenericDao';
+import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
 
 /**
@@ -15,12 +15,12 @@ interface NarrativeTreeNode extends NarrativeItem {
  * Сервис для сборки и экспорта рукописи.
  */
 export class ManuscriptService {
-  private dao: GenericDao;
+  private narrativeDao: NarrativeDao;
 
   private getProjectRoot: () => string | null;
 
-  constructor(dao: GenericDao, getProjectRoot: () => string | null) {
-    this.dao = dao;
+  constructor(narrativeDao: NarrativeDao, getProjectRoot: () => string | null) {
+    this.narrativeDao = narrativeDao;
     this.getProjectRoot = getProjectRoot;
   }
 
@@ -39,7 +39,7 @@ export class ManuscriptService {
       throw new Error('Проект не открыт. Невозможно собрать рукопись.');
     }
 
-    const allItems = this.dao.getNarrativeItems();
+    const allItems = this.narrativeDao.getNarrativeItems();
     if (allItems.length === 0) {
       return '';
     }

@@ -18,25 +18,42 @@ import eventBus from './eventBus';
 import projectService from './services/ProjectService';
 import { NarrativeService } from './services/NarrativeService';
 import { WorldObjectService } from './services/WorldObjectService';
-import { GenericDao } from './data/GenericDao';
 import { TemplateService } from './services/TemplateService';
 import ConnectionService from './services/ConnectionService';
 import { ManuscriptService } from './services/ManuscriptService';
 import ProjectSettingsService from './services/ProjectSettingsService';
+import { NarrativeDao } from './data/daos/NarrativeDao';
+import { WorldObjectDao } from './data/daos/WorldObjectDao';
+import { TemplateDao } from './data/daos/TemplateDao';
+import { ConnectionDao } from './data/daos/ConnectionDao';
+import { SettingsDao } from './data/daos/SettingsDao';
 
-const genericDao = new GenericDao(() => projectService.getDb());
-const narrativeService = new NarrativeService(genericDao, () =>
+const getDb = () => projectService.getDb();
+
+const narrativeDao = new NarrativeDao(getDb);
+const worldObjectDao = new WorldObjectDao(getDb);
+const templateDao = new TemplateDao(getDb);
+const connectionDao = new ConnectionDao(getDb);
+const settingsDao = new SettingsDao(getDb);
+
+const narrativeService = new NarrativeService(narrativeDao, () =>
   projectService.getProjectRoot(),
 );
-const manuscriptService = new ManuscriptService(genericDao, () =>
+const manuscriptService = new ManuscriptService(narrativeDao, () =>
   projectService.getProjectRoot(),
 );
-const worldObjectService = new WorldObjectService(genericDao, () =>
-  projectService.getProjectRoot(),
+const worldObjectService = new WorldObjectService(
+  worldObjectDao,
+  templateDao,
+  () => projectService.getProjectRoot(),
 );
-const templateService = new TemplateService(genericDao);
-const connectionService = new ConnectionService(genericDao);
-const projectSettingsService = new ProjectSettingsService(genericDao);
+const templateService = new TemplateService(templateDao, worldObjectDao);
+const connectionService = new ConnectionService(
+  connectionDao,
+  narrativeDao,
+  worldObjectDao,
+);
+const projectSettingsService = new ProjectSettingsService(settingsDao);
 
 let mainWindow: BrowserWindow | null = null;
 

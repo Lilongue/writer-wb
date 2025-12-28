@@ -2,8 +2,8 @@
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
-// eslint-disable-next-line import/no-named-as-default
-import GenericDao from '../data/GenericDao';
+import { TemplateDao } from '../data/daos/TemplateDao';
+import { WorldObjectDao } from '../data/daos/WorldObjectDao';
 import {
   EntityTemplate,
   PredefinedTemplate,
@@ -16,10 +16,13 @@ import {
  * Сервис для управления шаблонами (типами) объектов.
  */
 export class TemplateService {
-  private dao: GenericDao;
+  private templateDao: TemplateDao;
 
-  constructor(dao: GenericDao) {
-    this.dao = dao;
+  private worldObjectDao: WorldObjectDao;
+
+  constructor(templateDao: TemplateDao, worldObjectDao: WorldObjectDao) {
+    this.templateDao = templateDao;
+    this.worldObjectDao = worldObjectDao;
   }
 
   /**
@@ -89,8 +92,13 @@ export class TemplateService {
     const weight =
       templateData.category === 'narrative' ? templateData.weight : 0;
 
-    const newId = this.dao.createTemplate(name, category, fieldsSchema, weight);
-    return this.dao.getTemplate(newId);
+    const newId = this.templateDao.createTemplate(
+      name,
+      category,
+      fieldsSchema,
+      weight,
+    );
+    return this.templateDao.getTemplate(newId);
   }
 
   createTemplate(
@@ -107,12 +115,17 @@ export class TemplateService {
       })),
     );
 
-    const newId = this.dao.createTemplate(name, category, fieldsSchema, weight);
-    return this.dao.getTemplate(newId);
+    const newId = this.templateDao.createTemplate(
+      name,
+      category,
+      fieldsSchema,
+      weight,
+    );
+    return this.templateDao.getTemplate(newId);
   }
 
   getTemplate(id: number): EntityTemplate {
-    return this.dao.getTemplate(id);
+    return this.templateDao.getTemplate(id);
   }
 
   /**
@@ -120,7 +133,7 @@ export class TemplateService {
    * @returns {EntityTemplate[]} Отсортированный список шаблонов повествования.
    */
   getNarrativeTemplates(): EntityTemplate[] {
-    const templates = this.dao.getAllTemplates(false, 'narrative');
+    const templates = this.templateDao.getAllTemplates(false, 'narrative');
     // Сортировка по убыванию: чем больше вес, тем "выше" уровень (например, Книга > Часть)
     return templates.sort((a, b) => b.weight - a.weight);
   }
@@ -129,17 +142,17 @@ export class TemplateService {
     includeArchived: boolean = false,
     category: 'narrative' | 'world' | undefined = undefined,
   ): EntityTemplate[] {
-    return this.dao.getAllTemplates(includeArchived, category);
+    return this.templateDao.getAllTemplates(includeArchived, category);
   }
 
   archiveTemplate(id: number): boolean {
-    const count = this.dao.countWorldObjectsByTemplateId(id);
+    const count = this.worldObjectDao.countWorldObjectsByTemplateId(id);
     if (count > 0) {
       throw new Error(
         `Нельзя архивировать шаблон, так как он используется ${count} объектом(ами).`,
       );
     }
-    const success = this.dao.archiveTemplate(id);
+    const success = this.templateDao.archiveTemplate(id);
     if (!success) {
       throw new Error('Шаблон не найден или уже архивирован');
     }
@@ -147,7 +160,7 @@ export class TemplateService {
   }
 
   renameTemplate(id: number, newName: string): void {
-    this.dao.renameTemplate(id, newName);
+    this.templateDao.renameTemplate(id, newName);
   }
 
   updateTemplateSchema(
@@ -162,7 +175,7 @@ export class TemplateService {
       };
     });
 
-    this.dao.updateTemplateSchema(id, JSON.stringify(finalSchema));
+    this.templateDao.updateTemplateSchema(id, JSON.stringify(finalSchema));
 
     return this.getTemplate(id);
   }
