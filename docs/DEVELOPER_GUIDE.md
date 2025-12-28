@@ -72,6 +72,7 @@ npm run build
 The `npm run package` command packages the application for your current operating system. For more specific control, you can add platform-specific scripts to your `package.json` and run them directly.
 
 **Example scripts for `package.json`:**
+
 ```json
 "scripts": {
   ...
@@ -82,6 +83,7 @@ The `npm run package` command packages the application for your current operatin
 ```
 
 **To build for a specific platform, run one of the following:**
+
 ```bash
 # Build for Windows
 npm run package:win
@@ -101,11 +103,13 @@ See the notes below for platform-specific requirements before building.
 
 To package the application for macOS, you must be on a macOS machine and have the following installed:
 
-*   **Xcode Command Line Tools:** Essential for code signing and building the installer. Install them by running this command in your terminal:
+* **Xcode Command Line Tools:** Essential for code signing and building the installer. Install them by running this command in your terminal:
+
     ```bash
     xcode-select --install
     ```
-*   **Apple Developer ID (for distribution):** To distribute the app, it must be code-signed with an "Apple Developer ID Application" certificate. This requires enrollment in the Apple Developer Program. For local test builds, you can skip signing, but users will see a security warning upon opening the app.
+
+* **Apple Developer ID (for distribution):** To distribute the app, it must be code-signed with an "Apple Developer ID Application" certificate. This requires enrollment in the Apple Developer Program. For local test builds, you can skip signing, but users will see a security warning upon opening the app.
 
 #### Windows & Linux
 

@@ -1,12 +1,11 @@
 {
-  "name": "electron-react-boilerplate",
-  "version": "4.6.0",
-  "description": "A foundation for scalable desktop apps",
+  "name": "writer-world-builder",
+  "version": "0.1.0",
+  "description": "A desktop application for writers to build consistent and logically structured worlds for their stories.",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "Lilongue",
+    "url": "https://github.com/Lilongue"
   },
   "main": "./dist/main/main.js",
   "scripts": {
@@ -15,6 +14,14 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1"
+    "@ant-design/icons": "^6.1.0",
+    "antd": "^5.27.5",
+    "better-sqlite3": "^12.4.1",
+    "electron-log": "^5.3.2",
+    "electron-updater": "^6.3.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^6.0.3",
+    "react-router-dom": "^7.3.0"
   }
 }
