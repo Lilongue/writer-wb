@@ -151,18 +151,18 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../assets');
+
+const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
+};
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
   }
-
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
-
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -512,6 +512,15 @@ ipcMain.handle('project-settings:update', (_event, settings) => {
 app
   .whenReady()
   .then(() => {
+    app.setAboutPanelOptions({
+      applicationName: 'Writer World Builder',
+      applicationVersion: `Version ${app.getVersion()}`,
+      authors: ['Lilongue'],
+      website: 'https://github.com/Lilongue/writer-wb',
+      copyright: 'Copyright © 2023 Lilongue',
+      iconPath: getAssetPath('icon.png'),
+    });
+
     createWindow();
 
     // On macOS, handle files opened before the app was ready

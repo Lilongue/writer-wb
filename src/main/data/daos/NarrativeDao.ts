@@ -158,3 +158,5 @@ export class NarrativeDao extends BaseDao {
     return db.prepare(sql).all(ids) as { id: number; name: string }[];
   }
 }
+
+export default NarrativeDao;

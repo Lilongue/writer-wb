@@ -7,3 +7,5 @@ export abstract class BaseDao {
     this.getDb = getDb;
   }
 }
+
+export default BaseDao;

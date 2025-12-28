@@ -34,3 +34,5 @@ export class SettingsDao extends BaseDao {
     transaction();
   }
 }
+
+export default SettingsDao;

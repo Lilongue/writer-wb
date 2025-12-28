@@ -124,3 +124,5 @@ export class ConnectionDao extends BaseDao {
     db.prepare(sql).run(connectionId);
   }
 }
+
+export default ConnectionDao;

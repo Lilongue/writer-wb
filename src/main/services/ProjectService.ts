@@ -6,9 +6,7 @@ import fs from 'fs/promises';
 import Database from 'better-sqlite3';
 import { app } from 'electron';
 import FileSystemService from './FileSystemService';
-import { GenericDao } from '../data/GenericDao';
 import { NarrativeService } from './NarrativeService';
-import { WorldObjectService } from './WorldObjectService';
 import eventBus from '../eventBus';
 import { TemplateService } from './TemplateService';
 import ProjectSettingsService from './ProjectSettingsService';
@@ -52,9 +50,6 @@ class ProjectService {
     this.db = this._initDatabase(dbPath);
     this.db.pragma('journal_mode = WAL');
 
-    // Устанавливаем корень проекта ДО того, как другие сервисы начнут его использовать
-    this.projectRoot = projectPath;
-
     await this._applySchema(this.db);
 
     // 1. Получаем все предопределенные шаблоны повествования
@@ -91,11 +86,7 @@ class ProjectService {
     await projectSettingsService.updateSettings([
       { key: 'project.name', value: projectName },
       { key: 'narrative.structure', value: JSON.stringify(narrativeStructure) },
-      { key: 'project.appVersion', value: app.getVersion() },
     ]);
-
-    const markerFilePath = path.join(projectPath, `${projectName}.wwb`);
-    await fs.writeFile(markerFilePath, '');
 
     this.projectRoot = projectPath;
     console.log(`Project created at: ${projectPath}`);
