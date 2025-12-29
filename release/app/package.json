@@ -14,14 +14,8 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.1.0",
-    "antd": "^5.27.5",
     "better-sqlite3": "^12.4.1",
     "electron-log": "^5.3.2",
-    "electron-updater": "^6.3.9",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-markdown": "^6.0.3",
-    "react-router-dom": "^7.3.0"
+    "electron-updater": "^6.3.9"
   }
 }
