@@ -5,24 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-12-29
+
+### Fixed at [0.1.1]
+
+- **Build:** Fixed a critical error in project build dependencies
+
 ## [0.1.0] - 2025-12-28
 
 ### Added at [0.1.0]
 
-- **Мастер создания проекта:** Реализован пошаговый "мастер" для создания новых проектов, позволяющий пользователям выбирать гибкую структуру повествования.
-- **Ассоциация файлов:** Проекты теперь используют расширение `.wwb` и могут быть открыты по двойному клику на Windows, macOS и Linux.
-- **Библиотека шаблонов:** Добавлена библиотека готовых шаблонов для разных жанров (фэнтези, научная фантастика и т.д.), которые можно импортировать в проект.
-- **Настройки проекта:** Реализован экран настроек для проекта, где можно указать метаданные (например, имя автора).
-- **Окно "О программе":** Добавлено стандартное окно "О программе", доступное из меню.
+- **Project Creation Wizard:** Implemented a step-by-step "wizard" for creating new projects, allowing users to choose a flexible narrative structure.
+- **File Association:** Projects now use the `.wwb` extension and can be opened by double-clicking on Windows, macOS, and Linux.
+- **Template Library:** Added a library of ready-made templates for different genres (fantasy, science fiction, etc.), which can be imported into a project.
+- **Project Settings:** Implemented a settings screen for the project where metadata (e.g., author's name) can be specified.
+- **"About" Window:** Added a standard "About" window, accessible from the menu.
 
 ### Changed at [0.1.0]
 
-- **Структура повествования:** Иерархия повествования теперь гибкая и определяется настройками проекта, а не жестко зашита ("Часть-Глава-Сцена").
-- **Документация:** Проведена реструктуризация документации, созданы отдельные руководства для пользователя (`USER_GUIDE.md`) и разработчика (`DEVELOPER_GUIDE.md`).
+- **Narrative Structure:** The narrative hierarchy is now flexible and defined by project settings, rather than being hardcoded ("Part-Chapter-Scene").
+- **Documentation:** Documentation has been restructured, with separate guides created for the user (`USER_GUIDE.md`) and developer (`DEVELOPER_GUIDE.md`).
 
 ### Fixed at [0.1.0]
 
-- **Версионирование проекта:** Исправлена ошибка, из-за которой в новых проектах сохранялась жестко заданная версия. Теперь приложение сохраняет свою актуальную версию.
+- **Project Versioning:** Fixed a bug where new projects retained a hardcoded version. The application now saves its actual version.
 
 ## [0.0.1] - 2025-12-20 (WIN)
 
