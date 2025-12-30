@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { Modal, Input } from 'antd';
 
 export interface NarrativeModalState {
@@ -18,7 +18,7 @@ interface NarrativeItemModalProps {
   onPressEnter: () => void;
 }
 
-const NarrativeItemModal: React.FC<NarrativeItemModalProps> = ({
+const NarrativeItemModal: FC<NarrativeItemModalProps> = ({
   modalState,
   onOk,
   onCancel,
@@ -55,8 +55,8 @@ const NarrativeItemModal: React.FC<NarrativeItemModalProps> = ({
     >
       {type === 'delete' ? (
         <p>
-          Вы уверены, что хотите удалить &quot;{name}&quot;? Это действие
-          нельзя будет отменить.
+          Вы уверены, что хотите удалить &quot;{name}&quot;? Это действие нельзя
+          будет отменить.
         </p>
       ) : (
         <Input

@@ -1,4 +1,4 @@
-import { NarrativeItem } from '../../common/types';
+import { NarrativeItem } from '../../../common/types';
 
 type TreeNode = NarrativeItem & { children: TreeNode[] };
 
@@ -35,3 +35,5 @@ export const buildTree = (items: NarrativeItem[]) => {
 
   return convertToAntdTreeFormat(tree);
 };
+
+export default buildTree;

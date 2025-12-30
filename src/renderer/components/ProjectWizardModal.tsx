@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FC } from 'react';
 import {
   Button,
   Modal,
@@ -30,7 +30,7 @@ interface ProjectWizardModalProps {
   onCreate: (values: any) => void;
 }
 
-const ProjectWizardModal: React.FC<ProjectWizardModalProps> = ({
+const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
   visible,
   onClose,
   onCreate,
@@ -116,11 +116,11 @@ const ProjectWizardModal: React.FC<ProjectWizardModalProps> = ({
   return (
     <Modal
       title={<Title level={4}>Мастер создания проекта</Title>}
-      visible={visible}
+      open={visible}
       onCancel={onClose}
       footer={renderFooter()}
       width={600}
-      destroyOnClose
+      destroyOnHidden
     >
       <Steps current={current} style={{ marginBottom: 24 }}>
         {steps.map((item) => (

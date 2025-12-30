@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, FC } from 'react';
 import {
   Modal,
   Button,
@@ -19,7 +19,7 @@ interface ProjectSettingsModalProps {
   onClose: () => void;
 }
 
-const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
+const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
   show,
   onClose,
 }) => {
@@ -96,7 +96,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         form.setFieldsValue(updatedEdited);
         onClose();
       } else {
-        onClose(); // Close if no changes
+        onClose();
       }
     } catch (errorInfo) {
       console.error('Failed to save project settings:', errorInfo);
@@ -132,15 +132,11 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
       ]}
       width={800}
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="settings-modal-body">
         {Object.keys(groupedSettings).length > 0 ? (
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={editedSettings} // Use initialValues for Ant Design Form
-          >
+          <Form form={form} layout="vertical" initialValues={editedSettings}>
             {Object.entries(groupedSettings).map(
               ([category, categorySettings]) => (
                 <div key={category} className="settings-category-group">

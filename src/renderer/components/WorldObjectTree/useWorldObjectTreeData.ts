@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Key } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
@@ -22,7 +22,7 @@ const convertToAntdTreeFormat = (nodes: TreeNode[], isLeaf: boolean) => {
 
 const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
   const [treeData, setTreeData] = useState<any[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [contextMenu, setContextMenu] = useState<{ open: boolean; node: any }>({
     open: false,
     node: null,

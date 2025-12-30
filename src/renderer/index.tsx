@@ -7,5 +7,5 @@ const root = createRoot(container);
 root.render(
   <ProjectProvider>
     <App />
-  </ProjectProvider>
+  </ProjectProvider>,
 );

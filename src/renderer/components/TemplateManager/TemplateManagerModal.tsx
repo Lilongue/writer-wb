@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, List, Checkbox } from 'antd';
 import useTemplates from './useTemplates';
 import TemplateEditorModal, {

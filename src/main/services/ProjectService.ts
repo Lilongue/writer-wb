@@ -34,7 +34,7 @@ class ProjectService {
     narrativeService: NarrativeService,
   ): Promise<void> {
     const { location, projectName, narrativeStructure } = projectData;
-    const projectPath = location; // Project is created directly in the selected location
+    const projectPath = location;
 
     // TODO: Добавить проверку, не создается ли проект внутри другого проекта
     if (this.db) {
@@ -45,6 +45,11 @@ class ProjectService {
       'narrative',
       'world',
     ]);
+
+    // Create the .wwb project marker file
+    await fs.writeFile(path.join(projectPath, `${projectName}.wwb`), '');
+
+    this.projectRoot = projectPath;
 
     const dbPath = path.join(projectPath, 'project.sqlite');
     this.db = this._initDatabase(dbPath);

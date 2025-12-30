@@ -1,11 +1,12 @@
 /* eslint-disable no-console */
-import React, {
+import {
   createContext,
   useContext,
   useState,
   useEffect,
   useMemo,
   ReactNode,
+  FC,
 } from 'react';
 import { EntityTemplate } from '../../common/types';
 
@@ -16,9 +17,7 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export const ProjectProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const ProjectProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isProjectOpen, setIsProjectOpen] = useState(false);
   const [narrativeTemplates, setNarrativeTemplates] = useState<
     EntityTemplate[]

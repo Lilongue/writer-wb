@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ItemDetails } from '../../common/types';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ItemDetails } from '../../../common/types';
 
 interface UseItemEditorProps {
   details: ItemDetails | null;
@@ -8,7 +8,11 @@ interface UseItemEditorProps {
   fetchDetails: () => Promise<ItemDetails | null> | null;
 }
 
-const useItemEditor = ({ details, selectedType, fetchDetails }: UseItemEditorProps) => {
+const useItemEditor = ({
+  details,
+  selectedType,
+  fetchDetails,
+}: UseItemEditorProps) => {
   const [editedDetails, setEditedDetails] =
     useState<Partial<ItemDetails> | null>(null);
 
@@ -34,14 +38,14 @@ const useItemEditor = ({ details, selectedType, fetchDetails }: UseItemEditorPro
   );
 
   const handleNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       setEditedDetails({ ...editedDetails, name: e.target.value });
     },
     [editedDetails],
   );
 
   const handleDescriptionChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
       setEditedDetails({ ...editedDetails, description: e.target.value });
     },
     [editedDetails],

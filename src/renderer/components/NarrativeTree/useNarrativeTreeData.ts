@@ -55,35 +55,32 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     }
   };
 
-  const handleExport = useCallback(
-    async (node: any) => {
-      try {
-        const result = await window.electron.exportNarrative(
-          node.key as number,
-          false,
-        ); // rootItemId and includeHeaders set to false
-        if (result.success) {
-          Modal.success({
-            title: 'Рукопись успешно экспортирована',
-            content: `Файл сохранен по пути: ${result.filePath}`,
-          });
-        } else if (result.canceled) {
-          // User canceled the save dialog, do nothing
-        } else {
-          Modal.error({
-            title: 'Ошибка экспорта',
-            content: result.error || 'Произошла неизвестная ошибка.',
-          });
-        }
-      } catch (e: any) {
+  const handleExport = useCallback(async (node: any) => {
+    try {
+      const result = await window.electron.exportNarrative(
+        node.key as number,
+        false,
+      );
+      if (result.success) {
+        Modal.success({
+          title: 'Рукопись успешно экспортирована',
+          content: `Файл сохранен по пути: ${result.filePath}`,
+        });
+      } else if (result.canceled) {
+        // User canceled the save dialog, do nothing
+      } else {
         Modal.error({
           title: 'Ошибка экспорта',
-          content: e.message,
+          content: result.error || 'Произошла неизвестная ошибка.',
         });
       }
-    },
-    [],
-  );
+    } catch (e: any) {
+      Modal.error({
+        title: 'Ошибка экспорта',
+        content: e.message,
+      });
+    }
+  }, []);
 
   const handleMenuClick: MenuProps['onClick'] = ({ key, domEvent }) => {
     domEvent.stopPropagation();

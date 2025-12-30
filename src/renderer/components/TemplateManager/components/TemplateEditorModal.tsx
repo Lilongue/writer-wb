@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useEffect } from 'react';
+import { FC, useEffect } from 'react';
 import { Modal, Button, Input, Form, Space, message } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { EntityTemplate } from '../../../../common/types';
@@ -16,7 +16,7 @@ interface TemplateEditorModalProps {
   onSave: (values: any) => Promise<void>;
 }
 
-const TemplateEditorModal: React.FC<TemplateEditorModalProps> = ({
+const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
   editModalState,
   onClose,
   onSave,

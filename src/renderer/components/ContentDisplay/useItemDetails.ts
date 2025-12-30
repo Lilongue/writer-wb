@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ItemDetails } from '../../common/types';
+import { ItemDetails } from '../../../common/types';
 
 interface UseItemDetailsProps {
   selectedId: number | null;
@@ -30,7 +30,10 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
           setDetails(result as ItemDetails | null);
           return result as ItemDetails | null;
         })
-        .catch(console.error)
+        .catch((err) => {
+          console.error(err);
+          return null;
+        })
         .finally(() => setLoading(false));
     }
     setDetails(null);

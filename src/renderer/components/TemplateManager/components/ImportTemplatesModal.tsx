@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Modal, Button, Layout, List, Checkbox, Empty } from 'antd';
 import { PredefinedTemplate } from '../../../../common/types';
 

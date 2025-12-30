@@ -41,7 +41,7 @@ const WorldObjectModal = ({
       open={open}
       onOk={onOk}
       onCancel={onCancel}
-      destroyOnClose // Important to reset state if the form is not managed by antd's Form instance
+      destroyOnHidden // Important to reset state if the form is not managed by antd's Form instance
       okText={
         {
           create: 'Создать',

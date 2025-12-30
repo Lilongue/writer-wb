@@ -437,13 +437,19 @@ ipcMain.handle('templates:updateSchema', (_event, { id, schema }) => {
 });
 
 // Project State
-ipcMain.handle('project:create', (_event, projectData) => {
-  return projectService.createProject(
-    projectData,
-    templateService,
-    projectSettingsService,
-    narrativeService,
-  );
+ipcMain.handle('project:create', async (_event, projectData) => {
+  try {
+    await projectService.createProject(
+      projectData,
+      templateService,
+      projectSettingsService,
+      narrativeService,
+    );
+  } catch (error) {
+    console.error(`Error occurred in handler for 'project:create':`, error);
+    projectService.close(); // Make sure to clean up
+    throw error; // Re-throw the error to the renderer process
+  }
 });
 
 ipcMain.handle('project:isProjectOpen', () => {

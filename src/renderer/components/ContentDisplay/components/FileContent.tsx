@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 
 interface FileContentProps {
   fileExists: boolean | undefined;
-  content: string | undefined;
+  content: string | null;
   onCreteFile: () => void;
   isCreateFileDisabled: boolean;
 }
@@ -15,23 +15,23 @@ const FileContent: React.FC<FileContentProps> = ({
   onCreteFile,
   isCreateFileDisabled,
 }) => {
-  return (
-    <>
-      {fileExists ? (
-        <Typography.Text>
-          <ReactMarkdown>{content || ''}</ReactMarkdown>
-        </Typography.Text>
-      ) : (
-        <div className="create-file-container">
-          <Typography.Text type="secondary">{content}</Typography.Text>
-          <br />
-          <br />
-          <Button type="primary" onClick={onCreteFile} disabled={isCreateFileDisabled}>
-            Создать файл
-          </Button>
-        </div>
-      )}
-    </>
+  return fileExists ? (
+    <Typography.Text>
+      <ReactMarkdown>{content || ''}</ReactMarkdown>
+    </Typography.Text>
+  ) : (
+    <div className="create-file-container">
+      <Typography.Text type="secondary">{content}</Typography.Text>
+      <br />
+      <br />
+      <Button
+        type="primary"
+        onClick={onCreteFile}
+        disabled={isCreateFileDisabled}
+      >
+        Создать файл
+      </Button>
+    </div>
   );
 };
 

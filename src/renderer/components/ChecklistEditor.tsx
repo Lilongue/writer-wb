@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, FC } from 'react';
 import { Checkbox, Input, Button, Space } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import {
@@ -13,7 +13,7 @@ interface ChecklistEditorProps {
   readOnly?: boolean;
 }
 
-const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
+const ChecklistEditor: FC<ChecklistEditorProps> = ({
   value,
   onChange,
   readOnly = false,
