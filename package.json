@@ -1,6 +1,6 @@
 {
   "name": "writer-world-builder",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A desktop application for writers to build consistent and logically structured worlds for their stories.",
   "keywords": [
     "electron",
@@ -26,6 +26,7 @@
   "contributors": [],
   "main": "./.erb/dll/main.bundle.dev.js",
   "scripts": {
+    "bump": "ts-node ./.erb/scripts/bump-version.ts",
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.main.prod.ts",

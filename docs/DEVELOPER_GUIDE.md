@@ -123,6 +123,23 @@ To run the test suite:
 npm test
 ```
 
+### Versioning
+
+To manage the application's version number, a helper script is provided. This script automatically increments the version in both the root `package.json` and the `release/app/package.json` file, ensuring they stay in sync.
+
+To use it, run one of the following commands:
+
+```bash
+# Bump the PATCH version (e.g., 0.1.1 -> 0.1.2)
+npm run bump
+
+# Bump the MINOR version (e.g., 0.1.2 -> 0.2.0)
+npm run bump minor
+
+# Bump the MAJOR version (e.g., 0.2.0 -> 1.0.0)
+npm run bump major
+```
+
 ### Lint
 
 To lint the codebase:
