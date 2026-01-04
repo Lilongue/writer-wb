@@ -37,30 +37,10 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchNarrativeItems();
-
-    const cleanup = window.electron.ipcRenderer.on('narrative-changed', () => {
-      fetchNarrativeItems();
-    });
-
-    return cleanup;
-  }, [fetchNarrativeItems]);
-
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
-    if (selectedKeys.length > 0) {
-      onSelect(selectedKeys[0] as number);
-    } else {
-      onSelect(null);
-    }
-  };
-
   const handleExport = useCallback(async (node: any) => {
     try {
-      const result = await window.electron.exportNarrative(
-        node.key as number,
-        false,
-      );
+      const nodeId = node ? (node.key as number) : null;
+      const result = await window.electron.exportNarrative(nodeId, false);
       if (result.success) {
         Modal.success({
           title: 'Рукопись успешно экспортирована',
@@ -81,6 +61,35 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
       });
     }
   }, []);
+
+  useEffect(() => {
+    fetchNarrativeItems();
+
+    const cleanupNarrativeChanged = window.electron.ipcRenderer.on(
+      'narrative-changed',
+      () => {
+        fetchNarrativeItems();
+      },
+    );
+
+    const cleanupExportFull = window.electron.ipcRenderer.on(
+      'export-full-manuscript',
+      () => handleExport(null),
+    );
+
+    return () => {
+      cleanupNarrativeChanged();
+      cleanupExportFull();
+    };
+  }, [fetchNarrativeItems, handleExport]);
+
+  const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
+    if (selectedKeys.length > 0) {
+      onSelect(selectedKeys[0] as number);
+    } else {
+      onSelect(null);
+    }
+  };
 
   const handleMenuClick: MenuProps['onClick'] = ({ key, domEvent }) => {
     domEvent.stopPropagation();

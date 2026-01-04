@@ -65,6 +65,22 @@ const projectSettingsService = new ProjectSettingsService(settingsDao);
 let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
 
+const notifyUserError = (title: string, content: string) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('show-error-notification', { title, content });
+  }
+};
+
+process.on('uncaughtException', (error) => {
+  console.error('--- Uncaught Main Exception ---');
+  console.error(error);
+  console.error('--------------------------------');
+  notifyUserError(
+    'Критическая ошибка',
+    'Произошла непредвиденная ошибка. Рекомендуется перезапустить приложение.',
+  );
+});
+
 // Helper function to handle opening a .wwb file
 const handleProjectFileOpen = async (filePath: string) => {
   if (path.extname(filePath) === '.wwb') {

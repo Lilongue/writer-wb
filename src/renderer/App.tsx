@@ -11,6 +11,8 @@ import TemplateManagerModal from './components/TemplateManager';
 import ProjectSettingsModal from './components/ProjectSettingsModal'; // Import ProjectSettingsModal
 import ProjectWizardModal from './components/ProjectWizardModal';
 import { useProject } from './contexts/ProjectContext'; // Import useProject
+import notificationService from './services/notificationService';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const { Sider, Content } = Layout;
 
@@ -26,6 +28,16 @@ export default function App() {
   const [isWizardVisible, setIsWizardVisible] = useState(false);
 
   useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled Rejection:', event.reason);
+      notificationService.showError(
+        'Необработанная ошибка',
+        'Произошла асинхронная ошибка. Проверьте консоль для деталей.',
+      );
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
     const cleanupManager = window.electron.ipcRenderer.on(
       'open-template-manager',
       () => {
@@ -47,15 +59,28 @@ export default function App() {
       },
     );
 
+    const cleanupError = window.electron.ipcRenderer.on(
+      'show-error-notification',
+      (arg: any) => {
+        const { title, content } = arg as { title: string; content?: string };
+        notificationService.showError(title, content);
+      },
+    );
+
     // If project is closed, clear selection
     if (!isProjectOpen) {
       setSelection({ id: null, type: null });
     }
 
     return () => {
+      window.removeEventListener(
+        'unhandledrejection',
+        handleUnhandledRejection,
+      );
       cleanupManager();
       cleanupSettings();
       cleanupWizard();
+      cleanupError();
     };
   }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 
@@ -77,50 +102,52 @@ export default function App() {
       });
     } catch (error: any) {
       console.error('Failed to create project:', error);
-      notification.error({
-        message: 'Ошибка при создании проекта',
-        description: error.message || 'Произошла неизвестная ошибка.',
-      });
+      notificationService.showError(
+        'Ошибка при создании проекта',
+        error.message || 'Произошла неизвестная ошибка.',
+      );
     }
   };
 
   return (
-    <Layout style={{ height: '100vh' }}>
-      <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
-        {isProjectOpen ? ( // Use isProjectOpen from context
-          <>
-            <NarrativeTree onSelect={handleNarrativeSelect} />
-            <WorldObjectTree
-              onSelect={handleWorldObjectSelect}
-              selectedId={selection.id}
-              selectedType={selection.type === 'world' ? 'world' : null}
-            />
-          </>
-        ) : (
-          <div className="empty-project-container">
-            <Empty description="Проект не открыт. Используйте меню Файл -> Создать/Открыть" />
-          </div>
-        )}
-      </Sider>
-      <Content>
-        <ContentDisplay
-          selectedId={selection.id}
-          selectedType={selection.type}
+    <ErrorBoundary>
+      <Layout style={{ height: '100vh' }}>
+        <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
+          {isProjectOpen ? ( // Use isProjectOpen from context
+            <>
+              <NarrativeTree onSelect={handleNarrativeSelect} />
+              <WorldObjectTree
+                onSelect={handleWorldObjectSelect}
+                selectedId={selection.id}
+                selectedType={selection.type === 'world' ? 'world' : null}
+              />
+            </>
+          ) : (
+            <div className="empty-project-container">
+              <Empty description="Проект не открыт. Используйте меню Файл -> Создать/Открыть" />
+            </div>
+          )}
+        </Sider>
+        <Content>
+          <ContentDisplay
+            selectedId={selection.id}
+            selectedType={selection.type}
+          />
+        </Content>
+        <TemplateManagerModal
+          visible={templateManagerVisible}
+          onClose={() => setTemplateManagerVisible(false)}
         />
-      </Content>
-      <TemplateManagerModal
-        visible={templateManagerVisible}
-        onClose={() => setTemplateManagerVisible(false)}
-      />
-      <ProjectSettingsModal
-        show={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-      />
-      <ProjectWizardModal
-        visible={isWizardVisible}
-        onClose={() => setIsWizardVisible(false)}
-        onCreate={handleCreateProject}
-      />
-    </Layout>
+        <ProjectSettingsModal
+          show={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+        />
+        <ProjectWizardModal
+          visible={isWizardVisible}
+          onClose={() => setIsWizardVisible(false)}
+          onCreate={handleCreateProject}
+        />
+      </Layout>
+    </ErrorBoundary>
   );
 }

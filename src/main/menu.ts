@@ -245,6 +245,17 @@ export default class MenuBuilder {
         ],
       },
       {
+        label: '&Повествование',
+        submenu: [
+          {
+            label: 'Экспортировать всю рукопись',
+            click: () => {
+              this.mainWindow.webContents.send('export-full-manuscript');
+            },
+          },
+        ],
+      },
+      {
         label: '&View',
         submenu:
           process.env.NODE_ENV === 'development' ||

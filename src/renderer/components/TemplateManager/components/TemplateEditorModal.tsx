@@ -150,7 +150,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
         }
         return 'Rename Template';
       })()}
-      visible={open}
+      open={open}
       onCancel={onClose}
       onOk={handleOk}
     >

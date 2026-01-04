@@ -18,9 +18,11 @@ export type Channels =
   | 'project-closed'
   | 'open-in-external-editor'
   | 'narrative-changed'
+  | 'export-full-manuscript'
   | 'world-objects-changed'
   | 'open-template-manager'
   | 'open-project-settings'
+  | 'show-error-notification'
   | 'open-project-wizard';
 
 const electronHandler = {
