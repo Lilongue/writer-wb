@@ -36,7 +36,14 @@ class ProjectService {
     const { location, projectName, narrativeStructure } = projectData;
     const projectPath = location;
 
-    // TODO: Добавить проверку, не создается ли проект внутри другого проекта
+    // Check if the location is already a project
+    const isProject = await this._validateProjectStructure(projectPath);
+    if (isProject) {
+      throw new Error(
+        'Выбранная папка уже является проектом. Пожалуйста, выберите другую папку.',
+      );
+    }
+
     if (this.db) {
       this.close();
     }

@@ -1,24 +1,46 @@
-import { message, notification } from 'antd';
+/* eslint-disable no-console */
+// Create a holder for the notification and message APIs
+export const apiHolder: { notification?: any; message?: any } = {};
 
 const notificationService = {
   showError: (title: string, content?: string) => {
-    notification.error({
-      message: title,
-      description: content,
-      placement: 'topRight',
-    });
+    if (apiHolder.notification) {
+      apiHolder.notification.error({
+        message: title,
+        description: content,
+        placement: 'topRight',
+      });
+    } else {
+      console.error(
+        'Notification API not initialized. Message:',
+        title,
+        content,
+      );
+    }
   },
 
   showSuccess: (text: string) => {
-    message.success(text);
+    if (apiHolder.message) {
+      apiHolder.message.success(text);
+    } else {
+      console.error('Message API not initialized. Message:', text);
+    }
   },
 
   showInfo: (text: string) => {
-    message.info(text);
+    if (apiHolder.message) {
+      apiHolder.message.info(text);
+    } else {
+      console.error('Message API not initialized. Message:', text);
+    }
   },
 
   showWarning: (text: string) => {
-    message.warning(text);
+    if (apiHolder.message) {
+      apiHolder.message.warning(text);
+    } else {
+      console.error('Message API not initialized. Message:', text);
+    }
   },
 };
 

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
-import { Layout, Empty, notification } from 'antd';
+import { Layout, Empty, notification, message } from 'antd';
 import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
@@ -11,13 +11,22 @@ import TemplateManagerModal from './components/TemplateManager';
 import ProjectSettingsModal from './components/ProjectSettingsModal'; // Import ProjectSettingsModal
 import ProjectWizardModal from './components/ProjectWizardModal';
 import { useProject } from './contexts/ProjectContext'; // Import useProject
-import notificationService from './services/notificationService';
+import notificationService, { apiHolder } from './services/notificationService';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const { Sider, Content } = Layout;
 
 export default function App() {
   const { isProjectOpen } = useProject(); // Use the hook to get project state
+  const [notificationApi, notificationContextHolder] =
+    notification.useNotification();
+  const [messageApi, messageContextHolder] = message.useMessage();
+
+  useEffect(() => {
+    // Make APIs available to the service
+    apiHolder.notification = notificationApi;
+    apiHolder.message = messageApi;
+  }, [notificationApi, messageApi]);
 
   const [selection, setSelection] = useState<{
     id: number | null;
@@ -96,10 +105,9 @@ export default function App() {
     try {
       await window.electron.project.create(values);
       setIsWizardVisible(false);
-      notification.success({
-        message: 'Проект создан',
-        description: `Проект "${values.projectName}" успешно создан.`,
-      });
+      notificationService.showSuccess(
+        `Проект "${values.projectName}" успешно создан.`,
+      );
     } catch (error: any) {
       console.error('Failed to create project:', error);
       notificationService.showError(
@@ -111,6 +119,8 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      {notificationContextHolder}
+      {messageContextHolder}
       <Layout style={{ height: '100vh' }}>
         <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
           {isProjectOpen ? ( // Use isProjectOpen from context
