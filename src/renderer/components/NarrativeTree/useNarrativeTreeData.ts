@@ -107,8 +107,6 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
         templateId,
         templateName: template?.name,
       });
-    } else if (key === 'rename') {
-      setModalState({ open: true, type: 'rename', node, name: node.title });
     } else if (key === 'delete') {
       setModalState({ open: true, type: 'delete', node, name: node.title });
     } else if (key === 'export-narrative') {
@@ -124,11 +122,6 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
           parentId: node.key,
           templateId,
           name,
-        });
-      } else if (type === 'rename') {
-        await window.electron.ipcRenderer.invoke('narrative:rename', {
-          itemId: node.key,
-          newName: name,
         });
       } else if (type === 'delete') {
         await window.electron.ipcRenderer.invoke('narrative:delete', node.key);

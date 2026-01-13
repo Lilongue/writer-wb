@@ -53,7 +53,6 @@ const getMenuItems = (
   if (items.length > 0) {
     items.push({ type: 'divider' });
   }
-  items.push({ key: 'rename', label: 'Переименовать' });
   items.push({ key: 'delete', label: 'Удалить', danger: true });
   items.push({ type: 'divider' });
   items.push({ key: 'export-narrative', label: 'Экспортировать рукопись' });

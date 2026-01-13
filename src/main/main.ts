@@ -438,6 +438,9 @@ ipcMain.handle('templates:getAll', (_event, includeArchived, category) => {
 ipcMain.handle('templates:archive', (_event, id) => {
   try {
     const ok = templateService.archiveTemplate(id);
+    if (ok) {
+      eventBus.emit('world-objects-changed');
+    }
     return { success: ok };
   } catch (error: any) {
     return { success: false, error: error.message };

@@ -170,12 +170,6 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
         if (newId) {
           onSelect(newId.toString());
         }
-      } else if (type === 'rename') {
-        const id = Number(node.key.split('-')[1]);
-        await window.electron.ipcRenderer.invoke('world-object:rename', {
-          id,
-          newName: name,
-        });
       } else if (type === 'delete') {
         const id = Number(node.key.split('-')[1]);
         const result = (await window.electron.ipcRenderer.invoke(
@@ -231,15 +225,6 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
         node,
         name: '',
         schema,
-        fieldValues: {},
-      });
-    } else if (info.key === 'rename') {
-      setModalState({
-        open: true,
-        type: 'rename',
-        node,
-        name: node.title,
-        schema: null,
         fieldValues: {},
       });
     } else if (info.key === 'delete') {

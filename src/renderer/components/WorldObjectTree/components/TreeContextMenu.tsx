@@ -8,7 +8,6 @@ const getMenuItems = (node: any): MenuProps['items'] => {
   }
   const items = [];
   if (node.isLeaf) {
-    items.push({ key: 'rename', label: 'Переименовать' });
     items.push({ key: 'delete', label: 'Удалить', danger: true });
   } else {
     items.push({ key: 'create', label: 'Создать объект' });
