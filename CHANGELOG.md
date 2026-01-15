@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-01-15
+
+### Added
+
+- **Error Notifications:** Implemented a global system to display user-friendly notifications for application errors.
+- **Manuscript Export UX:** Added a "Export Entire Manuscript" option to the main menu for easier access.
+
+### Changed
+
+- **Object Renaming:** The ability to rename items has been removed from the context menus of the navigation trees. Renaming is now centralized in the main content view to ensure data consistency.
+
+### Fixed
+
+- **Nested Projects:** Prevented the creation of a new project inside an existing project directory.
+- **Project Wizard:** Refactored the project creation modal, ensuring its state is properly reset.
+- **Object Tree:** Fixed a bug where the tree would not display a newly created object if its parent category was collapsed.
+- **UI Sync on Rename:** An item's name in the navigation tree now correctly updates when it is renamed in the main content view.
+- **UI Sync on Archive:** The world object tree now correctly hides objects belonging to an archived template.
+
 ## [0.1.2] - 2025-12-30
 
 ### Fixed at [0.1.2]
