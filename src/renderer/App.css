@@ -144,3 +144,7 @@
 .hidden-step {
   display: none;
 }
+
+.text-dev-note {
+  color: gray;
+}

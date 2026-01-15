@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useState, useCallback, useEffect, Key } from 'react';
+import { useState, useCallback, useEffect, Key, useReducer } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
@@ -11,6 +11,56 @@ import {
 import { ModalState } from './components/WorldObjectModal';
 
 type TreeNode = (WorldObjectType & { children?: any[] }) | WorldObject;
+
+interface ReducerState {
+  treeData: any[];
+}
+
+type ReducerAction =
+  | { type: 'SET_DATA'; payload: any[] }
+  | { type: 'ADD_CHILDREN'; key: Key; payload: any[] }
+  | { type: 'DELETE_OBJECT'; objectId: number };
+
+const treeDataReducer = (
+  state: ReducerState,
+  action: ReducerAction,
+): ReducerState => {
+  switch (action.type) {
+    case 'SET_DATA':
+      return { ...state, treeData: action.payload };
+    case 'ADD_CHILDREN':
+      return {
+        ...state,
+        treeData: state.treeData.map((node) => {
+          if (node.key === action.key) {
+            return { ...node, children: action.payload };
+          }
+          return node;
+        }),
+      };
+    case 'DELETE_OBJECT':
+      return {
+        ...state,
+        treeData: state.treeData.map((typeNode) => {
+          if (
+            Array.isArray(typeNode.children) &&
+            typeNode.children.length > 0
+          ) {
+            const filteredChildren = typeNode.children.filter(
+              (child: any) => child.key !== `obj-${action.objectId}`,
+            );
+            if (filteredChildren.length !== typeNode.children.length) {
+              return { ...typeNode, children: filteredChildren };
+            }
+          }
+          return typeNode;
+        }),
+      };
+    default:
+      return state;
+  }
+};
+
 const convertToAntdTreeFormat = (nodes: TreeNode[], isLeaf: boolean) => {
   return nodes.map((node) => ({
     ...node,
@@ -21,7 +71,10 @@ const convertToAntdTreeFormat = (nodes: TreeNode[], isLeaf: boolean) => {
 };
 
 const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
-  const [treeData, setTreeData] = useState<any[]>([]);
+  const [{ treeData }, dispatch] = useReducer(treeDataReducer, {
+    treeData: [],
+  });
+  const [treeKey, setTreeKey] = useState(0);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
   const [contextMenu, setContextMenu] = useState<{ open: boolean; node: any }>({
     open: false,
@@ -51,37 +104,20 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     }
   }, []);
 
+  // Initial fetch, runs only once on mount
   useEffect(() => {
     fetchWorldObjectTypes()
-      .then(setTreeData)
+      .then((data) => dispatch({ type: 'SET_DATA', payload: data }))
       .catch((err) =>
         console.error('[WorldObjectTree] Initial fetch failed:', err),
       );
   }, [fetchWorldObjectTypes]);
 
+  // Handles all subsequent updates by forcing a full refresh
   useEffect(() => {
-    const handleWorldObjectsChanged = async (payload: unknown) => {
-      if (payload === undefined) {
-        try {
-          const newTreeData = await fetchWorldObjectTypes();
-          setTreeData((oldTreeData) => {
-            const oldDataMap = new Map(
-              oldTreeData.map((node) => [node.key, node]),
-            );
-            return newTreeData.map((newNode) => {
-              const oldNode = oldDataMap.get(newNode.key);
-              if (oldNode && oldNode.children) {
-                return { ...newNode, children: oldNode.children };
-              }
-              return newNode;
-            });
-          });
-        } catch (err) {
-          console.error('[WorldObjectTree] Refetch failed:', err);
-        }
-        return;
-      }
-
+    const handleWorldObjectsChanged = (payload: unknown) => {
+      // If a specific type changed (create/delete), ensure it's expanded for good UX
+      let keysToKeepExpanded = expandedKeys;
       if (
         typeof payload === 'object' &&
         payload !== null &&
@@ -90,39 +126,59 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
       ) {
         const { typeId } = payload as { typeId: number };
         const keyToUpdate = `type-${typeId}`;
-
-        if (expandedKeys.includes(keyToUpdate)) {
-          try {
-            const objects: WorldObject[] =
-              await window.electron.ipcRenderer.invoke(
-                'get-world-objects-by-type',
-                typeId,
-              );
-            const formattedObjects = convertToAntdTreeFormat(objects, true);
-            setTreeData((origin) =>
-              origin.map((node) => {
-                if (node.key === keyToUpdate) {
-                  return { ...node, children: formattedObjects };
-                }
-                return node;
-              }),
-            );
-          } catch (error) {
-            console.error('Failed to refresh world objects:', error);
-          }
-        } else {
-          setTreeData((origin) =>
-            origin.map((node) => {
-              if (node.key === keyToUpdate) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { children, ...rest } = node;
-                return rest;
-              }
-              return node;
-            }),
-          );
+        if (!keysToKeepExpanded.includes(keyToUpdate)) {
+          keysToKeepExpanded = [...keysToKeepExpanded, keyToUpdate];
+          setExpandedKeys(keysToKeepExpanded);
         }
       }
+
+      // Smart Refresh: Rebuild the tree state completely before re-rendering.
+      const smartRefresh = async () => {
+        try {
+          // 1. Fetch categories and children for all expanded nodes in parallel.
+          const categoriesPromise = fetchWorldObjectTypes();
+          const childrenPromises = keysToKeepExpanded.map((key) => {
+            const typeId = Number((key as string).split('-')[1]);
+            return window.electron.ipcRenderer.invoke(
+              'get-world-objects-by-type',
+              typeId,
+            );
+          });
+
+          const [categories, ...childrenData] = await Promise.all([
+            categoriesPromise,
+            ...childrenPromises,
+          ]);
+
+          // 2. Map children to their parent keys.
+          const childrenMap = new Map<Key, any[]>();
+          keysToKeepExpanded.forEach((key, index) => {
+            const formattedChildren = convertToAntdTreeFormat(
+              childrenData[index] as WorldObject[],
+              true,
+            );
+            childrenMap.set(key, formattedChildren);
+          });
+
+          // 3. Assemble the new tree data, injecting children where needed.
+          const newTreeData = categories.map((category) => {
+            if (childrenMap.has(category.key)) {
+              return { ...category, children: childrenMap.get(category.key) };
+            }
+            return category;
+          });
+
+          // 4. Update the state with the fully formed tree.
+          dispatch({ type: 'SET_DATA', payload: newTreeData });
+
+          // 5. Force the Tree component to re-mount to render the new state cleanly.
+          setTreeKey((k) => k + 1);
+        } catch (err) {
+          console.error('[WorldObjectTree] Smart Refresh failed:', err);
+        }
+      };
+
+      smartRefresh();
     };
 
     const cleanup = window.electron.ipcRenderer.on(
@@ -144,14 +200,8 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
         typeId,
       );
       const formattedObjects = convertToAntdTreeFormat(objects, true);
-      setTreeData((origin) =>
-        origin.map((node) => {
-          if (node.key === key) {
-            return { ...node, children: formattedObjects };
-          }
-          return node;
-        }),
-      );
+      // Dispatching an action ensures state updates are queued and don't race.
+      dispatch({ type: 'ADD_CHILDREN', key, payload: formattedObjects });
     } catch (error) {
       console.error('Failed to fetch world objects by type:', error);
     }
@@ -181,24 +231,8 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
             title: 'Ошибка удаления',
             content: 'Не удалось удалить объект',
           });
-          return;
         }
-        setTreeData((origin) =>
-          origin.map((typeNode) => {
-            if (
-              Array.isArray(typeNode.children) &&
-              typeNode.children.length > 0
-            ) {
-              const filteredChildren = typeNode.children.filter(
-                (child: any) => child.key !== `obj-${id}`,
-              );
-              if (filteredChildren.length !== typeNode.children.length) {
-                return { ...typeNode, children: filteredChildren };
-              }
-            }
-            return typeNode;
-          }),
-        );
+        // The 'world-objects-changed' event will handle the refresh
       }
     } catch (e: any) {
       Modal.error({ title: 'Ошибка', content: e.message });
@@ -246,6 +280,7 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
 
   return {
     treeData,
+    treeKey, // Export the key
     expandedKeys,
     setExpandedKeys,
     onLoadData,

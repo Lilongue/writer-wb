@@ -18,6 +18,7 @@ function WorldObjectTree({
 }: WorldObjectTreeProps) {
   const {
     treeData,
+    treeKey,
     expandedKeys,
     setExpandedKeys,
     onLoadData,
@@ -56,6 +57,7 @@ function WorldObjectTree({
         onMenuClick={handleMenuClick}
       >
         <Tree
+          key={treeKey}
           loadData={onLoadData}
           treeData={treeData}
           onSelect={handleSelect}

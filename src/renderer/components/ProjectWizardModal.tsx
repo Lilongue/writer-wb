@@ -84,6 +84,9 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
       .validateFields()
       .then((values) => {
         onCreate(values);
+        form.resetFields(); // Reset form fields on successful creation
+        setCurrent(0); // Reset step to 0 on successful creation
+        onClose(); // Close modal after reset
         return undefined;
       })
       .catch(console.error);
@@ -133,6 +136,7 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
         layout="vertical"
         name="project_wizard_form"
         initialValues={{ narrativeStructure: ['part', 'chapter', 'scene'] }}
+        preserve={false}
       >
         <div className={current === 0 ? '' : 'hidden-step'}>
           <Form.Item
@@ -184,9 +188,12 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
           <Space direction="vertical">
             <Title level={5}>Проект почти готов!</Title>
             <Text>
-              После создания проекта вы сможете в любой момент импортировать
-              готовые шаблоны для объектов мира (персонажей, локаций и т.д.)
-              через &quot;Менеджер шаблонов&quot;.
+              (<span className="text-dev-note">В разработке</span>) В будущем
+              тут будет импорт предустановленных шаблонов. <br />
+              Пока что вы можете это сделать после создания проекта вы сможете в
+              импортировать готовые шаблоны для объектов мира (персонажей,
+              локаций и т.д.) через &quot;Менеджер шаблонов&quot;. В будущем
+              здесь также можно будет выбирать тему проекта.
             </Text>
           </Space>
         )}
