@@ -43,6 +43,7 @@ const NarrativeItemModal: FC<NarrativeItemModalProps> = ({
       open={open}
       onOk={onOk}
       onCancel={onCancel}
+      closable={false}
       okText={
         {
           create: 'Создать',

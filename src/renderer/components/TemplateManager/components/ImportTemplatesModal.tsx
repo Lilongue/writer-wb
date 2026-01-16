@@ -51,6 +51,7 @@ const ImportTemplatesModal = ({
       title="Import Templates from Library"
       open={visible}
       onCancel={onClose}
+      closable={false}
       width={800}
       footer={[
         <Button key="cancel" onClick={onClose}>

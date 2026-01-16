@@ -121,6 +121,7 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
       title={<Title level={4}>Мастер создания проекта</Title>}
       open={visible}
       onCancel={onClose}
+      closable={false}
       footer={renderFooter()}
       width={600}
       destroyOnHidden

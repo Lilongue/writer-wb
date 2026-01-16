@@ -13,7 +13,7 @@
 
 ---
 
-## 1. Удалить дублирующую кнопку "крестик" из всех модальных окон
+## 1. ✅ Удалить дублирующую кнопку "крестик" из всех модальных окон
 
 **Цель:** Упростить интерфейс модальных окон, оставив только одну кнопку закрытия/отмены.
 
@@ -26,6 +26,7 @@
 - `src/renderer/components/TemplateManager/components/TemplateEditorModal.tsx`
 - `src/renderer/components/NarrativeTree/NarrativeItemModal.tsx`
 - `src/renderer/components/WorldObjectTree/components/WorldObjectModal.tsx`
+- `src/renderer/components/ProjectWizardModal.tsx`
 
 ## 2. Изменить отображение комментариев к свойствам объектов мира
 

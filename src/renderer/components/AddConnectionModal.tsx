@@ -24,6 +24,7 @@ function AddConnectionModal({
       title="Добавить новую связь"
       open={visible}
       onCancel={onCancel}
+      closable={false}
       onOk={() => {
         form
           .validateFields()

@@ -152,6 +152,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
       })()}
       open={open}
       onCancel={onClose}
+      closable={false}
       onOk={handleOk}
     >
       {renderContent()}

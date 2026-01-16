@@ -122,6 +122,7 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
       title="Project Settings"
       open={show}
       onCancel={onClose}
+      closable={false}
       footer={[
         <Button key="cancel" onClick={onClose}>
           Cancel
