@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 
 interface AddConnectionModalProps {
@@ -18,6 +18,21 @@ function AddConnectionModal({
   options,
 }: AddConnectionModalProps) {
   const [form] = Form.useForm();
+  const [isOkDisabled, setIsOkDisabled] = useState(true);
+
+  useEffect(() => {
+    if (visible) {
+      form.resetFields();
+      setIsOkDisabled(true);
+    }
+  }, [visible, form]);
+
+  const handleValuesChange = (
+    changedValues: any,
+    allValues: { target: any },
+  ) => {
+    setIsOkDisabled(!allValues.target);
+  };
 
   return (
     <Modal
@@ -37,27 +52,25 @@ function AddConnectionModal({
             console.log('Validate Failed:', info);
           });
       }}
+      okButtonProps={{ disabled: isOkDisabled }}
     >
-      <Form form={form} layout="vertical" name="add_connection_form">
+      <Form
+        form={form}
+        layout="vertical"
+        name="add_connection_form"
+        onValuesChange={handleValuesChange}
+      >
         <Form.Item name="description" label="Описание связи">
-          <Input />
+          <Input placeholder="Введите описание связи" />
         </Form.Item>
-        <Form.Item
-          name="target"
-          label="Связать с"
-          rules={[
-            {
-              required: true,
-              message: 'Пожалуйста, выберите объект для связи!',
-            },
-          ]}
-        >
+        <Form.Item name="target" label="Связать с">
           <Select
             showSearch
             placeholder="Начните вводить имя для поиска..."
             onSearch={onSearch}
             filterOption={false}
             defaultActiveFirstOption={false}
+            suffixIcon={null}
           >
             {options.map((item) => (
               <Select.Option key={item.value} value={item.value}>

@@ -1,6 +1,4 @@
-import React from 'react';
-import { Modal, Input, Tooltip } from 'antd';
-import { InfoCircleOutlined } from '@ant-design/icons';
+import { Modal, Input, Form } from 'antd';
 
 // A copy of the state slice from the original component
 export interface ModalState {
@@ -29,6 +27,9 @@ const WorldObjectModal = ({
 }: WorldObjectModalProps) => {
   const { type, open, name, schema, fieldValues, node } = modalState;
 
+  // Calculate if the name is empty or just whitespace
+  const isNameEmpty = !name || name.trim() === '';
+
   return (
     <Modal
       title={
@@ -50,16 +51,24 @@ const WorldObjectModal = ({
           delete: 'Удалить',
         }[type]
       }
-      cancelText="Отмена"
+      cancelText="Отменить"
       width={600}
+      // Disable the OK button for 'create' type if the name is empty
+      okButtonProps={{ disabled: type === 'create' && isNameEmpty }}
     >
       {type !== 'delete' ? (
-        <Input
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Имя объекта"
-          className="modal-input-margin-bottom"
-        />
+        <Form.Item
+          label="Имя объекта"
+          htmlFor="world-object-modal-name"
+          className="form-field-container"
+        >
+          <Input
+            id="world-object-modal-name"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            placeholder="Введите имя объекта"
+          />
+        </Form.Item>
       ) : (
         <div className="modal-input-margin-bottom">
           Вы уверены, что хотите удалить &quot;{node?.title}&quot;? Это действие
@@ -71,19 +80,14 @@ const WorldObjectModal = ({
           <div key={field.name} className="form-field-container">
             <label htmlFor={`field-${field.name}`} className="form-field-label">
               {field.label}
-              {field.comment && (
-                <Tooltip title={field.comment}>
-                  <InfoCircleOutlined
-                    style={{ marginLeft: 4, color: '#888' }}
-                  />
-                </Tooltip>
-              )}
             </label>
             <Input
               id={`field-${field.name}`}
               value={fieldValues[field.name] || ''}
               onChange={(e) => onFieldValueChange(field.name, e.target.value)}
-              placeholder={`Введите ${field.label.toLowerCase()}`}
+              placeholder={
+                field.comment || `Введите ${field.label.toLowerCase()}`
+              }
             />
           </div>
         ))}
