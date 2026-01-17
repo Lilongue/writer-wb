@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button, List } from 'antd';
-import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import { Button, List, Space, Tooltip, Collapse } from 'antd';
+import { PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import AddConnectionModal from '../../AddConnectionModal';
 
 interface ConnectionsManagerProps {
@@ -20,52 +20,67 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const connectionsCount = connections ? connections.length : 0;
+  const panelHeader = `Связей: ${connectionsCount}`;
+
   return (
     <div className="connections-section">
       <div className="connections-header">
-        <h3>Связи</h3>
-        <Button
-          type="primary"
-          shape="circle"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalVisible(true)}
-        />
+        <Space>
+          <h3>Связи</h3>
+          <Tooltip title="Добавить новую связь">
+            <Button
+              type="text"
+              shape="circle"
+              icon={<PlusCircleOutlined />}
+              onClick={() => setIsModalVisible(true)}
+            />
+          </Tooltip>
+        </Space>
       </div>
 
-      {connections && connections.length > 0 && (
-        <>
-          <List
-            itemLayout="horizontal"
-            dataSource={connections}
-            renderItem={(item: any) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="primary"
-                    danger
-                    shape="circle"
-                    icon={<MinusOutlined />}
-                    onClick={() => onDeleteConnection(item.id)}
-                  />,
-                ]}
-              >
-                <List.Item.Meta
-                  title={item.other_entity.name}
-                  description={item.description}
-                />
-              </List.Item>
-            )}
-          />
-          <br />
-        </>
+      {connectionsCount > 0 && (
+        <Collapse ghost>
+          <Collapse.Panel header={panelHeader} key="1">
+            <List
+              itemLayout="horizontal"
+              dataSource={connections}
+              renderItem={(item: any) => (
+                <List.Item>
+                  <div className="connection-item">
+                    <Tooltip title="Удалить связь">
+                      <Button
+                        type="text"
+                        danger
+                        shape="circle"
+                        icon={<MinusCircleOutlined />}
+                        onClick={() => onDeleteConnection(item.id)}
+                        className="connection-item-delete-button"
+                      />
+                    </Tooltip>
+                    <div className="connection-item-content">
+                      <span className="connection-item-title">
+                        {item.other_entity.name}
+                      </span>
+                      {item.description && (
+                        <p className="connection-item-description">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </List.Item>
+              )}
+            />
+          </Collapse.Panel>
+        </Collapse>
       )}
-
       <AddConnectionModal
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={(values) => {
           onAddConnection(values);
-          setIsModalVisible(false); // Close modal after action
+          setIsModalVisible(false);
         }}
         options={searchResults.map((item) => ({
           ...item,

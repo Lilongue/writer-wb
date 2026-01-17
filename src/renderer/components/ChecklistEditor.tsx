@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, FC } from 'react';
-import { Tag, Input, Button, Space } from 'antd';
-import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import { Tag, Input, Button, Space, Tooltip } from 'antd';
+import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import {
   parseMarkdown,
   serializeToMarkdown,
@@ -142,12 +142,14 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
             style={{ flexGrow: 1 }}
           />
           {!readOnly && (
-            <Button
-              type="text"
-              danger
-              icon={<MinusOutlined />}
-              onClick={() => handleRemoveItem(index)}
-            />
+            <Tooltip title="Удалить">
+              <Button
+                type="text"
+                danger
+                icon={<MinusCircleOutlined />}
+                onClick={() => handleRemoveItem(index)}
+              />
+            </Tooltip>
           )}
         </Space>
       ))}

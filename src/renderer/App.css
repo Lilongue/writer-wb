@@ -74,9 +74,30 @@
 } 
 
 .connections-header {
+  margin-bottom: 16px;
+}
+
+.connection-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  width: 100%;
+}
+
+.connection-item-content {
+  flex: 1;
+}
+
+.connection-item-delete-button {
+  margin-right: 8px;
+}
+
+.connection-item-title {
+  font-weight: 500;
+}
+
+.connection-item-description {
+  margin: 5px 0 0 0;
+  color: rgba(0, 0, 0, 0.45);
 }
 
 .modal-input-margin-bottom {
