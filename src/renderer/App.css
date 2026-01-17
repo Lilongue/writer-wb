@@ -232,3 +232,15 @@
 .ant-select.force-default-borders:not(.ant-select-disabled):not(.ant-select-focused):hover .ant-select-selector {
     border-color: #40a9ff !important;
 }
+
+/* TemplateEditorModal specific styles */
+.template-field-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.template-field-item {
+  flex: 1;
+}

@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import { FC, useEffect, useState } from 'react';
-import { Modal, Button, Input, Form, Space, message } from 'antd';
+import { Modal, Button, Input, Form, message, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { EntityTemplate } from '../../../../common/types';
+import '../../../App.css';
 
 export interface TemplateEditModalState {
   open: boolean;
@@ -102,28 +103,28 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
-                <Space
-                  key={key}
-                  style={{ display: 'flex', marginBottom: 8 }}
-                  align="baseline"
-                >
+                <div key={key} className="template-field-row">
                   <Form.Item
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'label']}
                     rules={[{ required: true, message: 'Missing field label' }]}
-                    style={{ flexGrow: 1 }}
+                    className="template-field-item"
+                    style={{ marginBottom: 0 }}
                   >
                     <Input placeholder="Field Label" />
                   </Form.Item>
                   <Form.Item
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'comment']}
-                    style={{ flexGrow: 1 }}
+                    className="template-field-item"
+                    style={{ marginBottom: 0 }}
                   >
                     <Input placeholder="Comment / Hint" />
                   </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
-                </Space>
+                  <Tooltip title="Удалить поле">
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Tooltip>
+                </div>
               ))}
               <Form.Item>
                 <Button
