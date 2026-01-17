@@ -76,7 +76,8 @@ export const CHECKLIST_STATUS = {
   DONE: 'done',
 } as const;
 
-export type ChecklistStatus = typeof CHECKLIST_STATUS[keyof typeof CHECKLIST_STATUS];
+export type ChecklistStatus =
+  (typeof CHECKLIST_STATUS)[keyof typeof CHECKLIST_STATUS];
 
 export interface ChecklistItem {
   text: string;

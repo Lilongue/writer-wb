@@ -435,15 +435,12 @@ ipcMain.handle('templates:getAll', (_event, includeArchived, category) => {
   return templateService.getAllTemplates(includeArchived, category);
 });
 
-ipcMain.handle('templates:archive', (_event, id) => {
+ipcMain.handle('templates:toggleVisibility', (_event, id) => {
   try {
-    const ok = templateService.archiveTemplate(id);
-    if (ok) {
-      eventBus.emit('world-objects-changed');
-    }
-    return { success: ok };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    const result = templateService.toggleTemplateVisibility(id);
+    return { success: result };
+  } catch (e: any) {
+    return { success: false, error: e.message };
   }
 });
 

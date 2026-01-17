@@ -145,18 +145,14 @@ export class TemplateService {
     return this.templateDao.getAllTemplates(includeArchived, category);
   }
 
-  archiveTemplate(id: number): boolean {
+  toggleTemplateVisibility(id: number): boolean {
     const count = this.worldObjectDao.countWorldObjectsByTemplateId(id);
     if (count > 0) {
       throw new Error(
         `Нельзя архивировать шаблон, так как он используется ${count} объектом(ами).`,
       );
     }
-    const success = this.templateDao.archiveTemplate(id);
-    if (!success) {
-      throw new Error('Шаблон не найден или уже архивирован');
-    }
-    return success;
+    return this.templateDao.toggleTemplateVisibility(id);
   }
 
   renameTemplate(id: number, newName: string): void {

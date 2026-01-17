@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.3] - 2026-01-15
 
-### Added
+### Added at [0.1.3]
 
 - **Error Notifications:** Implemented a global system to display user-friendly notifications for application errors.
 - **Manuscript Export UX:** Added a "Export Entire Manuscript" option to the main menu for easier access.
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Object Renaming:** The ability to rename items has been removed from the context menus of the navigation trees. Renaming is now centralized in the main content view to ensure data consistency.
 
-### Fixed
+### Fixed at [0.1.3]
 
 - **Nested Projects:** Prevented the creation of a new project inside an existing project directory.
 - **Project Wizard:** Refactored the project creation modal, ensuring its state is properly reset.

@@ -53,15 +53,16 @@ const useTemplates = (category: string) => {
     }
   }, [isProjectOpen]);
 
-  const handleArchive = useCallback(
+  const handleToggleVisibility = useCallback(
     async (id: number) => {
       const result = (await window.electron.ipcRenderer.invoke(
-        'templates:archive',
+        'templates:toggleVisibility',
         id,
       )) as { success: boolean; error?: string };
       if (result.success) {
-        message.success('Template archived');
+        message.success('Template status updated');
         fetchTemplates();
+        window.electron.ipcRenderer.sendMessage('world-objects-changed');
       } else {
         message.error(result.error);
       }
@@ -115,7 +116,7 @@ const useTemplates = (category: string) => {
     setIncludeArchived,
     loading,
     fetchTemplates,
-    handleArchive,
+    handleToggleVisibility,
     handleImportTemplate,
     handleBulkImport,
   };

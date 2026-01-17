@@ -97,13 +97,13 @@ export class TemplateDao extends BaseDao {
   }
 
   /**
-   * Архивирует шаблон сущности по ID.
+   * Переключает видимость шаблона сущности по ID (архивация/восстановление).
    * @param {number} id ID шаблона.
    */
-  public archiveTemplate(id: number): boolean {
+  public toggleTemplateVisibility(id: number): boolean {
     const db = this.getDb();
     const stmt = db.prepare(
-      'UPDATE entity_templates SET is_visible = 0 WHERE id = ?',
+      'UPDATE entity_templates SET is_visible = 1 - is_visible WHERE id = ?',
     );
     const info = stmt.run(id);
     return info.changes > 0;

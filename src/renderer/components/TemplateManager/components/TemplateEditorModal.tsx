@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Modal, Button, Input, Form, Space, message } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { EntityTemplate } from '../../../../common/types';
 
 export interface TemplateEditModalState {
   open: boolean;
-  mode: 'create' | 'rename' | 'copy' | 'edit-fields';
+  mode: 'create' | 'copy' | 'edit';
   template: Partial<EntityTemplate> | null;
 }
 
@@ -23,26 +23,29 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const { open, mode, template } = editModalState;
+  const [isOkDisabled, setIsOkDisabled] = useState(true);
 
   useEffect(() => {
     if (open) {
-      form.resetFields(); // Reset form on every modal open
+      form.resetFields();
+      let initialName = '';
 
-      if (mode === 'rename' && template) {
-        form.setFieldsValue({ name: template.name });
-      } else if (mode === 'copy' && template) {
+      if (mode === 'copy' && template) {
         const schema = JSON.parse(template.fields_schema || '[]');
+        initialName = `${template.name} (копия)`;
         form.setFieldsValue({
-          name: `${template.name} (копия)`,
+          name: initialName,
           fields: schema,
         });
-      } else if (mode === 'edit-fields' && template) {
+      } else if (mode === 'edit' && template) {
         const schema = JSON.parse(template.fields_schema || '[]');
-        form.setFieldsValue({ fields: schema });
+        initialName = template.name || '';
+        form.setFieldsValue({ name: initialName, fields: schema });
       } else {
-        // 'create' mode
         form.setFieldsValue({ name: '', fields: [] });
       }
+
+      setIsOkDisabled(!initialName);
     }
   }, [editModalState, form, open, mode, template]);
 
@@ -57,43 +60,44 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
     }
   };
 
-  const renderContent = () => {
-    if (mode === 'rename') {
-      return (
-        <Form form={form} layout="vertical" name="form_in_modal">
-          <Form.Item
-            name="name"
-            label="New Name"
-            rules={[
-              {
-                required: true,
-                message: 'Please input the new name of the template!',
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      );
-    }
+  const handleValuesChange = (_: any, allValues: { name: string }) => {
+    setIsOkDisabled(!allValues.name?.trim());
+  };
 
-    // Unified UI for create, copy, and edit-fields
-    return (
-      <Form form={form} layout="vertical" name="form_in_modal">
-        {mode !== 'edit-fields' && (
-          <Form.Item
-            name="name"
-            label="Template Name"
-            rules={[
-              {
-                required: true,
-                message: 'Please input the name of the template!',
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        )}
+  return (
+    <Modal
+      title={(() => {
+        if (mode === 'create') return 'Create Template';
+        if (mode === 'copy') return 'Copy Template';
+        if (mode === 'edit') return `Edit Template: ${template?.name || ''}`;
+        return 'Template';
+      })()}
+      open={open}
+      onCancel={onClose}
+      closable={false}
+      footer={[
+        <Button key="back" onClick={onClose}>
+          Cancel
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          onClick={handleOk}
+          disabled={isOkDisabled}
+        >
+          OK
+        </Button>,
+      ]}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        name="form_in_modal"
+        onValuesChange={handleValuesChange}
+      >
+        <Form.Item name="name" label="Template Name">
+          <Input placeholder="Enter Template Name" />
+        </Form.Item>
         <Form.List name="fields">
           {(fields, { add, remove }) => (
             <>
@@ -107,12 +111,14 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'label']}
                     rules={[{ required: true, message: 'Missing field label' }]}
+                    style={{ flexGrow: 1 }}
                   >
                     <Input placeholder="Field Label" />
                   </Form.Item>
                   <Form.Item
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'comment']}
+                    style={{ flexGrow: 1 }}
                   >
                     <Input placeholder="Comment / Hint" />
                   </Form.Item>
@@ -133,29 +139,6 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
           )}
         </Form.List>
       </Form>
-    );
-  };
-
-  return (
-    <Modal
-      title={(() => {
-        if (mode === 'create') {
-          return 'Create Template';
-        }
-        if (mode === 'copy') {
-          return 'Copy Template';
-        }
-        if (mode === 'edit-fields') {
-          return `Edit Fields for ${template?.name}`;
-        }
-        return 'Rename Template';
-      })()}
-      open={open}
-      onCancel={onClose}
-      closable={false}
-      onOk={handleOk}
-    >
-      {renderContent()}
     </Modal>
   );
 };

@@ -25,7 +25,7 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
 
   return (
     <div className="connections-section">
-      <div className="connections-header">
+      <div>
         <Space>
           <h3>Связи</h3>
           <Tooltip title="Добавить новую связь">

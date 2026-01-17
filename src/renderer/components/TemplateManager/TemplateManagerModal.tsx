@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { useState, useEffect } from 'react';
-import { Modal, Button, List, Checkbox } from 'antd';
+import { Modal, Button, List, Checkbox, Space } from 'antd';
 import useTemplates from './useTemplates';
 import TemplateEditorModal, {
   TemplateEditModalState,
@@ -21,7 +21,7 @@ function TemplateManagerModal({
     setIncludeArchived,
     loading,
     fetchTemplates,
-    handleArchive,
+    handleToggleVisibility,
     handleBulkImport,
   } = useTemplates('world'); // Assuming category 'world'
 
@@ -49,12 +49,13 @@ function TemplateManagerModal({
           category: 'world',
           fields: values.fields || [],
         });
-      } else if (mode === 'rename' && template) {
-        await window.electron.ipcRenderer.invoke('templates:rename', {
-          id: template.id,
-          newName: values.name,
-        });
-      } else if (mode === 'edit-fields' && template) {
+      } else if (mode === 'edit' && template) {
+        if (template.name !== values.name) {
+          await window.electron.ipcRenderer.invoke('templates:rename', {
+            id: template.id,
+            newName: values.name,
+          });
+        }
         await window.electron.ipcRenderer.invoke('templates:updateSchema', {
           id: template.id,
           schema: values.fields || [],
@@ -121,43 +122,32 @@ function TemplateManagerModal({
         renderItem={(template) => (
           <List.Item
             actions={[
-              <Button
-                key="copy"
-                onClick={() =>
-                  setEditModalState({ open: true, mode: 'copy', template })
-                }
-              >
-                Copy
-              </Button>,
-              <Button
-                key="rename"
-                onClick={() =>
-                  setEditModalState({ open: true, mode: 'rename', template })
-                }
-              >
-                Rename
-              </Button>,
-              <Button
-                key="edit-fields"
-                onClick={() =>
-                  setEditModalState({
-                    open: true,
-                    mode: 'edit-fields',
-                    template,
-                  })
-                }
-              >
-                Edit Fields
-              </Button>,
-              !template.is_visible ? null : (
+              <Space key="action-buttons">
                 <Button
-                  key="archive"
-                  danger
-                  onClick={() => handleArchive(template.id)}
+                  onClick={() =>
+                    setEditModalState({ open: true, mode: 'copy', template })
+                  }
                 >
-                  Archive
+                  Duplicate
                 </Button>
-              ),
+                <Button
+                  onClick={() =>
+                    setEditModalState({
+                      open: true,
+                      mode: 'edit',
+                      template,
+                    })
+                  }
+                >
+                  Edit
+                </Button>
+                <Button
+                  danger={template.is_visible === 1}
+                  onClick={() => handleToggleVisibility(template.id)}
+                >
+                  {template.is_visible ? 'Archive' : 'Restore'}
+                </Button>
+              </Space>,
             ]}
           >
             <List.Item.Meta
