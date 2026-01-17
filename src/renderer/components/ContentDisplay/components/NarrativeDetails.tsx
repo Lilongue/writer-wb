@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input } from 'antd';
+import { Input, Collapse } from 'antd';
 import ChecklistEditor from '../../ChecklistEditor';
 
 interface NarrativeDetailsProps {
@@ -7,6 +7,8 @@ interface NarrativeDetailsProps {
   plan: string | undefined;
   onDescriptionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onPlanChange: (value: string) => void;
+  planCollapseKey: string | string[] | undefined;
+  onPlanCollapseChange: (key: string | string[]) => void;
 }
 
 const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
@@ -14,6 +16,8 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
   plan,
   onDescriptionChange,
   onPlanChange,
+  planCollapseKey,
+  onPlanCollapseChange,
 }) => {
   return (
     <>
@@ -25,8 +29,15 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
         style={{ marginBottom: 16 }}
       />
       <h3>План</h3>
-      <ChecklistEditor value={plan || ''} onChange={onPlanChange} />
-      <br />
+      <Collapse
+        activeKey={planCollapseKey}
+        onChange={onPlanCollapseChange}
+        ghost
+      >
+        <Collapse.Panel header="" key="1">
+          <ChecklistEditor value={plan || ''} onChange={onPlanChange} />
+        </Collapse.Panel>
+      </Collapse>
     </>
   );
 };

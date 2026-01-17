@@ -70,9 +70,17 @@ export interface ItemDetails {
   plan?: string;
 }
 
+export const CHECKLIST_STATUS = {
+  PLAN: 'plan',
+  IN_PROGRESS: 'in_progress',
+  DONE: 'done',
+} as const;
+
+export type ChecklistStatus = typeof CHECKLIST_STATUS[keyof typeof CHECKLIST_STATUS];
+
 export interface ChecklistItem {
   text: string;
-  checked: boolean;
+  status: ChecklistStatus;
 }
 
 export interface ProjectSetting {

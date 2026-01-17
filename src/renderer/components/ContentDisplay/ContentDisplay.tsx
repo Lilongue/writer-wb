@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { Card, Empty } from 'antd';
+import { useState } from 'react';
 import useItemDetails from './useItemDetails';
 import useItemEditor from './useItemEditor';
 import ContentDisplayHeader from './components/ContentDisplayHeader';
@@ -14,6 +15,10 @@ interface ContentDisplayProps {
 }
 
 function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
+  const [planCollapseKey, setPlanCollapseKey] = useState<
+    string | string[] | undefined
+  >();
+
   const {
     details,
     loading,
@@ -73,6 +78,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
           plan={editedDetails.plan}
           onDescriptionChange={handleDescriptionChange}
           onPlanChange={handlePlanChange}
+          planCollapseKey={planCollapseKey}
+          onPlanCollapseChange={setPlanCollapseKey}
         />
       )}
 

@@ -148,3 +148,70 @@
 .text-dev-note {
   color: gray;
 }
+
+/* Apply "borderless" style to all Ant Design input components - v3 (completely borderless when unfocused) */
+.ant-input:not(.ant-input-disabled):not(:focus),
+.ant-input-textarea:not(.ant-input-disabled):not(:focus),
+.ant-input-affix-wrapper:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused),
+.ant-picker:not(.ant-picker-disabled):not(.ant-picker-focused),
+.ant-input-number:not(.ant-input-number-disabled):not(.ant-input-number-focused),
+.ant-select:not(.ant-select-disabled):not(.ant-select-focused) .ant-select-selector {
+    border: none !important; /* Completely remove border */
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+}
+
+.ant-input:not(.ant-input-disabled):hover:not(:focus),
+.ant-input-textarea:not(.ant-input-disabled):hover:not(:focus),
+.ant-input-affix-wrapper:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):hover,
+.ant-picker:not(.ant-picker-disabled):not(.ant-picker-focused):hover,
+.ant-input-number:not(.ant-input-number-disabled):not(.ant-input-number-focused):hover,
+.ant-select:not(.ant-select-disabled):not(.ant-select-focused):hover .ant-select-selector {
+    border: none !important; /* No border on hover either */
+    box-shadow: none !important;
+}
+
+.ant-input:focus, 
+.ant-input-focused,
+.ant-input-textarea:focus,
+.ant-input-affix-wrapper-focused,
+.ant-picker-focused,
+.ant-input-number-focused,
+.ant-select-focused .ant-select-selector {
+    border: 1px solid #1890ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+    border-radius: 2px !important;
+    background-color: #fff !important;
+}
+
+/* Remove inner borders for composite components, as the wrapper now has the border */
+.ant-input-number .ant-input-number-input,
+.ant-picker .ant-picker-input {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/*
+ * Cancellation class to restore default antd borders where needed.
+ * Add className="force-default-borders" to the component.
+ */
+.ant-input.force-default-borders:not(.ant-input-disabled):not(:focus),
+.ant-input-textarea.force-default-borders:not(.ant-input-disabled):not(:focus),
+.ant-input-affix-wrapper.force-default-borders:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused),
+.ant-picker.force-default-borders:not(.ant-picker-disabled):not(.ant-picker-focused),
+.ant-input-number.force-default-borders:not(.ant-input-number-disabled):not(.ant-input-number-focused),
+.ant-select.force-default-borders:not(.ant-select-disabled):not(.ant-select-focused) .ant-select-selector {
+    border: 1px solid #d9d9d9 !important;
+    background-color: #fff !important;
+    border-radius: 2px !important;
+}
+
+.ant-input.force-default-borders:not(.ant-input-disabled):hover:not(:focus),
+.ant-input-textarea.force-default-borders:not(.ant-input-disabled):hover:not(:focus),
+.ant-input-affix-wrapper.force-default-borders:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):hover,
+.ant-picker.force-default-borders:not(.ant-picker-disabled):not(.ant-picker-focused):hover,
+.ant-input-number.force-default-borders:not(.ant-input-number-disabled):not(.ant-input-number-focused):hover,
+.ant-select.force-default-borders:not(.ant-select-disabled):not(.ant-select-focused):hover .ant-select-selector {
+    border-color: #40a9ff !important;
+}

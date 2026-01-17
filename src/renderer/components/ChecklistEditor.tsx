@@ -1,17 +1,64 @@
 import { useState, useEffect, useCallback, FC } from 'react';
-import { Checkbox, Input, Button, Space } from 'antd';
+import { Tag, Input, Button, Space } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import {
   parseMarkdown,
   serializeToMarkdown,
 } from '../../common/checklistUtils';
-import { ChecklistItem } from '../../common/types';
+import {
+  ChecklistItem,
+  ChecklistStatus,
+  CHECKLIST_STATUS,
+} from '../../common/types';
 
 interface ChecklistEditorProps {
   value: string; // The markdown string
   onChange: (newValue: string) => void;
   readOnly?: boolean;
 }
+
+const statusConfig: Record<
+  ChecklistStatus,
+  { color: string; text: string; next: ChecklistStatus }
+> = {
+  [CHECKLIST_STATUS.PLAN]: {
+    color: 'default',
+    text: 'План',
+    next: CHECKLIST_STATUS.IN_PROGRESS,
+  },
+  [CHECKLIST_STATUS.IN_PROGRESS]: {
+    color: 'blue',
+    text: 'В работе',
+    next: CHECKLIST_STATUS.DONE,
+  },
+  [CHECKLIST_STATUS.DONE]: {
+    color: 'green',
+    text: 'Сделано',
+    next: CHECKLIST_STATUS.PLAN,
+  },
+};
+
+const StatusTag: FC<{
+  status: ChecklistStatus;
+  onClick: () => void;
+  readOnly?: boolean;
+}> = ({ status, onClick, readOnly }) => {
+  const { color, text } = statusConfig[status];
+  return (
+    <Tag
+      color={color}
+      onClick={!readOnly ? onClick : undefined}
+      style={{
+        cursor: readOnly ? 'default' : 'pointer',
+        minWidth: '70px',
+        textAlign: 'center',
+        fontSize: '12px',
+      }}
+    >
+      {text}
+    </Tag>
+  );
+};
 
 const ChecklistEditor: FC<ChecklistEditorProps> = ({
   value,
@@ -35,11 +82,12 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
     [onChange],
   );
 
-  const handleCheckChange = useCallback(
-    (index: number, checked: boolean) => {
+  const handleStatusChange = useCallback(
+    (index: number) => {
       if (readOnly) return;
       const newItems = [...items];
-      newItems[index].checked = checked;
+      const currentStatus = newItems[index].status;
+      newItems[index].status = statusConfig[currentStatus].next;
       setItems(newItems);
       triggerChange(newItems);
     },
@@ -59,7 +107,10 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
 
   const handleAddItem = useCallback(() => {
     if (readOnly || !newItemText.trim()) return;
-    const newItems = [...items, { text: newItemText.trim(), checked: false }];
+    const newItems = [
+      ...items,
+      { text: newItemText.trim(), status: CHECKLIST_STATUS.PLAN },
+    ];
     setItems(newItems);
     setNewItemText('');
     triggerChange(newItems);
@@ -78,11 +129,11 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
   return (
     <div>
       {items.map((item, index) => (
-        <Space key={index} style={{ display: 'flex', marginBottom: 8 }}>
-          <Checkbox
-            checked={item.checked}
-            onChange={(e) => handleCheckChange(index, e.target.checked)}
-            disabled={readOnly}
+        <Space key={index} style={{ display: 'flex', marginBottom: 8 }} align="center">
+          <StatusTag
+            status={item.status}
+            onClick={() => handleStatusChange(index)}
+            readOnly={readOnly}
           />
           <Input
             value={item.text}
