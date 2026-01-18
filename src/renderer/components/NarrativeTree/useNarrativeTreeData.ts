@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Key } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
@@ -11,6 +11,7 @@ import { buildTree } from './narrativeTreeUtils';
 const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
   const { narrativeTemplates } = useProject();
   const [treeData, setTreeData] = useState<any[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<Key[]>([]); // New: State for expanded keys
   const [contextMenu, setContextMenu] = useState<{
     open: boolean;
     node: any;
@@ -30,12 +31,12 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
       const items: NarrativeItem[] = await window.electron.ipcRenderer.invoke(
         'get-narrative-items',
       );
-      const hierarchy = buildTree(items);
+      const hierarchy = buildTree(items, narrativeTemplates);
       setTreeData(hierarchy);
     } catch (error) {
       console.error('Failed to fetch narrative items:', error);
     }
-  }, []);
+  }, [narrativeTemplates]);
 
   const handleExport = useCallback(async (node: any) => {
     try {
@@ -83,11 +84,22 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     };
   }, [fetchNarrativeItems, handleExport]);
 
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys) => {
+  const handleSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
     if (selectedKeys.length > 0) {
       onSelect(selectedKeys[0] as number);
     } else {
       onSelect(null);
+    }
+
+    // New expansion logic: Always expand, never collapse on click
+    if (info.node && !info.node.isLeaf) {
+      const clickedKey = info.node.key;
+      setExpandedKeys((prevExpandedKeys) => {
+        if (!prevExpandedKeys.includes(clickedKey)) {
+          return [...prevExpandedKeys, clickedKey];
+        }
+        return prevExpandedKeys; // Already expanded, do nothing
+      });
     }
   };
 
@@ -153,6 +165,8 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
       setModalState((prev) => ({ ...prev, name }));
     },
     handleModalPressEnter: handleModalOk,
+    expandedKeys, // Export expandedKeys
+    setExpandedKeys, // Export setExpandedKeys
   };
 };
 

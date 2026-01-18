@@ -20,6 +20,8 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     handleModalCancel,
     handleModalNameChange,
     handleModalPressEnter,
+    expandedKeys, // New: Import expandedKeys
+    setExpandedKeys, // New: Import setExpandedKeys
   } = useNarrativeTreeData(onSelect);
 
   return (
@@ -35,6 +37,8 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
           onSelect={handleSelect}
           onRightClick={onRightClick}
           treeData={treeData}
+          expandedKeys={expandedKeys} // New: Pass expandedKeys
+          onExpand={setExpandedKeys} // New: Pass onExpand
         />
       </NarrativeContextMenu>
       <NarrativeItemModal

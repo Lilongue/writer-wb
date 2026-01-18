@@ -51,7 +51,7 @@ const NarrativeItemModal: FC<NarrativeItemModalProps> = ({
           delete: 'Удалить',
         }[type]
       }
-      cancelText="Отмена"
+      cancelText="Отменить"
       okButtonProps={{ danger: type === 'delete' }}
     >
       {type === 'delete' ? (
@@ -64,6 +64,7 @@ const NarrativeItemModal: FC<NarrativeItemModalProps> = ({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           onPressEnter={onPressEnter}
+          placeholder="Введите имя элемента" // Added placeholder
         />
       )}
     </Modal>

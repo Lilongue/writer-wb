@@ -244,3 +244,8 @@
 .template-field-item {
   flex: 1;
 }
+
+/* Styling for Tree items in NarrativeTree and WorldObjectTree */
+.ant-tree-title {
+  font-size: 14px !important; /* Increase font size */
+}
