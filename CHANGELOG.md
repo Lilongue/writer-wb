@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-18
+
+### Changed at [0.2.0]
+
+- **UI/UX Redesign:** Performed a major redesign of the application's user interface for a more modern and intuitive experience.
+
 ## [0.1.3] - 2026-01-15
 
 ### Added at [0.1.3]
@@ -12,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Error Notifications:** Implemented a global system to display user-friendly notifications for application errors.
 - **Manuscript Export UX:** Added a "Export Entire Manuscript" option to the main menu for easier access.
 
-### Changed
+### Changed at [0.1.3]
 
 - **Object Renaming:** The ability to rename items has been removed from the context menus of the navigation trees. Renaming is now centralized in the main content view to ensure data consistency.
 
