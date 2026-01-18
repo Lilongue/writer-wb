@@ -105,11 +105,14 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
   }, [form, settings, onClose]);
 
   const renderSettingInput = useCallback((setting: ProjectSetting) => {
+    const placeholder = setting.description || 'Введите значение...';
     switch (setting.type) {
       case 'text':
-        return <Input />;
+        return <Input placeholder={placeholder} />;
       case 'number':
-        return <InputNumber style={{ width: '100%' }} />;
+        return (
+          <InputNumber style={{ width: '100%' }} placeholder={placeholder} />
+        );
       case 'boolean':
         return <Checkbox>{setting.name}</Checkbox>;
       default:

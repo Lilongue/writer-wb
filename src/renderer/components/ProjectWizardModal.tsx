@@ -147,7 +147,7 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
               { required: true, message: 'Пожалуйста, введите имя проекта!' },
             ]}
           >
-            <Input autoFocus />
+            <Input autoFocus placeholder="Введите имя вашего проекта" />
           </Form.Item>
           <Form.Item
             label="Папка проекта"
