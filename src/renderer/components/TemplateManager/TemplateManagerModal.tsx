@@ -80,13 +80,13 @@ function TemplateManagerModal({
 
   return (
     <Modal
-      title="Template Manager"
+      title="Менеджер шаблонов"
       open={visible}
       onCancel={onClose}
       closable={false}
       footer={[
         <Button key="close" onClick={onClose}>
-          Close
+          Закрыть
         </Button>,
       ]}
       width={800}
@@ -95,7 +95,7 @@ function TemplateManagerModal({
         checked={includeArchived}
         onChange={(e) => setIncludeArchived(e.target.checked)}
       >
-        Show Archived
+        Показывать архивные
       </Checkbox>
       <Button
         onClick={() =>
@@ -107,14 +107,14 @@ function TemplateManagerModal({
         }
         style={{ marginLeft: 16 }}
       >
-        Create New
+        Создать
       </Button>
       <Button
         style={{ marginLeft: 8 }}
         disabled={availableToImport.length === 0}
         onClick={() => setImportModalVisible(true)}
       >
-        Import from Library
+        Импорт из библиотеки
       </Button>
       <List
         loading={loading}
@@ -128,7 +128,7 @@ function TemplateManagerModal({
                     setEditModalState({ open: true, mode: 'copy', template })
                   }
                 >
-                  Duplicate
+                  Дублировать
                 </Button>
                 <Button
                   onClick={() =>
@@ -139,23 +139,23 @@ function TemplateManagerModal({
                     })
                   }
                 >
-                  Edit
+                  Редактировать
                 </Button>
                 <Button
                   danger={template.is_visible === 1}
                   onClick={() => handleToggleVisibility(template.id)}
                 >
-                  {template.is_visible ? 'Archive' : 'Restore'}
+                  {template.is_visible ? 'В архив' : 'Восстановить'}
                 </Button>
               </Space>,
             ]}
           >
             <List.Item.Meta
-              title={`${template.name}${template.is_visible ? '' : ' (Archived)'}`}
-              description={`Fields: ${
+              title={`${template.name}${template.is_visible ? '' : ' (в архиве)'}`}
+              description={`Поля: ${
                 JSON.parse(template.fields_schema || '[]')
                   .map((f: any) => f.label)
-                  .join(', ') || 'None'
+                  .join(', ') || 'Нет'
               }`}
             />
           </List.Item>

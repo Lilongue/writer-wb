@@ -249,3 +249,25 @@
 .ant-tree-title {
   font-size: 14px !important; /* Increase font size */
 }
+
+.content-display-name-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.content-display-name-label {
+  min-width: fit-content;
+}
+
+.file-content-wrapper {
+  position: relative;
+}
+
+.open-file-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}

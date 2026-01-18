@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Card, Empty } from 'antd';
+import { Card, Empty, Button } from 'antd';
 import { useState } from 'react';
 import useItemDetails from './useItemDetails';
 import useItemEditor from './useItemEditor';
@@ -56,14 +56,15 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         <ContentDisplayHeader
           name={editedDetails.name || ''}
           onNameChange={handleNameChange}
-          onSave={handleSave}
-          isSaveDisabled={!isChanged}
-          onOpenFile={handleOpenFile}
-          isOpenFileDisabled={!details.path || !details.fileExists}
+          selectedType={selectedType}
         />
       }
       className="content-display-card"
-      extra={null}
+      extra={
+        <Button type="primary" onClick={handleSave} disabled={!isChanged}>
+          Сохранить
+        </Button>
+      }
     >
       {selectedType === 'world' && (
         <WorldObjectDetails
@@ -96,6 +97,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         content={details.content}
         onCreteFile={handleCreateFile}
         isCreateFileDisabled={!details.path}
+        onOpenFile={handleOpenFile}
+        isOpenFileDisabled={!details.path || !details.fileExists}
       />
     </Card>
   );

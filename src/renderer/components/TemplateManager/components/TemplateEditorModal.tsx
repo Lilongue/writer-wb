@@ -57,7 +57,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
       onClose();
     } catch (errorInfo) {
       console.log('Failed:', errorInfo);
-      message.error('Validation failed');
+      message.error('Проверка не пройдена');
     }
   };
 
@@ -68,17 +68,18 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
   return (
     <Modal
       title={(() => {
-        if (mode === 'create') return 'Create Template';
-        if (mode === 'copy') return 'Copy Template';
-        if (mode === 'edit') return `Edit Template: ${template?.name || ''}`;
-        return 'Template';
+        if (mode === 'create') return 'Создать шаблон';
+        if (mode === 'copy') return 'Копировать шаблон';
+        if (mode === 'edit')
+          return `Редактировать шаблон: ${template?.name || ''}`;
+        return 'Шаблон';
       })()}
       open={open}
       onCancel={onClose}
       closable={false}
       footer={[
         <Button key="back" onClick={onClose}>
-          Cancel
+          Отменить
         </Button>,
         <Button
           key="submit"
@@ -86,7 +87,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
           onClick={handleOk}
           disabled={isOkDisabled}
         >
-          OK
+          Сохранить
         </Button>,
       ]}
     >
@@ -96,8 +97,8 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
         name="form_in_modal"
         onValuesChange={handleValuesChange}
       >
-        <Form.Item name="name" label="Template Name">
-          <Input placeholder="Enter Template Name" />
+        <Form.Item name="name" label="Название шаблона">
+          <Input placeholder="Введите название шаблона" />
         </Form.Item>
         <Form.List name="fields">
           {(fields, { add, remove }) => (
@@ -107,11 +108,13 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
                   <Form.Item
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
                     name={[name, 'label']}
-                    rules={[{ required: true, message: 'Missing field label' }]}
+                    rules={[
+                      { required: true, message: 'Укажите название поля' },
+                    ]}
                     className="template-field-item"
                     style={{ marginBottom: 0 }}
                   >
-                    <Input placeholder="Field Label" />
+                    <Input placeholder="Название поля" />
                   </Form.Item>
                   <Form.Item
                     {...restField} // eslint-disable-line react/jsx-props-no-spreading
@@ -119,7 +122,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
                     className="template-field-item"
                     style={{ marginBottom: 0 }}
                   >
-                    <Input placeholder="Comment / Hint" />
+                    <Input placeholder="Комментарий / подсказка" />
                   </Form.Item>
                   <Tooltip title="Удалить поле">
                     <MinusCircleOutlined onClick={() => remove(name)} />
@@ -133,7 +136,7 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
                   block
                   icon={<PlusOutlined />}
                 >
-                  Add field
+                  Добавить поле
                 </Button>
               </Form.Item>
             </>

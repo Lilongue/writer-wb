@@ -171,17 +171,17 @@ export default class MenuBuilder {
   buildDefaultTemplate(): MenuItemConstructorOptions[] {
     const templateDefault: MenuItemConstructorOptions[] = [
       {
-        label: '&File',
+        label: '&Файл',
         submenu: [
           {
-            label: '&New Project',
+            label: '&Новый проект',
             accelerator: 'Ctrl+N',
             click: () => {
               this.mainWindow.webContents.send('open-project-wizard');
             },
           },
           {
-            label: '&Open Project',
+            label: '&Открыть проект',
             accelerator: 'Ctrl+O',
             async click() {
               const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -208,7 +208,7 @@ export default class MenuBuilder {
             },
           },
           {
-            label: '&Close Project',
+            label: '&Закрыть проект',
             accelerator: 'Ctrl+C',
             click: () => {
               ProjectService.close();
@@ -216,7 +216,7 @@ export default class MenuBuilder {
           },
           { type: 'separator' },
           {
-            label: '&Settings',
+            label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
             click: () => {
               this.mainWindow.webContents.send('open-project-settings');
@@ -224,7 +224,7 @@ export default class MenuBuilder {
           },
           { type: 'separator' },
           {
-            label: 'E&xit',
+            label: '&Выход',
             accelerator: 'Ctrl+W',
             click: () => {
               this.mainWindow.close();
@@ -233,10 +233,10 @@ export default class MenuBuilder {
         ],
       },
       {
-        label: '&Data',
+        label: '&Данные',
         submenu: [
           {
-            label: 'Manage &Types...',
+            label: 'Управление &типами...',
             accelerator: 'Ctrl+Shift+T',
             click: () => {
               this.mainWindow.webContents.send('open-template-manager');
@@ -256,20 +256,20 @@ export default class MenuBuilder {
         ],
       },
       {
-        label: '&View',
+        label: '&Вид',
         submenu:
           process.env.NODE_ENV === 'development' ||
           process.env.DEBUG_PROD === 'true'
             ? [
                 {
-                  label: '&Reload',
+                  label: '&Перезагрузить',
                   accelerator: 'Ctrl+R',
                   click: () => {
                     this.mainWindow.webContents.reload();
                   },
                 },
                 {
-                  label: 'Toggle &Full Screen',
+                  label: 'Переключить &полноэкранный режим',
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
@@ -280,7 +280,7 @@ export default class MenuBuilder {
               ]
             : [
                 {
-                  label: 'Toggle &Full Screen',
+                  label: 'Переключить &полноэкранный режим',
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
@@ -291,10 +291,10 @@ export default class MenuBuilder {
               ],
       },
       {
-        label: 'Help',
+        label: 'Помощь',
         submenu: [
           {
-            label: 'About',
+            label: 'О программе',
             click() {
               app.showAboutPanel();
             },

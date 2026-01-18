@@ -48,14 +48,14 @@ const ImportTemplatesModal = ({
 
   return (
     <Modal
-      title="Import Templates from Library"
+      title="Импорт шаблонов из библиотеки"
       open={visible}
       onCancel={onClose}
       closable={false}
       width={800}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          Cancel
+          Отменить
         </Button>,
         <Button
           key="import"
@@ -63,14 +63,14 @@ const ImportTemplatesModal = ({
           disabled={selectedTemplateNames.length === 0}
           onClick={handleImport}
         >
-          Import Selected
+          Импортировать выбранные
         </Button>,
       ]}
     >
       <Layout className="import-modal-layout">
         <Sider className="import-modal-sider">
           <List
-            header={<div>Available Templates</div>}
+            header={<div>Доступные шаблоны</div>}
             bordered
             dataSource={templatesToImport}
             renderItem={(template) => (
@@ -98,7 +98,7 @@ const ImportTemplatesModal = ({
         <Content className="import-modal-content">
           {focusedTemplate ? (
             <List
-              header={<div>Fields for &quot;{focusedTemplate.name}&quot;</div>}
+              header={<div>Поля для &quot;{focusedTemplate.name}&quot;</div>}
               bordered
               dataSource={focusedTemplate.fields}
               renderItem={(field) => (
@@ -113,7 +113,7 @@ const ImportTemplatesModal = ({
             />
           ) : (
             <div className="empty-details-pane">
-              <Empty description="Select a template to see its fields" />
+              <Empty description="Выберите шаблон, чтобы просмотреть его поля" />
             </div>
           )}
         </Content>

@@ -1,38 +1,38 @@
 import React from 'react';
-import { Button, Input } from 'antd';
+import { Input } from 'antd';
 
 interface ContentDisplayHeaderProps {
   name: string;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSave: () => void;
-  isSaveDisabled: boolean;
-  onOpenFile: () => void;
-  isOpenFileDisabled: boolean;
+  selectedType?: 'narrative' | 'world' | null;
 }
 
 const ContentDisplayHeader: React.FC<ContentDisplayHeaderProps> = ({
   name,
   onNameChange,
-  onSave,
-  isSaveDisabled,
-  onOpenFile,
-  isOpenFileDisabled,
+  selectedType,
 }) => {
+  const labelPrefix =
+    selectedType === 'narrative' ? 'Название:' : 'Имя объекта:';
+
   return (
     <div className="content-display-title-wrapper">
-      <Input
-        value={name}
-        onChange={onNameChange}
-        disabled={false}
-        className="content-display-name-input"
-      />
-      <div className="card-extra-actions">
-        <Button type="primary" onClick={onSave} disabled={isSaveDisabled}>
-          Сохранить
-        </Button>
-        <Button onClick={onOpenFile} disabled={isOpenFileDisabled}>
-          Открыть во внешнем редакторе
-        </Button>
+      <div className="content-display-name-input-group">
+        {labelPrefix && (
+          <label
+            htmlFor={`content-display-name-input-${selectedType}`}
+            className="content-display-name-label"
+          >
+            {labelPrefix}
+          </label>
+        )}
+        <Input
+          id={`content-display-name-input-${selectedType}`}
+          value={name}
+          onChange={onNameChange}
+          disabled={false}
+          className="content-display-name-input"
+        />
       </div>
     </div>
   );

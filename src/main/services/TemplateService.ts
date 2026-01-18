@@ -85,6 +85,8 @@ export class TemplateService {
     templateData: PredefinedTemplate,
   ): Promise<EntityTemplate> {
     const { name, category, fields } = templateData;
+    const nameToStore =
+      templateData.category === 'narrative' ? templateData.label : name;
 
     const fieldsSchema = JSON.stringify(fields);
 
@@ -93,7 +95,7 @@ export class TemplateService {
       templateData.category === 'narrative' ? templateData.weight : 0;
 
     const newId = this.templateDao.createTemplate(
-      name,
+      nameToStore,
       category,
       fieldsSchema,
       weight,

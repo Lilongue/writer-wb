@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, FC } from 'react';
 import { Tag, Input, Button, Space, Tooltip } from 'antd';
-import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined } from '@ant-design/icons';
 import {
   parseMarkdown,
   serializeToMarkdown,
@@ -68,7 +68,6 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
   const [items, setItems] = useState<ChecklistItem[]>(() =>
     parseMarkdown(value),
   );
-  const [newItemText, setNewItemText] = useState<string>('');
 
   useEffect(() => {
     // Update internal state if the external value prop changes
@@ -105,17 +104,6 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
     [items, readOnly, triggerChange],
   );
 
-  const handleAddItem = useCallback(() => {
-    if (readOnly || !newItemText.trim()) return;
-    const newItems = [
-      ...items,
-      { text: newItemText.trim(), status: CHECKLIST_STATUS.PLAN },
-    ];
-    setItems(newItems);
-    setNewItemText('');
-    triggerChange(newItems);
-  }, [items, newItemText, readOnly, triggerChange]);
-
   const handleRemoveItem = useCallback(
     (index: number) => {
       if (readOnly) return;
@@ -129,7 +117,11 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
   return (
     <div>
       {items.map((item, index) => (
-        <Space key={index} style={{ display: 'flex', marginBottom: 8 }} align="center">
+        <Space
+          key={index}
+          style={{ display: 'flex', marginBottom: 8 }}
+          align="center"
+        >
           <StatusTag
             status={item.status}
             onClick={() => handleStatusChange(index)}
@@ -153,25 +145,6 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
           )}
         </Space>
       ))}
-      {!readOnly && (
-        <Space style={{ display: 'flex', marginTop: 8 }}>
-          <Input
-            placeholder="Добавить новый пункт"
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onPressEnter={handleAddItem}
-            style={{ flexGrow: 1 }}
-          />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddItem}
-            disabled={!newItemText.trim()}
-          >
-            Добавить
-          </Button>
-        </Space>
-      )}
     </div>
   );
 };

@@ -44,7 +44,7 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
           return undefined;
         })
         .catch((error) => {
-          console.error('Failed to load project settings:', error);
+          console.error('Ошибка загрузки настроек проекта:', error);
           // TODO: Show error to user
         });
     }
@@ -99,7 +99,7 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
         onClose();
       }
     } catch (errorInfo) {
-      console.error('Failed to save project settings:', errorInfo);
+      console.error('Ошибка сохранения настроек проекта:', errorInfo);
       // TODO: Show error to user
     }
   }, [form, settings, onClose]);
@@ -119,16 +119,16 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
 
   return (
     <Modal
-      title="Project Settings"
+      title="Настройки проекта"
       open={show}
       onCancel={onClose}
       closable={false}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          Cancel
+          Отменить
         </Button>,
         <Button key="submit" type="primary" onClick={handleSave}>
-          Save Changes
+          Сохранить изменения
         </Button>,
       ]}
       width={800}
@@ -162,7 +162,7 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
             )}
           </Form>
         ) : (
-          <Text>No settings available.</Text>
+          <Text>Нет доступных настроек.</Text>
         )}
       </div>
     </Modal>

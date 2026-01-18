@@ -185,6 +185,7 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     minWidth: 800,
+    title: 'Конструктор Миров Писателя',
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged
