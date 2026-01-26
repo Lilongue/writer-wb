@@ -19,31 +19,33 @@ const WorldObjectDetails: React.FC<WorldObjectDetailsProps> = ({
   return (
     <>
       <h3>Дополнительные поля</h3>
-      <Descriptions bordered size="small" column={1}>
-        {customFields.map((field, index) => (
-          <Descriptions.Item
-            key={field.key}
-            label={
-              <span>
-                {field.label}
-                {field.comment && (
-                  <Tooltip title={field.comment}>
-                    <InfoCircleOutlined
-                      style={{ marginLeft: 4, color: '#888' }}
-                    />
-                  </Tooltip>
-                )}
-              </span>
-            }
-          >
-            <Input
-              value={field.value}
-              onChange={(e) => onFieldChange(index, e.target.value)}
-              disabled={false}
-            />
-          </Descriptions.Item>
-        ))}
-      </Descriptions>
+      <div className="object-details-properties">
+        <Descriptions bordered size="small" column={1}>
+          {customFields.map((field, index) => (
+            <Descriptions.Item
+              key={field.key}
+              label={
+                <span>
+                  {field.label}
+                  {field.comment && (
+                    <Tooltip title={field.comment}>
+                      <InfoCircleOutlined
+                        style={{ marginLeft: 4, color: '#888' }}
+                      />
+                    </Tooltip>
+                  )}
+                </span>
+              }
+            >
+              <Input
+                value={field.value}
+                onChange={(e) => onFieldChange(index, e.target.value)}
+                disabled={false}
+              />
+            </Descriptions.Item>
+          ))}
+        </Descriptions>
+      </div>
       <br />
     </>
   );

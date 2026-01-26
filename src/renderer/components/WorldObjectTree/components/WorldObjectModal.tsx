@@ -15,7 +15,6 @@ interface WorldObjectModalProps {
   onOk: () => void;
   onCancel: () => void;
   onNameChange: (name: string) => void;
-  onFieldValueChange: (fieldName: string, value: string) => void;
 }
 
 const WorldObjectModal = ({
@@ -23,9 +22,8 @@ const WorldObjectModal = ({
   onOk,
   onCancel,
   onNameChange,
-  onFieldValueChange,
 }: WorldObjectModalProps) => {
-  const { type, open, name, schema, fieldValues, node } = modalState;
+  const { type, open, name, node } = modalState;
 
   // Calculate if the name is empty or just whitespace
   const isNameEmpty = !name || name.trim() === '';
@@ -75,22 +73,6 @@ const WorldObjectModal = ({
           нельзя будет отменить.
         </div>
       )}
-      {type === 'create' &&
-        schema?.map((field) => (
-          <div key={field.name} className="form-field-container">
-            <label htmlFor={`field-${field.name}`} className="form-field-label">
-              {field.label}
-            </label>
-            <Input
-              id={`field-${field.name}`}
-              value={fieldValues[field.name] || ''}
-              onChange={(e) => onFieldValueChange(field.name, e.target.value)}
-              placeholder={
-                field.comment || `Введите ${field.label.toLowerCase()}`
-              }
-            />
-          </div>
-        ))}
     </Modal>
   );
 };
