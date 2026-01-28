@@ -3,11 +3,9 @@ import { Modal, Input, Form } from 'antd';
 // A copy of the state slice from the original component
 export interface ModalState {
   open: boolean;
-  type: 'create' | 'rename' | 'delete';
+  type: 'create' | 'delete';
   node: any;
   name: string;
-  schema: any[] | null;
-  fieldValues: Record<string, string>;
 }
 
 interface WorldObjectModalProps {
@@ -33,7 +31,6 @@ const WorldObjectModal = ({
       title={
         {
           create: 'Создать объект',
-          rename: 'Переименовать объект',
           delete: 'Удалить объект',
         }[type]
       }
@@ -45,7 +42,6 @@ const WorldObjectModal = ({
       okText={
         {
           create: 'Создать',
-          rename: 'Переименовать',
           delete: 'Удалить',
         }[type]
       }

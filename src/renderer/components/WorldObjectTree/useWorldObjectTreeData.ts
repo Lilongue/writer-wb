@@ -3,11 +3,7 @@ import { useState, useCallback, useEffect, Key, useReducer } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
-import {
-  EntityTemplate,
-  WorldObject,
-  WorldObjectType,
-} from '../../../common/types';
+import { WorldObject, WorldObjectType } from '../../../common/types';
 import { ModalState } from './components/WorldObjectModal';
 
 type TreeNode = (WorldObjectType & { children?: any[] }) | WorldObject;
@@ -86,8 +82,6 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     type: 'create',
     node: null,
     name: '',
-    schema: null,
-    fieldValues: {},
   };
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
@@ -208,11 +202,11 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
   };
 
   const handleModalOk = async () => {
-    const { type, node, name, fieldValues } = modalState;
+    const { type, node, name } = modalState;
     try {
       if (type === 'create') {
         const typeId = Number(node.key.split('-')[1]);
-        const properties = JSON.stringify(fieldValues);
+        const properties = JSON.stringify({}); // Create with empty properties
         const newId = await window.electron.ipcRenderer.invoke(
           'world-object:create',
           { name, typeId, properties },
@@ -247,28 +241,18 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     setContextMenu({ ...contextMenu, open: false });
 
     if (info.key === 'create') {
-      const typeId = Number(node.key.split('-')[1]);
-      const template = (await window.electron.ipcRenderer.invoke(
-        'get-template-details',
-        typeId,
-      )) as EntityTemplate;
-      const schema = JSON.parse(template.fields_schema || '[]');
       setModalState({
         open: true,
         type: 'create',
         node,
         name: '',
-        schema,
-        fieldValues: {},
       });
     } else if (info.key === 'delete') {
       setModalState({
         open: true,
         type: 'delete',
         node,
-        name: '',
-        schema: null,
-        fieldValues: {},
+        name: '', // name is not used for delete but clearing it is good practice
       });
     }
   };
@@ -294,15 +278,6 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     handleModalCancel: () => setModalState(initialModalState),
     handleModalNameChange: (name: string) => {
       setModalState((prev) => ({ ...prev, name }));
-    },
-    handleModalFieldValueChange: (fieldName: string, value: string) => {
-      setModalState((prev) => ({
-        ...prev,
-        fieldValues: {
-          ...prev.fieldValues,
-          [fieldName]: value,
-        },
-      }));
     },
   };
 };

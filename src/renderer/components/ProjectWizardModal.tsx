@@ -125,6 +125,7 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
       footer={renderFooter()}
       width={600}
       destroyOnHidden
+      styles={{ body: { paddingTop: '16px' } }}
     >
       <Steps current={current} style={{ marginBottom: 24 }}>
         {steps.map((item) => (
@@ -179,7 +180,10 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
               { required: true, message: 'Выберите хотя бы один уровень!' },
             ]}
           >
-            <Checkbox.Group options={checkboxOptions} />
+            <Checkbox.Group
+              className="narrative-checkbox-group"
+              options={checkboxOptions}
+            />
           </Form.Item>
         </div>
       </Form>

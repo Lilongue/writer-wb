@@ -30,7 +30,6 @@ function WorldObjectTree({
     handleModalOk,
     handleModalCancel,
     handleModalNameChange,
-    handleModalFieldValueChange,
   } = useWorldObjectTreeData(onSelect);
 
   const handleSelect: TreeProps['onSelect'] = (keys, info) => {
@@ -40,7 +39,7 @@ function WorldObjectTree({
       if (key.startsWith('obj-')) {
         const id = key.split('-')[1];
         onSelect(id);
-      } else { // This is a type node
+      } else {
         onSelect(null);
       }
     } else {
@@ -92,7 +91,6 @@ function WorldObjectTree({
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         onNameChange={handleModalNameChange}
-        onFieldValueChange={handleModalFieldValueChange}
       />
     </div>
   );

@@ -1,10 +1,10 @@
-import { NarrativeItem, NarrativeTemplate } from '../../../common/types';
+import { NarrativeItem, EntityTemplate } from '../../../common/types';
 
 type TreeNode = NarrativeItem & { children: TreeNode[] };
 
 export const buildTree = (
   items: NarrativeItem[],
-  narrativeTemplates: NarrativeTemplate[],
+  narrativeTemplates: EntityTemplate[],
 ) => {
   if (narrativeTemplates.length === 0) {
     return []; // Cannot determine leaf nodes without templates
@@ -32,7 +32,7 @@ export const buildTree = (
     }
   });
 
-  const templateMap = new Map<number, NarrativeTemplate>(
+  const templateMap = new Map<number, EntityTemplate>(
     narrativeTemplates.map((t) => [t.id, t]),
   );
 
@@ -47,9 +47,7 @@ export const buildTree = (
         key: node.id,
         title: node.name,
         template_id: node.template_id,
-        children: node.children
-          ? convertToAntdTreeFormat(node.children)
-          : [],
+        children: node.children ? convertToAntdTreeFormat(node.children) : [],
         isLeaf,
       };
     });
