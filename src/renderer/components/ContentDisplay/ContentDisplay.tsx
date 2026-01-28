@@ -14,6 +14,18 @@ interface ContentDisplayProps {
   selectedType: 'narrative' | 'world' | null;
 }
 
+// Helper to get directory name without using 'path' module in renderer
+const getDirname = (filePath: string): string => {
+  if (!filePath) return '';
+  const lastSlash = filePath.lastIndexOf('/');
+  const lastBackslash = filePath.lastIndexOf('\\');
+  const index = Math.max(lastSlash, lastBackslash);
+  if (index === -1) {
+    return '';
+  }
+  return filePath.substring(0, index);
+};
+
 function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
   const [planCollapseKey, setPlanCollapseKey] = useState<
     string | string[] | undefined
@@ -41,6 +53,18 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     isChanged,
   } = useItemEditor({ details, selectedType, fetchDetails });
 
+  const handleOpenFolderClick = () => {
+    if (details?.path) {
+      const folderPath = getDirname(details.path);
+      if (folderPath) {
+        window.electron.ipcRenderer.sendMessage(
+          'open-in-external-editor',
+          folderPath,
+        );
+      }
+    }
+  };
+
   if (!selectedId || !details || !editedDetails) {
     return (
       <div className="empty-details-container">
@@ -49,14 +73,17 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     );
   }
 
+  const nameLabel = selectedType === 'narrative' ? 'Название' : 'Имя объекта';
+
   return (
     <Card
       loading={loading}
       title={
         <ContentDisplayHeader
-          name={editedDetails.name || ''}
-          onNameChange={handleNameChange}
           selectedType={selectedType}
+          onOpenFolderClick={handleOpenFolderClick}
+          onOpenFileClick={handleOpenFile}
+          isFileOpenable={!!(details?.path && details?.fileExists)}
         />
       }
       className="content-display-card"
@@ -68,6 +95,9 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     >
       {selectedType === 'world' && (
         <WorldObjectDetails
+          name={editedDetails.name || ''}
+          onNameChange={handleNameChange}
+          nameLabel={nameLabel}
           customFields={editedDetails.customFields || []}
           onFieldChange={handleFieldChange}
         />
@@ -75,6 +105,9 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
 
       {selectedType === 'narrative' && (
         <NarrativeDetails
+          name={editedDetails.name || ''}
+          onNameChange={handleNameChange}
+          nameLabel={nameLabel}
           description={editedDetails.description}
           plan={editedDetails.plan}
           onDescriptionChange={handleDescriptionChange}
@@ -97,8 +130,6 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         content={details.content}
         onCreteFile={handleCreateFile}
         isCreateFileDisabled={!details.path}
-        onOpenFile={handleOpenFile}
-        isOpenFileDisabled={!details.path || !details.fileExists}
       />
     </Card>
   );

@@ -1,39 +1,36 @@
 import React from 'react';
-import { Input } from 'antd';
+import { Button, Tooltip, Space } from 'antd';
+import { FolderOpenOutlined, EditOutlined } from '@ant-design/icons';
 
 interface ContentDisplayHeaderProps {
-  name: string;
-  onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedType?: 'narrative' | 'world' | null;
+  onOpenFolderClick: () => void;
+  onOpenFileClick: () => void;
+  isFileOpenable: boolean;
 }
 
 const ContentDisplayHeader: React.FC<ContentDisplayHeaderProps> = ({
-  name,
-  onNameChange,
   selectedType,
+  onOpenFolderClick,
+  onOpenFileClick,
+  isFileOpenable,
 }) => {
-  const labelPrefix =
-    selectedType === 'narrative' ? 'Название:' : 'Имя объекта:';
-
   return (
-    <div className="content-display-title-wrapper">
-      <div className="content-display-name-input-group">
-        {labelPrefix && (
-          <label
-            htmlFor={`content-display-name-input-${selectedType}`}
-            className="content-display-name-label"
-          >
-            {labelPrefix}
-          </label>
+    <div className="content-display-header-actions">
+      <Space>
+        {selectedType === 'world' && (
+          <Tooltip title="Открыть папку объекта">
+            <Button icon={<FolderOpenOutlined />} onClick={onOpenFolderClick} />
+          </Tooltip>
         )}
-        <Input
-          id={`content-display-name-input-${selectedType}`}
-          value={name}
-          onChange={onNameChange}
-          disabled={false}
-          className="content-display-name-input"
-        />
-      </div>
+        <Tooltip title="Открыть во внешнем редакторе">
+          <Button
+            icon={<EditOutlined />}
+            onClick={onOpenFileClick}
+            disabled={!isFileOpenable}
+          />
+        </Tooltip>
+      </Space>
     </div>
   );
 };

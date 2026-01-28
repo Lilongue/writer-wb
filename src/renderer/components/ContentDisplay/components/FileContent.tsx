@@ -7,8 +7,6 @@ interface FileContentProps {
   content: string | null;
   onCreteFile: () => void;
   isCreateFileDisabled: boolean;
-  onOpenFile: () => void;
-  isOpenFileDisabled: boolean;
 }
 
 const FileContent: React.FC<FileContentProps> = ({
@@ -16,18 +14,9 @@ const FileContent: React.FC<FileContentProps> = ({
   content,
   onCreteFile,
   isCreateFileDisabled,
-  onOpenFile,
-  isOpenFileDisabled,
 }) => {
   return fileExists ? (
     <div className="file-content-wrapper">
-      <Button
-        onClick={onOpenFile}
-        disabled={isOpenFileDisabled}
-        className="open-file-button"
-      >
-        Открыть во внешнем редакторе
-      </Button>
       <Typography.Text>
         <ReactMarkdown>{content || ''}</ReactMarkdown>
       </Typography.Text>
