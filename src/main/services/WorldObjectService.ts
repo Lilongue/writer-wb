@@ -91,11 +91,11 @@ export class WorldObjectService {
     let mtime: number | null = null;
 
     if (projectRoot) {
-      // Путь по соглашению: <root>/world/<template_name>/<object_id>/content.md
+      // Путь по соглашению: <root>/world/<template_id>/<object_id>/content.md
       absolutePath = path.join(
         projectRoot,
         'world',
-        template.name,
+        template.id.toString(),
         object.id.toString(),
         'content.md',
       );
@@ -150,7 +150,7 @@ export class WorldObjectService {
       const filePath = path.join(
         projectRoot,
         'world',
-        template.name,
+        template.id.toString(),
         newId.toString(),
         'content.md',
       );
@@ -192,7 +192,7 @@ export class WorldObjectService {
       const dirPath = path.join(
         projectRoot,
         'world',
-        template.name,
+        template.id.toString(),
         object.id.toString(),
       );
       fileSystemService.deleteDirectory(dirPath).catch(console.error);
