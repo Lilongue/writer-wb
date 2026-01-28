@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react';
-import { Modal, Button, Layout, List, Checkbox, Empty } from 'antd';
+import { useState, useMemo, useEffect } from 'react';
+import { Modal, Button, Empty, Segmented } from 'antd';
 import { PredefinedTemplate } from '../../../../common/types';
-
-const { Sider, Content } = Layout;
+import TemplateImportCard from './TemplateImportCard';
 
 interface ImportTemplatesModalProps {
   visible: boolean;
@@ -20,9 +19,15 @@ const ImportTemplatesModal = ({
   const [selectedTemplateNames, setSelectedTemplateNames] = useState<string[]>(
     [],
   );
-  const [focusedTemplateName, setFocusedTemplateName] = useState<string | null>(
-    null,
-  );
+  const [filter, setFilter] = useState<'all' | 'selected'>('all');
+
+  useEffect(() => {
+    // Reset state when modal is closed
+    if (!visible) {
+      setSelectedTemplateNames([]);
+      setFilter('all');
+    }
+  }, [visible]);
 
   const handleToggleSelection = (templateName: string) => {
     setSelectedTemplateNames((prev) =>
@@ -39,12 +44,14 @@ const ImportTemplatesModal = ({
     onImport(selected);
   };
 
-  const focusedTemplate = useMemo(() => {
-    if (!focusedTemplateName) return null;
-    return (
-      templatesToImport.find((t) => t.name === focusedTemplateName) || null
-    );
-  }, [focusedTemplateName, templatesToImport]);
+  const filteredTemplates = useMemo(() => {
+    if (filter === 'selected') {
+      return templatesToImport.filter((t) =>
+        selectedTemplateNames.includes(t.name),
+      );
+    }
+    return templatesToImport;
+  }, [filter, templatesToImport, selectedTemplateNames]);
 
   return (
     <Modal
@@ -67,57 +74,41 @@ const ImportTemplatesModal = ({
         </Button>,
       ]}
     >
-      <Layout className="import-modal-layout">
-        <Sider className="import-modal-sider">
-          <List
-            header={<div>Доступные шаблоны</div>}
-            bordered
-            dataSource={templatesToImport}
-            renderItem={(template) => (
-              <List.Item
-                onClick={() => setFocusedTemplateName(template.name)}
-                className={`template-list-item ${
-                  focusedTemplateName === template.name
-                    ? 'template-list-item-focused'
-                    : ''
-                }`}
-              >
-                <Checkbox
-                  checked={selectedTemplateNames.includes(template.name)}
-                  onChange={() => handleToggleSelection(template.name)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className="template-list-item-label">
-                  {template.name}
-                </span>
-              </List.Item>
-            )}
-            className="template-list-container"
-          />
-        </Sider>
-        <Content className="import-modal-content">
-          {focusedTemplate ? (
-            <List
-              header={<div>Поля для &quot;{focusedTemplate.name}&quot;</div>}
-              bordered
-              dataSource={focusedTemplate.fields}
-              renderItem={(field) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={field.label}
-                    description={field.comment}
-                  />
-                </List.Item>
-              )}
-              className="template-list-container"
+      <div className="import-modal-controls">
+        <Segmented
+          options={[
+            { label: 'Все', value: 'all' },
+            {
+              label: `Выбранные (${selectedTemplateNames.length})`,
+              value: 'selected',
+            },
+          ]}
+          value={filter}
+          onChange={(value) => setFilter(value as 'all' | 'selected')}
+        />
+      </div>
+      <div className="template-import-cards-container">
+        {filteredTemplates.length > 0 ? (
+          filteredTemplates.map((template) => (
+            <TemplateImportCard
+              key={template.name}
+              template={template}
+              selected={selectedTemplateNames.includes(template.name)}
+              onSelect={handleToggleSelection}
             />
-          ) : (
-            <div className="empty-details-pane">
-              <Empty description="Выберите шаблон, чтобы просмотреть его поля" />
-            </div>
-          )}
-        </Content>
-      </Layout>
+          ))
+        ) : (
+          <div className="empty-details-pane">
+            <Empty
+              description={
+                filter === 'all'
+                  ? 'Нет доступных шаблонов для импорта'
+                  : 'Нет выбранных шаблонов'
+              }
+            />
+          </div>
+        )}
+      </div>
     </Modal>
   );
 };

@@ -62,7 +62,12 @@ const ObjectProperties = ({
     <>
       <h3>Дополнительные поля</h3>
       <div className="object-details-properties">
-        <Descriptions bordered size="small" column={1} labelStyle={{ width: '30%' }}>
+        <Descriptions
+          bordered
+          size="small"
+          column={1}
+          labelStyle={{ width: '30%' }}
+        >
           {renderedFields}
         </Descriptions>
       </div>
