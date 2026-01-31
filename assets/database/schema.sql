@@ -13,6 +13,7 @@ CREATE TABLE narrative_items (
     template_id INTEGER NOT NULL,
     parent_id INTEGER,   -- Ссылается на narrative_items.id
     name TEXT NOT NULL,
+    title TEXT,
     description TEXT,
     plan TEXT,
     file_path TEXT,

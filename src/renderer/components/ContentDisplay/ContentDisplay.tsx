@@ -47,6 +47,7 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     editedDetails,
     handleFieldChange,
     handleNameChange,
+    handleTitleChange,
     handleDescriptionChange,
     handlePlanChange,
     handleSave,
@@ -107,6 +108,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         <NarrativeDetails
           name={editedDetails.name || ''}
           onNameChange={handleNameChange}
+          title={editedDetails.title}
+          onTitleChange={handleTitleChange}
           nameLabel={nameLabel}
           description={editedDetails.description}
           plan={editedDetails.plan}

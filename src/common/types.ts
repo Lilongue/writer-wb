@@ -6,6 +6,7 @@
 export interface NarrativeItem {
   id: number;
   name: string;
+  title?: string;
   template_id: number;
   parent_id: number | null;
   sort_order: number;
@@ -60,6 +61,7 @@ export interface CustomField {
 export interface ItemDetails {
   id: number;
   name: string;
+  title?: string;
   path: string | null;
   content: string | null;
   description?: string;

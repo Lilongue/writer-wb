@@ -146,27 +146,29 @@ export class ManuscriptService {
     projectRoot: string,
   ): Promise<string> {
     let content = '';
-
-    // Add header if required
-    if (includeHeaders) {
-      const headerPrefix = '#'.repeat(depth > 6 ? 6 : depth); // Max H6
-      content += `\n${headerPrefix} ${node.name}\n\n`;
-    }
+    let fileContent = '';
 
     // Read file content
     if (node.file_path) {
       const absolutePath = path.join(projectRoot, node.file_path);
       try {
-        const fileContent = await fileSystemService.readFile(absolutePath);
-        content += `${fileContent}\n\n`; // Add content and some spacing
+        fileContent = await fileSystemService.readFile(absolutePath);
       } catch (e) {
         console.error(`Error reading narrative item file ${absolutePath}`, e);
-        content += `\n**[Ошибка: Не удалось прочитать файл "${node.file_path}"]**\n\n`;
+        fileContent = `\n**[Ошибка: Не удалось прочитать файл "${node.file_path}"]**\n\n`;
       }
     } else if (node.description) {
       // Fallback to description if no file_path
-      content += `${node.description}\n\n`;
+      fileContent = `${node.description}\n\n`;
     }
+
+    // Add header if required, but only if content doesn't already have one
+    if (includeHeaders && node.title && !fileContent.trim().startsWith('#')) {
+      const headerPrefix = '#'.repeat(depth > 6 ? 6 : depth); // Max H6
+      content += `\n${headerPrefix} ${node.title}\n\n`;
+    }
+
+    content += `${fileContent}\n\n`; // Add content and some spacing
 
     // Recursively assemble children in parallel
     if (node.children.length > 0) {

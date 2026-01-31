@@ -20,6 +20,7 @@ const useItemEditor = ({
     if (details) {
       setEditedDetails({
         name: details.name,
+        title: details.title,
         customFields: details.customFields,
         description: details.description,
         plan: details.plan,
@@ -40,6 +41,13 @@ const useItemEditor = ({
   const handleNameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       setEditedDetails({ ...editedDetails, name: e.target.value });
+    },
+    [editedDetails],
+  );
+
+  const handleTitleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setEditedDetails({ ...editedDetails, title: e.target.value });
     },
     [editedDetails],
   );
@@ -84,6 +92,7 @@ const useItemEditor = ({
         .invoke('narrative:update-details', {
           id: details.id,
           name: editedDetails.name,
+          title: editedDetails.title,
           description: editedDetails.description,
           plan: editedDetails.plan,
         })
@@ -96,6 +105,7 @@ const useItemEditor = ({
     if (!details || !editedDetails) return false;
 
     if (details.name !== editedDetails.name) return true;
+    if (details.title !== editedDetails.title) return true;
 
     if (selectedType === 'world') {
       return (
@@ -117,6 +127,7 @@ const useItemEditor = ({
     setEditedDetails, // Potentially needed for reset or external modifications
     handleFieldChange,
     handleNameChange,
+    handleTitleChange,
     handleDescriptionChange,
     handlePlanChange,
     handleSave,

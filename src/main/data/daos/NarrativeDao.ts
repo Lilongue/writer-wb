@@ -12,6 +12,7 @@ export class NarrativeDao extends BaseDao {
       SELECT
         ni.id,
         ni.name,
+        ni.title,
         ni.parent_id,
         ni.sort_order,
         ni.file_path,
@@ -33,7 +34,8 @@ export class NarrativeDao extends BaseDao {
    */
   public getNarrativeItemById(id: number): NarrativeItem {
     const db = this.getDb();
-    const sql = 'SELECT * FROM narrative_items WHERE id = ?';
+    const sql =
+      'SELECT id, name, title, parent_id, sort_order, file_path, description, plan, template_id FROM narrative_items WHERE id = ?';
     const stmt = db.prepare(sql);
     return stmt.get(id) as NarrativeItem;
   }
@@ -77,6 +79,7 @@ export class NarrativeDao extends BaseDao {
    */
   public createNarrativeItem(
     name: string,
+    title: string | undefined,
     parentId: number | null,
     templateId: number,
     filePath: string,
@@ -85,12 +88,12 @@ export class NarrativeDao extends BaseDao {
     const db = this.getDb();
     const createTransaction = db.transaction(() => {
       const narrativeSql = `
-        INSERT INTO narrative_items (name, parent_id, template_id, file_path, sort_order)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO narrative_items (name, title, parent_id, template_id, file_path, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
       const info = db
         .prepare(narrativeSql)
-        .run(name, parentId, templateId, filePath, sortOrder);
+        .run(name, title, parentId, templateId, filePath, sortOrder);
       const newNarrativeId = info.lastInsertRowid as number;
 
       const entitySql = 'INSERT INTO all_entities (narrative_id) VALUES (?)';
@@ -117,19 +120,21 @@ export class NarrativeDao extends BaseDao {
    * Обновляет детали элемента повествования (имя, описание, план).
    * @param {number} itemId ID элемента повествования.
    * @param {string} name Новое имя элемента.
+   * @param {string | undefined} title Новый заголовок.
    * @param {string | undefined} description Новое описание (основная мысль).
    * @param {string | undefined} plan Новый план (чек-лист).
    */
   public updateNarrativeItemDetails(
     itemId: number,
     name: string,
+    title: string | undefined,
     description: string | undefined,
     plan: string | undefined,
   ): void {
     const db = this.getDb();
     const sql =
-      'UPDATE narrative_items SET name = ?, description = ?, plan = ? WHERE id = ?';
-    db.prepare(sql).run(name, description, plan, itemId);
+      'UPDATE narrative_items SET name = ?, title = ?, description = ?, plan = ? WHERE id = ?';
+    db.prepare(sql).run(name, title, description, plan, itemId);
   }
 
   /**
@@ -148,14 +153,20 @@ export class NarrativeDao extends BaseDao {
    * @param {number[]} ids Список ID narratrive_items.
    * @returns Список объектов с ID и именем.
    */
-  public getNarrativeItemsInfo(ids: number[]): { id: number; name: string }[] {
+  public getNarrativeItemsInfo(
+    ids: number[],
+  ): { id: number; name: string; title?: string }[] {
     if (ids.length === 0) {
       return [];
     }
     const db = this.getDb();
     const placeholders = ids.map(() => '?').join(',');
-    const sql = `SELECT id, name FROM narrative_items WHERE id IN (${placeholders})`;
-    return db.prepare(sql).all(ids) as { id: number; name: string }[];
+    const sql = `SELECT id, name, title FROM narrative_items WHERE id IN (${placeholders})`;
+    return db.prepare(sql).all(ids) as {
+      id: number;
+      name: string;
+      title?: string;
+    }[];
   }
 }
 

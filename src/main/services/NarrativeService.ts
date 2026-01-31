@@ -64,6 +64,7 @@ export class NarrativeService {
     return {
       id: item.id,
       name: item.name,
+      title: item.title,
       path: absolutePath ?? null,
       content: content || '', // Content now strictly comes from the file or error message
       description: item.description, // Pass description separately
@@ -77,6 +78,7 @@ export class NarrativeService {
     parentId: number | null,
     templateId: number,
     name: string,
+    title: string | undefined,
   ): Promise<number> {
     const projectRoot = this.getProjectRoot();
     if (!projectRoot) {
@@ -103,6 +105,7 @@ export class NarrativeService {
 
     const newItemId = this.narrativeDao.createNarrativeItem(
       name,
+      title,
       parentId,
       templateId,
       relativeFilePath,
@@ -110,7 +113,8 @@ export class NarrativeService {
     );
 
     const absoluteFilePath = path.join(projectRoot, relativeFilePath);
-    await fileSystemService.createFileWithDirs(absoluteFilePath, `# ${name}\n`);
+    const fileContent = title ? `# ${title}\n` : '';
+    await fileSystemService.createFileWithDirs(absoluteFilePath, fileContent);
 
     return newItemId;
   }
@@ -127,18 +131,21 @@ export class NarrativeService {
    * Обновляет детали элемента повествования (имя, описание, план).
    * @param {number} itemId ID элемента повествования.
    * @param {string} name Новое имя элемента.
+   * @param {string | undefined} title Новый заголовок.
    * @param {string | undefined} description Новое описание (основная мысль).
    * @param {string | undefined} plan Новый план (чек-лист).
    */
   public async updateNarrativeItemDetails(
     itemId: number,
     name: string,
+    title: string | undefined,
     description: string | undefined,
     plan: string | undefined,
   ): Promise<void> {
     this.narrativeDao.updateNarrativeItemDetails(
       itemId,
       name,
+      title,
       description,
       plan,
     );

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-01-18
 
+### Added at [0.2.0]
+
+- **Narrative Objects:** Added title field to narrative objects, providing a separate, optional export title.
+
 ### Changed at [0.2.0]
 
 - **UI/UX Redesign:** Performed a major redesign of the application's user interface for a more modern and intuitive experience.

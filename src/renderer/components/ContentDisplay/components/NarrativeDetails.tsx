@@ -7,6 +7,8 @@ import AddPlanItemModal from '../../AddPlanItemModal';
 interface NarrativeDetailsProps {
   name: string;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  title: string | undefined;
+  onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   nameLabel: string;
   description: string | undefined;
   plan: string | undefined;
@@ -19,6 +21,8 @@ interface NarrativeDetailsProps {
 const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
   name,
   onNameChange,
+  title,
+  onTitleChange,
   nameLabel,
   description,
   plan,
@@ -51,6 +55,12 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
         >
           <Descriptions.Item key="narrative-name" label={nameLabel}>
             <Input value={name} onChange={onNameChange} />
+          </Descriptions.Item>
+          <Descriptions.Item
+            key="narrative-title"
+            label="Заголовок (для экспорта)"
+          >
+            <Input value={title} onChange={onTitleChange} />
           </Descriptions.Item>
           <Descriptions.Item
             key="narrative-description"

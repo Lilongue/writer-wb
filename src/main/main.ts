@@ -346,11 +346,12 @@ ipcMain.handle('fs-stat', async (_event, filePath: string) => {
 // --- Narrative CRUD ---
 ipcMain.handle(
   'narrative:create',
-  async (_event, { parentId, templateId, name }) => {
+  async (_event, { parentId, templateId, name, title }) => {
     const newItemId = await narrativeService.createNarrativeItem(
       parentId,
       templateId,
       name,
+      title,
     );
     eventBus.emit('narrative-changed');
     return newItemId;
@@ -369,10 +370,11 @@ ipcMain.handle('narrative:delete', async (_event, itemId) => {
 
 ipcMain.handle(
   'narrative:update-details',
-  async (_event, { id, name, description, plan }) => {
+  async (_event, { id, name, title, description, plan }) => {
     await narrativeService.updateNarrativeItemDetails(
       id,
       name,
+      title,
       description,
       plan,
     );

@@ -19,6 +19,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     handleModalOk,
     handleModalCancel,
     handleModalNameChange,
+    handleModalTitleChange,
     handleModalPressEnter,
     expandedKeys, // New: Import expandedKeys
     setExpandedKeys, // New: Import setExpandedKeys
@@ -46,6 +47,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         onNameChange={handleModalNameChange}
+        onTitleChange={handleModalTitleChange}
         onPressEnter={handleModalPressEnter}
       />
     </div>

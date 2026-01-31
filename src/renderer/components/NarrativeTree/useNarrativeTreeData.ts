@@ -22,6 +22,7 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     type: 'create',
     node: null,
     name: '',
+    title: '',
   };
   const [modalState, setModalState] =
     useState<NarrativeModalState>(initialModalState);
@@ -116,6 +117,7 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
         type: 'create',
         node,
         name: '',
+        title: '',
         templateId,
         templateName: template?.name,
       });
@@ -127,13 +129,14 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
   };
 
   const handleModalOk = async () => {
-    const { type, node, name, templateId } = modalState;
+    const { type, node, name, title, templateId } = modalState;
     try {
       if (type === 'create') {
         await window.electron.ipcRenderer.invoke('narrative:create', {
           parentId: node.key,
           templateId,
           name,
+          title,
         });
       } else if (type === 'delete') {
         await window.electron.ipcRenderer.invoke('narrative:delete', node.key);
@@ -163,6 +166,9 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     handleModalCancel: () => setModalState(initialModalState),
     handleModalNameChange: (name: string) => {
       setModalState((prev) => ({ ...prev, name }));
+    },
+    handleModalTitleChange: (title: string) => {
+      setModalState((prev) => ({ ...prev, title }));
     },
     handleModalPressEnter: handleModalOk,
     expandedKeys, // Export expandedKeys
