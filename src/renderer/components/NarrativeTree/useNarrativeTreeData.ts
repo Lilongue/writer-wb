@@ -8,10 +8,24 @@ import { NarrativeItem } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
 
-const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
+const useNarrativeTreeData = (
+  onSelect: (id: number | null) => void,
+  selectedId: number | null,
+  selectedType: 'narrative' | 'world' | null,
+) => {
   const { narrativeTemplates } = useProject();
   const [treeData, setTreeData] = useState<any[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]); // New: State for expanded keys
+  const [selectedKeys, setSelectedKeys] = useState<Key[]>([]); // State for selected keys
+
+  useEffect(() => {
+    if (selectedType === 'narrative' && selectedId !== null) {
+      setSelectedKeys([selectedId]);
+    } else {
+      setSelectedKeys([]);
+    }
+  }, [selectedId, selectedType]);
+
   const [contextMenu, setContextMenu] = useState<{
     open: boolean;
     node: any;
@@ -173,6 +187,7 @@ const useNarrativeTreeData = (onSelect: (id: number | null) => void) => {
     handleModalPressEnter: handleModalOk,
     expandedKeys, // Export expandedKeys
     setExpandedKeys, // Export setExpandedKeys
+    selectedKeys, // Export selectedKeys
   };
 };
 

@@ -125,7 +125,11 @@ export default function App() {
         <Sider width={250} theme="light" style={{ overflowY: 'auto' }}>
           {isProjectOpen ? ( // Use isProjectOpen from context
             <>
-              <NarrativeTree onSelect={handleNarrativeSelect} />
+              <NarrativeTree
+                onSelect={handleNarrativeSelect}
+                selectedId={selection.id}
+                selectedType={selection.type === 'narrative' ? 'narrative' : null}
+              />
               <WorldObjectTree
                 onSelect={handleWorldObjectSelect}
                 selectedId={selection.id}

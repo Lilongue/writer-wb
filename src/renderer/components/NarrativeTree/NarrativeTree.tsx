@@ -5,9 +5,15 @@ import useNarrativeTreeData from './useNarrativeTreeData';
 
 interface NarrativeTreeProps {
   onSelect: (id: number | null) => void;
+  selectedId: number | null;
+  selectedType: 'narrative' | 'world' | null;
 }
 
-function NarrativeTree({ onSelect }: NarrativeTreeProps) {
+function NarrativeTree({
+  onSelect,
+  selectedId,
+  selectedType,
+}: NarrativeTreeProps) {
   const {
     treeData,
     contextMenu,
@@ -23,7 +29,8 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
     handleModalPressEnter,
     expandedKeys, // New: Import expandedKeys
     setExpandedKeys, // New: Import setExpandedKeys
-  } = useNarrativeTreeData(onSelect);
+    selectedKeys, // New: Import selectedKeys
+  } = useNarrativeTreeData(onSelect, selectedId, selectedType);
 
   return (
     <div className="sidebar-section" onContextMenu={(e) => e.preventDefault()}>
@@ -40,6 +47,7 @@ function NarrativeTree({ onSelect }: NarrativeTreeProps) {
           treeData={treeData}
           expandedKeys={expandedKeys} // New: Pass expandedKeys
           onExpand={setExpandedKeys} // New: Pass onExpand
+          selectedKeys={selectedKeys}
         />
       </NarrativeContextMenu>
       <NarrativeItemModal

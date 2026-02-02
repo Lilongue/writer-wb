@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **UI/UX Redesign:** Performed a major redesign of the application's user interface for a more modern and intuitive experience.
 - **Breaking Change - World Object Storage:** The file structure for world objects now uses static template IDs instead of template names in file paths. This change is not backward compatible with previous internal versions.
 
+### Fixed at [0.2.0]
+
+- Fixed several UI bugs.
+
 ## [0.1.3] - 2026-01-15
 
 ### Added at [0.1.3]
