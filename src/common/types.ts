@@ -92,7 +92,8 @@ export interface ProjectSetting {
   name: string;
   description?: string;
   category: string;
-  type: 'text' | 'boolean' | 'number';
+  type: 'string' | 'boolean' | 'number';
+  uiHint?: 'text' | 'readonly' | 'file-path' | 'textarea';
 }
 
 // export interface Connection { ... }

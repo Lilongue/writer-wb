@@ -66,14 +66,16 @@ CREATE TABLE IF NOT EXISTS project_settings (
     name        TEXT NOT NULL,    -- Человекочитаемое имя (например, 'Ширина окна')
     description TEXT,             -- Описание, поясняющее назначение настройки
     category    TEXT NOT NULL,    -- Категория для группировки в UI (например, 'Интерфейс')
-    type        TEXT NOT NULL DEFAULT 'text' -- Тип для рендеринга в UI ('text', 'boolean', 'number')
+    type        TEXT NOT NULL DEFAULT 'string', -- Тип для валидации ('string', 'boolean', 'number')
+    uiHint      TEXT              -- Подсказка для рендеринга в UI ('text', 'readonly', 'file-path', 'textarea')
 );
 
 -- Начальные данные для настроек проекта
-INSERT INTO project_settings (key, value, name, description, category, type) VALUES
-('project.author', 'Автор', 'Автор проекта', 'Имя автора, которое может использоваться при экспорте.', 'Общие', 'text'),
-('project.name', 'Мой проект', 'Название проекта', 'Общее название проекта или произведения.', 'Общие', 'text'),
-('project.location', '', 'Место расположения проекта', 'Путь к корневой папке проекта. Только для чтения.', 'Общие', 'text'),
-('ui.theme', 'light', 'Тема интерфейса', 'На данный момент не используется, задел на будущее.', 'Интерфейс', 'text'),
-('editor.mdPath', '', 'Редактор Markdown', 'Путь к внешнему редактору для файлов Markdown.', 'Редакторы', 'text'),
-('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'text');
+INSERT INTO project_settings (key, value, name, description, category, type, uiHint) VALUES
+('project.version', '0.0.0', 'Версия проекта', 'Версия приложения, с которой был создан проект. Только для чтения.', 'Системные', 'string', 'readonly'),
+('project.author', 'Автор', 'Автор проекта', 'Имя автора, которое может использоваться при экспорте.', 'Общие', 'string', NULL),
+('project.name', 'Мой проект', 'Название проекта', 'Общее название проекта или произведения.', 'Общие', 'string', NULL),
+('project.location', '', 'Место расположения проекта', 'Путь к корневой папке проекта. Только для чтения.', 'Общие', 'string', 'file-path'),
+('ui.theme', 'light', 'Тема интерфейса', 'На данный момент не используется, задел на будущее.', 'Интерфейс', 'string', NULL),
+('editor.mdPath', '', 'Редактор Markdown', 'Путь к внешнему редактору для файлов Markdown.', 'Редакторы', 'string', 'file-path'),
+('export.format', 'markdown', 'Формат экспорта', 'Формат файла при экспорте контента.', 'Экспорт', 'string', NULL);

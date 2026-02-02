@@ -11,7 +11,7 @@ export class SettingsDao extends BaseDao {
   public getAllProjectSettings(): ProjectSetting[] {
     const db = this.getDb();
     const sql =
-      'SELECT key, value, name, description, category, type FROM project_settings';
+      'SELECT key, value, name, description, category, type, uiHint FROM project_settings';
     return db.prepare(sql).all() as ProjectSetting[];
   }
 

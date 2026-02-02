@@ -91,12 +91,15 @@ class ProjectService {
         null, // Нет родителя
         topLevelTemplate.id,
         'Произведение',
+        undefined,
       );
     }
 
     // 6. Сохраняем настройки проекта
     await projectSettingsService.updateSettings([
       { key: 'project.name', value: projectName },
+      { key: 'project.location', value: projectPath },
+      { key: 'project.version', value: app.getVersion() },
       { key: 'narrative.structure', value: JSON.stringify(narrativeStructure) },
     ]);
 
