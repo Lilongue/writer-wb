@@ -18,6 +18,7 @@ import {
   OpenDialogOptions,
 } from 'electron';
 import fs from 'fs';
+import { spawn } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import fileSystemService from './services/FileSystemService';
@@ -289,6 +290,22 @@ ipcMain.handle(
   },
 );
 
+ipcMain.handle(
+  'dialog:openFile',
+  async (_event, options: OpenDialogOptions) => {
+    if (!mainWindow) {
+      return { canceled: true, filePaths: [] };
+    }
+
+    const { canceled, filePaths } = await dialog.showOpenDialog(
+      mainWindow,
+      options,
+    );
+
+    return { canceled, filePaths };
+  },
+);
+
 ipcMain.handle('get-narrative-items', () => {
   return narrativeService.getNarrativeItems();
 });
@@ -325,8 +342,39 @@ ipcMain.handle(
   },
 );
 
-ipcMain.on('open-in-external-editor', (_event, filePath: string) => {
-  shell.openPath(filePath).catch(console.error);
+ipcMain.handle('open-in-external-editor', async (_event, filePath: string) => {
+  try {
+    console.log(`Attempting to open file: ${filePath}`);
+    const allSettings = await projectSettingsService.getAllSettings();
+    const editorPathSetting = allSettings.find(
+      (setting) => setting.key === 'editor.mdPath',
+    );
+    const editorPath = editorPathSetting?.value;
+
+    console.log(`Configured editor path: ${editorPath}`);
+
+    if (editorPath && typeof editorPath === 'string' && editorPath.trim()) {
+      console.log(`Using configured editor: ${editorPath}`);
+      const editorProcess = spawn(editorPath, [filePath], {
+        detached: true,
+        stdio: 'ignore',
+      });
+
+      editorProcess.on('error', (err) => {
+        console.error('Failed to start external editor:', err);
+        // Optional: Notify the user that the editor failed to start
+      });
+
+      editorProcess.unref();
+    } else {
+      console.log('Using default system opener.');
+      shell.openPath(filePath).catch(console.error);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to open in external editor:', error);
+    return { success: false, error: (error as Error).message };
+  }
 });
 
 ipcMain.handle('create-file', async (_event, filePath: string) => {

@@ -99,9 +99,9 @@ const useNarrativeTreeData = (
     };
   }, [fetchNarrativeItems, handleExport]);
 
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
-    if (selectedKeys.length > 0) {
-      onSelect(selectedKeys[0] as number);
+  const handleSelect: TreeProps['onSelect'] = (newSelectedKeys, info) => {
+    if (newSelectedKeys.length > 0) {
+      onSelect(newSelectedKeys[0] as number);
     } else {
       onSelect(null);
     }

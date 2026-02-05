@@ -112,10 +112,9 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
 
   const handleOpenFile = useCallback(() => {
     if (details?.path && details?.fileExists) {
-      window.electron.ipcRenderer.sendMessage(
-        'open-in-external-editor',
-        details.path,
-      );
+      window.electron.ipcRenderer
+        .invoke('open-in-external-editor', details.path)
+        .catch(console.error);
     }
   }, [details]);
 

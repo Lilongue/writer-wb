@@ -20,6 +20,11 @@ interface ProjectSettingsModalProps {
   onClose: () => void;
 }
 
+interface OpenDialogReturnValue {
+  canceled: boolean;
+  filePaths: string[];
+}
+
 const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
   show,
   onClose,
@@ -105,48 +110,77 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
     }
   }, [form, settings, onClose]);
 
-  const renderSettingInput = useCallback((setting: ProjectSetting) => {
-    const placeholder = setting.description || 'Введите значение...';
-
-    // Render based on type for core data handling
-    if (setting.type === 'boolean') {
-      return <Checkbox>{setting.name}</Checkbox>;
-    }
-    if (setting.type === 'number') {
-      return (
-        <InputNumber style={{ width: '100%' }} placeholder={placeholder} />
-      );
-    }
-
-    // For string types, use uiHint to determine the component
-    if (setting.type === 'string') {
-      switch (setting.uiHint) {
-        case 'textarea':
-          return <Input.TextArea placeholder={placeholder} rows={4} />;
-        case 'readonly':
-          return (
-            <Input
-              placeholder={placeholder}
-              readOnly
-              className="setting-readonly"
-            />
-          );
-        case 'file-path':
-          return (
-            <Input
-              placeholder={placeholder}
-              addonAfter={<FolderOpenOutlined />}
-            />
-          );
-        case 'text':
-        default:
-          return <Input placeholder={placeholder} />;
+  const handleBrowseClick = useCallback(
+    async (key: string) => {
+      const result: OpenDialogReturnValue =
+        await window.electron.ipcRenderer.invoke('dialog:openFile', {
+          properties: ['openFile'],
+          filters: [
+            { name: 'Executable Files', extensions: ['exe', 'app', 'sh'] },
+            { name: 'All Files', extensions: ['*'] },
+          ],
+        });
+      if (result && !result.canceled && result.filePaths.length > 0) {
+        form.setFieldsValue({ [key]: result.filePaths[0] });
+        setEditedSettings((prev) => ({
+          ...prev,
+          [key]: result.filePaths[0],
+        }));
       }
-    }
+    },
+    [form],
+  );
 
-    // Fallback for unknown types
-    return <Input disabled />;
-  }, []);
+  const renderSettingInput = useCallback(
+    (setting: ProjectSetting) => {
+      const placeholder = setting.description || 'Введите значение...';
+
+      // Render based on type for core data handling
+      if (setting.type === 'boolean') {
+        return <Checkbox>{setting.name}</Checkbox>;
+      }
+      if (setting.type === 'number') {
+        return (
+          <InputNumber style={{ width: '100%' }} placeholder={placeholder} />
+        );
+      }
+
+      // For string types, use uiHint to determine the component
+      if (setting.type === 'string') {
+        switch (setting.uiHint) {
+          case 'textarea':
+            return <Input.TextArea placeholder={placeholder} rows={4} />;
+          case 'readonly':
+            return (
+              <Input
+                placeholder={placeholder}
+                readOnly
+                className="setting-readonly"
+              />
+            );
+          case 'file-path':
+            return (
+              <Input
+                placeholder={placeholder}
+                addonAfter={
+                  <Button
+                    onClick={() => handleBrowseClick(setting.key)}
+                    icon={<FolderOpenOutlined />}
+                  />
+                }
+              />
+            );
+          case 'text':
+          default:
+            return <Input placeholder={placeholder} />;
+        }
+      }
+
+      // Fallback for unknown types
+      return <Input disabled />;
+    },
+    [handleBrowseClick],
+  );
 
   return (
     <Modal

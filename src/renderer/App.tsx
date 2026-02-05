@@ -128,7 +128,9 @@ export default function App() {
               <NarrativeTree
                 onSelect={handleNarrativeSelect}
                 selectedId={selection.id}
-                selectedType={selection.type === 'narrative' ? 'narrative' : null}
+                selectedType={
+                  selection.type === 'narrative' ? 'narrative' : null
+                }
               />
               <WorldObjectTree
                 onSelect={handleWorldObjectSelect}
