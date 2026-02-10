@@ -9,6 +9,7 @@ import FileSystemService from './FileSystemService';
 import { NarrativeService } from './NarrativeService';
 import eventBus from '../eventBus';
 import { TemplateService } from './TemplateService';
+import { sanitizeFilename } from '../util';
 import ProjectSettingsService from './ProjectSettingsService';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
@@ -28,13 +29,20 @@ class ProjectService {
       location: string;
       projectName: string;
       narrativeStructure: string[];
+      createSubfolder: boolean;
     },
     templateService: TemplateService,
     projectSettingsService: ProjectSettingsService,
     narrativeService: NarrativeService,
   ): Promise<void> {
-    const { location, projectName, narrativeStructure } = projectData;
-    const projectPath = location;
+    const { location, projectName, narrativeStructure, createSubfolder } =
+      projectData;
+    let projectPath = location;
+
+    if (createSubfolder) {
+      const sanitizedProjectName = sanitizeFilename(projectName);
+      projectPath = path.join(projectPath, sanitizedProjectName);
+    }
 
     // Check if the location is already a project
     const isProject = await this._validateProjectStructure(projectPath);

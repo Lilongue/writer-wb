@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.0]
 
+- **Project Creation:** Added an option in the project wizard to create a subfolder for the project.
 - **External Editor Path:** Added functionality to configure an external Markdown editor path within project settings.
 - **Project Settings:** Enhanced project settings to provide a more flexible and user-friendly settings interface.
 - **Narrative Objects:** Added title field to narrative objects, providing a separate, optional export title.

@@ -12,6 +12,14 @@ export function resolveHtmlPath(htmlFileName: string) {
   return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}`;
 }
 
+export function sanitizeFilename(filename: string): string {
+  return filename
+    .replace(/[<>:"/\\|?*]+/g, '_') // Замена недопустимых символов на '_'
+    .replace(/\s/g, '-') // Замена пробелов на '-'
+    .replace(/^-+|-+$/g, '') // Удаление начальных/конечных дефисов
+    .replace(/--+/g, '-'); // Замена нескольких дефисов на один
+}
+
 export function slugify(text: string): string {
   const translit: { [key: string]: string } = {
     а: 'a',

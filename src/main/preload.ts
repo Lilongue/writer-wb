@@ -77,6 +77,7 @@ export type ElectronAPI = typeof electronHandler & {
       location: string;
       projectName: string;
       narrativeStructure: string[];
+      createSubfolder: boolean;
     }) => Promise<void>;
   };
 };

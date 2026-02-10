@@ -174,6 +174,14 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
             </Space.Compact>
           </Form.Item>
           <Form.Item
+            name="createSubfolder"
+            valuePropName="checked"
+            initialValue
+            tooltip="Создать подпапку с именем проекта внутри выбранной папки"
+          >
+            <Checkbox>Создать подпапку для проекта</Checkbox>
+          </Form.Item>
+          <Form.Item
             name="narrativeStructure"
             label="Выберите уровни иерархии для вашего повествования:"
             rules={[
