@@ -2,11 +2,12 @@ import { Tree } from 'antd';
 import NarrativeContextMenu from './NarrativeContextMenu';
 import NarrativeItemModal from './NarrativeItemModal';
 import useNarrativeTreeData from './useNarrativeTreeData';
+import { EntityType } from '../../../common/types';
 
 interface NarrativeTreeProps {
   onSelect: (id: number | null) => void;
   selectedId: number | null;
-  selectedType: 'narrative' | 'world' | null;
+  selectedType: EntityType | null;
 }
 
 function NarrativeTree({

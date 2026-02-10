@@ -22,10 +22,15 @@ export interface RawConnection {
   target_id: number;
 }
 
+export enum EntityType {
+  Narrative = 'narrative',
+  WorldObject = 'world',
+}
+
 export interface ResolvedEntity {
   allEntityId: number;
   id: number;
-  type: 'narrative' | 'world';
+  type: EntityType;
 }
 
 // В будущем здесь появятся другие доменные типы:
@@ -45,7 +50,7 @@ export interface WorldObject {
 export interface EntityTemplate {
   id: number;
   name: string;
-  category: 'narrative' | 'world';
+  category: EntityType;
   fields_schema: string; // JSON-схема полей
   is_visible: boolean;
   weight: number;
@@ -104,7 +109,7 @@ export interface ProjectSetting {
  */
 export type PredefinedWorldTemplate = {
   name: string;
-  category: 'world';
+  category: EntityType.WorldObject;
   fields: {
     name: string; // системное имя
     label: string; // имя для юзера
@@ -119,7 +124,7 @@ export type PredefinedWorldTemplate = {
 export type PredefinedNarrativeTemplate = {
   name: string;
   label: string;
-  category: 'narrative';
+  category: EntityType.Narrative;
   weight: number;
   fields: {
     name: string;

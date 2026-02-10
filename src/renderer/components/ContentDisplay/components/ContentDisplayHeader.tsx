@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button, Tooltip, Space } from 'antd';
 import { FolderOpenOutlined, EditOutlined } from '@ant-design/icons';
+import { EntityType } from '../../../../common/types';
 
 interface ContentDisplayHeaderProps {
-  selectedType?: 'narrative' | 'world' | null;
+  selectedType?: EntityType | null;
   onOpenFolderClick: () => void;
   onOpenFileClick: () => void;
   isFileOpenable: boolean;
@@ -18,7 +19,7 @@ const ContentDisplayHeader: React.FC<ContentDisplayHeaderProps> = ({
   return (
     <div className="content-display-header-actions">
       <Space>
-        {selectedType === 'world' && (
+        {selectedType === EntityType.WorldObject && (
           <Tooltip title="Открыть папку объекта">
             <Button icon={<FolderOpenOutlined />} onClick={onOpenFolderClick} />
           </Tooltip>

@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { ItemDetails } from '../../../common/types';
+import { EntityType, ItemDetails } from '../../../common/types';
 
 interface UseItemEditorProps {
   details: ItemDetails | null;
-  selectedType: 'narrative' | 'world' | null;
+  selectedType: EntityType | null;
   fetchDetails: () => Promise<ItemDetails | null> | null;
 }
 
@@ -69,7 +69,7 @@ const useItemEditor = ({
   const handleSave = useCallback(() => {
     if (!details || !editedDetails || !selectedType) return;
 
-    if (selectedType === 'world') {
+    if (selectedType === EntityType.WorldObject) {
       const properties =
         editedDetails.customFields?.reduce(
           (acc, field) => {
@@ -87,7 +87,7 @@ const useItemEditor = ({
         })
         .then(() => fetchDetails && fetchDetails()) // Refresh details after save
         .catch(console.error);
-    } else if (selectedType === 'narrative') {
+    } else if (selectedType === EntityType.Narrative) {
       window.electron.ipcRenderer
         .invoke('narrative:update-details', {
           id: details.id,
@@ -107,14 +107,14 @@ const useItemEditor = ({
     if (details.name !== editedDetails.name) return true;
     if (details.title !== editedDetails.title) return true;
 
-    if (selectedType === 'world') {
+    if (selectedType === EntityType.WorldObject) {
       return (
         JSON.stringify(details.customFields) !==
         JSON.stringify(editedDetails.customFields)
       );
     }
 
-    if (selectedType === 'narrative') {
+    if (selectedType === EntityType.Narrative) {
       if (details.description !== editedDetails.description) return true;
       if (details.plan !== editedDetails.plan) return true;
     }

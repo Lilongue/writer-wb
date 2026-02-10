@@ -8,10 +8,11 @@ import WorldObjectDetails from './components/WorldObjectDetails';
 import NarrativeDetails from './components/NarrativeDetails';
 import ConnectionsManager from './components/ConnectionsManager';
 import FileContent from './components/FileContent';
+import { EntityType } from '../../../common/types';
 
 interface ContentDisplayProps {
   selectedId: number | null;
-  selectedType: 'narrative' | 'world' | null;
+  selectedType: EntityType | null;
 }
 
 // Helper to get directory name without using 'path' module in renderer
@@ -74,7 +75,8 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
     );
   }
 
-  const nameLabel = selectedType === 'narrative' ? 'Название' : 'Имя объекта';
+  const nameLabel =
+    selectedType === EntityType.Narrative ? 'Название' : 'Имя объекта';
 
   return (
     <Card
@@ -94,7 +96,7 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         </Button>
       }
     >
-      {selectedType === 'world' && (
+      {selectedType === EntityType.WorldObject && (
         <WorldObjectDetails
           name={editedDetails.name || ''}
           onNameChange={handleNameChange}
@@ -104,7 +106,7 @@ function ContentDisplay({ selectedId, selectedType }: ContentDisplayProps) {
         />
       )}
 
-      {selectedType === 'narrative' && (
+      {selectedType === EntityType.Narrative && (
         <NarrativeDetails
           name={editedDetails.name || ''}
           onNameChange={handleNameChange}

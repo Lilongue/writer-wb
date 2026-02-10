@@ -13,6 +13,7 @@ import ProjectWizardModal from './components/ProjectWizardModal';
 import { useProject } from './contexts/ProjectContext'; // Import useProject
 import notificationService, { apiHolder } from './services/notificationService';
 import ErrorBoundary from './components/ErrorBoundary';
+import { EntityType } from '../common/types';
 
 const { Sider, Content } = Layout;
 
@@ -30,7 +31,7 @@ export default function App() {
 
   const [selection, setSelection] = useState<{
     id: number | null;
-    type: 'narrative' | 'world' | null;
+    type: EntityType | null;
   }>({ id: null, type: null });
   const [templateManagerVisible, setTemplateManagerVisible] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false); // State for settings modal
@@ -94,11 +95,14 @@ export default function App() {
   }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 
   const handleNarrativeSelect = (id: number | null) => {
-    setSelection({ id, type: 'narrative' });
+    setSelection({ id, type: EntityType.Narrative });
   };
 
   const handleWorldObjectSelect = (key: string | null) => {
-    setSelection({ id: key ? parseInt(key, 10) : null, type: 'world' });
+    setSelection({
+      id: key ? parseInt(key, 10) : null,
+      type: EntityType.WorldObject,
+    });
   };
 
   const handleCreateProject = async (values: any) => {
@@ -129,13 +133,19 @@ export default function App() {
                 onSelect={handleNarrativeSelect}
                 selectedId={selection.id}
                 selectedType={
-                  selection.type === 'narrative' ? 'narrative' : null
+                  selection.type === EntityType.Narrative
+                    ? EntityType.Narrative
+                    : null
                 }
               />
               <WorldObjectTree
                 onSelect={handleWorldObjectSelect}
                 selectedId={selection.id}
-                selectedType={selection.type === 'world' ? 'world' : null}
+                selectedType={
+                  selection.type === EntityType.WorldObject
+                    ? EntityType.WorldObject
+                    : null
+                }
               />
             </>
           ) : (

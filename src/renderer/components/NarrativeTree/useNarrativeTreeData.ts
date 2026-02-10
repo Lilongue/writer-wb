@@ -4,14 +4,14 @@ import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
 import { useProject } from '../../contexts/ProjectContext';
-import { NarrativeItem } from '../../../common/types';
+import { NarrativeItem, EntityType } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
 
 const useNarrativeTreeData = (
   onSelect: (id: number | null) => void,
   selectedId: number | null,
-  selectedType: 'narrative' | 'world' | null,
+  selectedType: EntityType | null,
 ) => {
   const { narrativeTemplates } = useProject();
   const [treeData, setTreeData] = useState<any[]>([]);
@@ -19,7 +19,7 @@ const useNarrativeTreeData = (
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]); // State for selected keys
 
   useEffect(() => {
-    if (selectedType === 'narrative' && selectedId !== null) {
+    if (selectedType === EntityType.Narrative && selectedId !== null) {
       setSelectedKeys([selectedId]);
     } else {
       setSelectedKeys([]);

@@ -10,6 +10,7 @@ import {
   PredefinedWorldTemplate,
   PredefinedNarrativeTemplate,
   PredefinedTemplatesFile,
+  EntityType,
 } from '../../common/types';
 
 /**
@@ -86,13 +87,15 @@ export class TemplateService {
   ): Promise<EntityTemplate> {
     const { name, category, fields } = templateData;
     const nameToStore =
-      templateData.category === 'narrative' ? templateData.label : name;
+      templateData.category === EntityType.Narrative
+        ? templateData.label
+        : name;
 
     const fieldsSchema = JSON.stringify(fields);
 
     // Вес есть только у шаблонов повествования
     const weight =
-      templateData.category === 'narrative' ? templateData.weight : 0;
+      templateData.category === EntityType.Narrative ? templateData.weight : 0;
 
     const newId = this.templateDao.createTemplate(
       nameToStore,
@@ -105,7 +108,7 @@ export class TemplateService {
 
   createTemplate(
     name: string,
-    category: 'narrative' | 'world',
+    category: EntityType,
     fields: { label: string; comment?: string }[],
     weight: number = 0,
   ): EntityTemplate {
@@ -135,14 +138,17 @@ export class TemplateService {
    * @returns {EntityTemplate[]} Отсортированный список шаблонов повествования.
    */
   getNarrativeTemplates(): EntityTemplate[] {
-    const templates = this.templateDao.getAllTemplates(false, 'narrative');
+    const templates = this.templateDao.getAllTemplates(
+      false,
+      EntityType.Narrative,
+    );
     // Сортировка по убыванию: чем больше вес, тем "выше" уровень (например, Книга > Часть)
     return templates.sort((a, b) => b.weight - a.weight);
   }
 
   getAllTemplates(
     includeArchived: boolean = false,
-    category: 'narrative' | 'world' | undefined = undefined,
+    category: EntityType | undefined = undefined,
   ): EntityTemplate[] {
     return this.templateDao.getAllTemplates(includeArchived, category);
   }

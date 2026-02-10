@@ -11,6 +11,7 @@ import eventBus from '../eventBus';
 import { TemplateService } from './TemplateService';
 import { sanitizeFilename } from '../util';
 import ProjectSettingsService from './ProjectSettingsService';
+import { EntityType } from '../../common/types';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
 const SCHEMA_PATH = app.isPackaged
@@ -57,8 +58,8 @@ class ProjectService {
     }
 
     await FileSystemService.createDirectories(projectPath, [
-      'narrative',
-      'world',
+      EntityType.Narrative,
+      EntityType.WorldObject,
     ]);
 
     // Create the .wwb project marker file
@@ -185,7 +186,7 @@ class ProjectService {
     );
     const dirsExist = await FileSystemService.checkDirectoriesExist(
       projectPath,
-      ['narrative', 'world'],
+      [EntityType.Narrative, EntityType.WorldObject],
     );
     return dbExists && dirsExist;
   }

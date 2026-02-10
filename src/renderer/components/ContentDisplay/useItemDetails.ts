@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ItemDetails } from '../../../common/types';
+import { EntityType, ItemDetails } from '../../../common/types';
 
 interface UseItemDetailsProps {
   selectedId: number | null;
-  selectedType: 'narrative' | 'world' | null;
+  selectedType: EntityType | null;
 }
 
 // Utility function (can be moved to a separate file if reused)
