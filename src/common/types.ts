@@ -47,7 +47,7 @@ export interface EntityTemplate {
   name: string;
   category: 'narrative' | 'world';
   fields_schema: string; // JSON-схема полей
-  is_visible: 0 | 1;
+  is_visible: boolean;
   weight: number;
 }
 

@@ -80,7 +80,7 @@ export class TemplateDao extends BaseDao {
     const params: (string | number)[] = [];
 
     if (!includeArchived) {
-      conditions.push('is_visible = 1');
+      conditions.push('is_visible = TRUE');
     }
 
     if (category) {
@@ -103,7 +103,7 @@ export class TemplateDao extends BaseDao {
   public toggleTemplateVisibility(id: number): boolean {
     const db = this.getDb();
     const stmt = db.prepare(
-      'UPDATE entity_templates SET is_visible = 1 - is_visible WHERE id = ?',
+      'UPDATE entity_templates SET is_visible = NOT is_visible WHERE id = ?',
     );
     const info = stmt.run(id);
     return info.changes > 0;

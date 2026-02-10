@@ -11,7 +11,7 @@ export class WorldObjectDao extends BaseDao {
     const sql = `
         SELECT id, name
         FROM entity_templates
-        WHERE category = 'world' AND is_visible = 1
+        WHERE category = 'world' AND is_visible = TRUE
         ORDER BY name ASC;
     `;
     const stmt = db.prepare(sql);

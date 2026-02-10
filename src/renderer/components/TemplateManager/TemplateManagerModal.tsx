@@ -142,7 +142,7 @@ function TemplateManagerModal({
                   Редактировать
                 </Button>
                 <Button
-                  danger={template.is_visible === 1}
+                  danger={template.is_visible}
                   onClick={() => handleToggleVisibility(template.id)}
                 >
                   {template.is_visible ? 'В архив' : 'Восстановить'}
