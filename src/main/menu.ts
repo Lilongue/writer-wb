@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   app,
   Menu,
@@ -203,7 +202,10 @@ export default class MenuBuilder {
 
                 await ProjectService.open(projectRoot);
               } catch (e) {
-                console.error('Failed to open project', e);
+                MainNotificationService.error(
+                  'Не удалось открыть проект',
+                  String(e),
+                );
                 // TODO: Показать ошибку пользователю
               }
             },

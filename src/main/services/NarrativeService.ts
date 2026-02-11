@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import path from 'path';
 import { ItemDetails, NarrativeItem } from '../../common/types';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
+import MainNotificationService from './NotificationService';
 
 import { slugify } from '../util';
 
@@ -51,7 +51,10 @@ export class NarrativeService {
           content = await fileSystemService.readFile(absolutePath);
           mtime = stats.mtimeMs;
         } catch (e) {
-          console.error(`Error reading existing file ${absolutePath}`, e);
+          MainNotificationService.error(
+            `Ошибка чтения существующего файла ${absolutePath}`,
+            String(e),
+          );
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
           fileExists = false; // It exists but is unreadable
         }

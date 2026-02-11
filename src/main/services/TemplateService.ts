@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
@@ -12,6 +11,7 @@ import {
   PredefinedTemplatesFile,
   EntityType,
 } from '../../common/types';
+import MainNotificationService from './NotificationService';
 
 /**
  * Сервис для управления шаблонами (типами) объектов.
@@ -62,9 +62,9 @@ export class TemplateService {
         (a, b) => b.weight - a.weight,
       );
     } catch (error) {
-      console.error(
-        'Failed to read predefined narrative templates file:',
-        error,
+      MainNotificationService.error(
+        `Ошибка чтения файла предустановленных шаблонов нарратива:`,
+        String(error),
       );
       return [];
     }
@@ -77,7 +77,10 @@ export class TemplateService {
       const data = JSON.parse(content) as PredefinedTemplatesFile;
       return data.world_templates || [];
     } catch (error) {
-      console.error('Failed to read predefined templates file:', error);
+      MainNotificationService.error(
+        'Ошибка чтения файла предустановленных шаблонов:',
+        String(error),
+      );
       return [];
     }
   }

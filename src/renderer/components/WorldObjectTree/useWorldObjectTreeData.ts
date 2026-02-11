@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import { useState, useCallback, useEffect, Key, useReducer } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
 import type { MenuProps } from 'antd';
+import notificationService from '../../services/notificationService';
 import { WorldObject, WorldObjectType } from '../../../common/types';
 import { ModalState } from './components/WorldObjectModal';
 
@@ -93,7 +93,10 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
       );
       return convertToAntdTreeFormat(types, false);
     } catch (error) {
-      console.error('Failed to fetch world object types:', error);
+      notificationService.showError(
+        'Ошибка загрузки типов объектов мира',
+        String(error),
+      );
       return [];
     }
   }, []);
@@ -103,7 +106,10 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     fetchWorldObjectTypes()
       .then((data) => dispatch({ type: 'SET_DATA', payload: data }))
       .catch((err) =>
-        console.error('[WorldObjectTree] Initial fetch failed:', err),
+        notificationService.showError(
+          'Ошибка при первоначальной загрузке дерева объектов мира',
+          err,
+        ),
       );
   }, [fetchWorldObjectTypes]);
 
@@ -168,7 +174,10 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
           // 5. Force the Tree component to re-mount to render the new state cleanly.
           setTreeKey((k) => k + 1);
         } catch (err) {
-          console.error('[WorldObjectTree] Smart Refresh failed:', err);
+          notificationService.showError(
+            'Ошибка при умном обновлении дерева объектов мира',
+            String(err),
+          );
         }
       };
 
@@ -197,7 +206,10 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
       // Dispatching an action ensures state updates are queued and don't race.
       dispatch({ type: 'ADD_CHILDREN', key, payload: formattedObjects });
     } catch (error) {
-      console.error('Failed to fetch world objects by type:', error);
+      notificationService.showError(
+        'Ошибка загрузки объектов мира по типу',
+        String(error),
+      );
     }
   };
 

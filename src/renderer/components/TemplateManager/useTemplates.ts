@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import { useState, useEffect, useCallback } from 'react';
 import { message } from 'antd';
 import { EntityTemplate, PredefinedTemplate } from '../../../common/types';
 import { useProject } from '../../contexts/ProjectContext'; // Import useProject
+import notificationService from '../../services/notificationService';
 
 const useTemplates = (category: string) => {
   const { isProjectOpen } = useProject(); // Get isProjectOpen from context
@@ -47,7 +47,10 @@ const useTemplates = (category: string) => {
           return null;
         })
         .catch((err) => {
-          console.error('Failed to load predefined templates', err);
+          notificationService.showError(
+            'Ошибка загрузки предустановленных шаблонов',
+            err,
+          );
           message.error('Failed to load predefined templates');
         });
     }
@@ -78,8 +81,7 @@ const useTemplates = (category: string) => {
         fetchTemplates();
         window.electron.ipcRenderer.sendMessage('world-objects-changed');
       } catch (err) {
-        console.error('Failed to import template', err);
-        message.error(`Failed to import template: ${err}`);
+        notificationService.showError('Ошибка импорта шаблона', String(err));
       }
     },
     [fetchTemplates],
@@ -102,8 +104,7 @@ const useTemplates = (category: string) => {
         fetchTemplates();
         window.electron.ipcRenderer.sendMessage('world-objects-changed');
       } catch (err) {
-        console.error('Failed to import templates', err);
-        message.error(`Failed to import templates: ${err}`);
+        notificationService.showError('Ошибка импорта шаблонов', String(err));
       }
     },
     [fetchTemplates],

@@ -1,4 +1,4 @@
-/* eslint global-require: off, no-console: off, promise/always-return: off */
+/* eslint global-require: off, promise/always-return: off */
 
 /**
  * This module executes inside of electron's main process. You can start
@@ -68,12 +68,9 @@ let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
 
 process.on('uncaughtException', (error) => {
-  console.error('--- Uncaught Main Exception ---');
-  console.error(error);
-  console.error('--------------------------------');
   MainNotificationService.error(
     'Критическая ошибка',
-    'Произошла непредвиденная ошибка. Рекомендуется перезапустить приложение.',
+    `Произошла непредвиденная ошибка. Рекомендуется перезапустить приложение. Error: ${String(error)}`,
   );
 });
 
@@ -86,7 +83,7 @@ const handleProjectFileOpen = async (filePath: string) => {
         await projectService.open(projectRoot);
       }
     } catch (error) {
-      console.error('Failed to open project via file association:', error);
+      MainNotificationService.error('Ошибка открытия проекта', String(error));
       if (mainWindow) {
         dialog.showErrorBox(
           'Ошибка открытия проекта',
@@ -160,7 +157,12 @@ const installExtensions = async () => {
       extensions.map((name) => installer[name]),
       forceDownload,
     )
-    .catch(console.log);
+    .catch((error: unknown) =>
+      MainNotificationService.info(
+        'Установка расширений',
+        `Не удалось установить расширения: ${String(error)}`,
+      ),
+    );
 };
 
 const RESOURCES_PATH = app.isPackaged
@@ -341,35 +343,60 @@ ipcMain.handle(
 
 ipcMain.handle('open-in-external-editor', async (_event, filePath: string) => {
   try {
-    console.log(`Attempting to open file: ${filePath}`);
+    MainNotificationService.info(
+      'Открытие файла',
+      `Попытка открыть файл: ${filePath}`,
+    );
     const allSettings = await projectSettingsService.getAllSettings();
     const editorPathSetting = allSettings.find(
       (setting) => setting.key === 'editor.mdPath',
     );
     const editorPath = editorPathSetting?.value;
 
-    console.log(`Configured editor path: ${editorPath}`);
+    MainNotificationService.info(
+      'Путь редактора',
+      `Сконфигурированный путь редактора: ${editorPath}`,
+    );
 
     if (editorPath && typeof editorPath === 'string' && editorPath.trim()) {
-      console.log(`Using configured editor: ${editorPath}`);
+      MainNotificationService.info(
+        'Использование редактора',
+        `Используется сконфигурированный редактор: ${editorPath}`,
+      );
       const editorProcess = spawn(editorPath, [filePath], {
         detached: true,
         stdio: 'ignore',
       });
 
       editorProcess.on('error', (err) => {
-        console.error('Failed to start external editor:', err);
+        MainNotificationService.error(
+          'Ошибка запуска редактора',
+          `Не удалось запустить внешний редактор: ${String(err)}`,
+        );
         // Optional: Notify the user that the editor failed to start
       });
 
       editorProcess.unref();
     } else {
-      console.log('Using default system opener.');
-      shell.openPath(filePath).catch(console.error);
+      MainNotificationService.info(
+        'Открытие файла',
+        'Используется системное приложение по умолчанию.',
+      );
+      shell
+        .openPath(filePath)
+        .catch((error) =>
+          MainNotificationService.error(
+            'Ошибка открытия файла',
+            `Не удалось открыть файл приложением по умолчанию: ${String(error)}`,
+          ),
+        );
     }
     return { success: true };
   } catch (error) {
-    console.error('Failed to open in external editor:', error);
+    MainNotificationService.error(
+      'Ошибка открытия во внешнем редакторе',
+      `Не удалось открыть во внешнем редакторе: ${String(error)}`,
+    );
     return { success: false, error: (error as Error).message };
   }
 });
@@ -379,7 +406,7 @@ ipcMain.handle('create-file', async (_event, filePath: string) => {
     await fileSystemService.createFileWithDirs(filePath, '\n'); // Создаем с пустой строкой
     return { success: true };
   } catch (e) {
-    console.error('Failed to create file:', e);
+    MainNotificationService.error('Ошибка создания файла', String(e));
     return { success: false };
   }
 });
@@ -510,7 +537,10 @@ ipcMain.handle('project:create', async (_event, projectData) => {
       narrativeService,
     );
   } catch (error) {
-    console.error(`Error occurred in handler for 'project:create':`, error);
+    MainNotificationService.error(
+      'Ошибка создания проекта',
+      `Произошла ошибка при создании проекта: ${String(error)}`,
+    );
     projectService.close(); // Make sure to clean up
     throw error; // Re-throw the error to the renderer process
   }
@@ -564,7 +594,7 @@ ipcMain.handle(
       }
       return { success: false, canceled: true };
     } catch (error: any) {
-      console.error('Error exporting narrative:', error);
+      MainNotificationService.error('Ошибка экспорта рукописи', String(error));
       return { success: false, error: error.message };
     }
   },
@@ -614,4 +644,6 @@ app
       if (mainWindow === null) createWindow();
     });
   })
-  .catch(console.log);
+  .catch((error) =>
+    MainNotificationService.info('Ошибка запуска приложения', String(error)),
+  );

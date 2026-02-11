@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import path from 'path';
 import { NarrativeItem } from '../../common/types';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
+import MainNotificationService from './NotificationService';
 
 /**
  * Вспомогательный интерфейс для узла дерева повествования.
@@ -154,7 +154,10 @@ export class ManuscriptService {
       try {
         fileContent = await fileSystemService.readFile(absolutePath);
       } catch (e) {
-        console.error(`Error reading narrative item file ${absolutePath}`, e);
+        MainNotificationService.error(
+          `Ошибка чтения файла элемента повествования ${absolutePath}`,
+          String(e),
+        );
         fileContent = `\n**[Ошибка: Не удалось прочитать файл "${node.file_path}"]**\n\n`;
       }
     } else if (node.description) {

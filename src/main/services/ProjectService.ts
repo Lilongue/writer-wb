@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-underscore-dangle */
 import path from 'path';
@@ -12,6 +11,7 @@ import { TemplateService } from './TemplateService';
 import { sanitizeFilename } from '../util';
 import ProjectSettingsService from './ProjectSettingsService';
 import { EntityType } from '../../common/types';
+import MainNotificationService from './NotificationService';
 
 // TODO: Вынести путь к схеме в конфигурацию или константы
 const SCHEMA_PATH = app.isPackaged
@@ -113,7 +113,10 @@ class ProjectService {
     ]);
 
     this.projectRoot = projectPath;
-    console.log(`Project created at: ${projectPath}`);
+    MainNotificationService.info(
+      'Проект создан',
+      `Проект успешно создан по пути: ${projectPath}`,
+    );
     eventBus.emit('project-opened');
   }
 
@@ -125,7 +128,10 @@ class ProjectService {
     const structureIsValid = await this._validateProjectStructure(projectPath);
     if (!structureIsValid) {
       // TODO: Показать пользователю осмысленную ошибку
-      console.error('Invalid project structure.');
+      MainNotificationService.error(
+        'Ошибка открытия проекта',
+        'Неверная структура проекта или поврежденные файлы.',
+      );
       return false;
     }
 
@@ -134,7 +140,10 @@ class ProjectService {
     this.db.pragma('journal_mode = WAL');
 
     this.projectRoot = projectPath;
-    console.log(`Project opened at: ${projectPath}`);
+    MainNotificationService.info(
+      'Проект открыт',
+      `Проект успешно открыт по пути: ${projectPath}`,
+    );
     eventBus.emit('project-opened');
     return true;
   }
@@ -144,7 +153,10 @@ class ProjectService {
       this.db.close();
       this.db = null;
       this.projectRoot = null;
-      console.log('Project closed.');
+      MainNotificationService.info(
+        'Проект закрыт',
+        'Текущий проект успешно закрыт.',
+      );
       eventBus.emit('project-closed');
     }
   }

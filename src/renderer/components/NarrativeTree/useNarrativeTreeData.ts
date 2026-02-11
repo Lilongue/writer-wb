@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { useState, useCallback, useEffect, Key } from 'react';
 import type { TreeProps } from 'antd/es/tree';
 import { Modal } from 'antd';
@@ -7,6 +6,7 @@ import { useProject } from '../../contexts/ProjectContext';
 import { NarrativeItem, EntityType } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
+import notificationService from '../../services/notificationService';
 
 const useNarrativeTreeData = (
   onSelect: (id: number | null) => void,
@@ -49,7 +49,10 @@ const useNarrativeTreeData = (
       const hierarchy = buildTree(items, narrativeTemplates);
       setTreeData(hierarchy);
     } catch (error) {
-      console.error('Failed to fetch narrative items:', error);
+      notificationService.showError(
+        'Ошибка загрузки элементов повествования',
+        String(error),
+      );
     }
   }, [narrativeTemplates]);
 

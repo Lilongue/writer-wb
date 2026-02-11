@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityType, ItemDetails } from '../../../common/types';
+import notificationService from '../../services/notificationService';
 
 interface UseItemDetailsProps {
   selectedId: number | null;
@@ -31,7 +31,10 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
           return result as ItemDetails | null;
         })
         .catch((err) => {
-          console.error(err);
+          notificationService.showError(
+            'Ошибка загрузки деталей элемента',
+            String(err),
+          );
           return null;
         })
         .finally(() => setLoading(false));
@@ -46,7 +49,12 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
         window.electron.ipcRenderer
           .invoke('entities:search', { query, currentEntityId: details.id })
           .then((result: unknown) => setSearchResults(result as any[]))
-          .catch(console.error);
+          .catch((error) =>
+            notificationService.showError(
+              'Ошибка поиска сущностей',
+              String(error),
+            ),
+          );
       } else {
         setSearchResults([]);
       }
@@ -77,7 +85,12 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
           fetchDetails();
           return null;
         })
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError(
+            'Ошибка добавления связи',
+            String(error),
+          ),
+        );
     },
     [details, selectedType, fetchDetails],
   );
@@ -97,12 +110,20 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
         .then((stats: unknown) => {
           const fileStats = stats as { mtimeMs: number } | null;
           if (fileStats && details.mtime !== fileStats.mtimeMs) {
-            console.log('File changed on poll, reloading...', details.path);
+            notificationService.showInfo(
+              'Изменение файла',
+              `Файл изменился, перезагружаю: ${details.path}`,
+            );
             fetchDetails();
           }
           return null;
         })
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError(
+            'Ошибка чтения статистики файла',
+            String(error),
+          ),
+        );
     }, 2000);
 
     return () => {
@@ -114,7 +135,12 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
     if (details?.path && details?.fileExists) {
       window.electron.ipcRenderer
         .invoke('open-in-external-editor', details.path)
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError(
+            'Ошибка открытия файла во внешнем редакторе',
+            String(error),
+          ),
+        );
     }
   }, [details]);
 
@@ -130,7 +156,9 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
           }
           return createFileResult;
         })
-        .catch(console.error)
+        .catch((error) =>
+          notificationService.showError('Ошибка создания файла', String(error)),
+        )
         .finally(() => setLoading(false));
     }
     return Promise.resolve();
@@ -141,7 +169,9 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
       window.electron.ipcRenderer
         .invoke('connections:delete', connectionId)
         .then(() => fetchDetails())
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError('Ошибка удаления связи', String(error)),
+        );
     },
     [fetchDetails],
   );

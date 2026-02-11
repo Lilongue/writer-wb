@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+
 // Create a holder for the notification and message APIs
 export const apiHolder: { notification?: any; message?: any } = {};
 
@@ -27,11 +28,14 @@ const notificationService = {
     }
   },
 
-  showInfo: (text: string) => {
+  showInfo: (title: string, content?: string) => {
     if (apiHolder.message) {
-      apiHolder.message.info(text);
+      apiHolder.message.info({
+        message: title,
+        description: content,
+      });
     } else {
-      console.error('Message API not initialized. Message:', text);
+      console.error('Message API not initialized. Message:', title, content);
     }
   },
 

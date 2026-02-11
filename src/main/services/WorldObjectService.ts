@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import path from 'path';
 import {
   CustomField,
@@ -6,6 +5,7 @@ import {
   WorldObject,
   WorldObjectType,
 } from '../../common/types';
+import MainNotificationService from './NotificationService';
 import { TemplateDao } from '../data/daos/TemplateDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
 import eventBus from '../eventBus';
@@ -79,7 +79,10 @@ export class WorldObjectService {
           );
         }
       } catch (e) {
-        console.error('Error parsing custom fields JSON', e);
+        MainNotificationService.error(
+          'Ошибка парсинга JSON пользовательских полей',
+          String(e),
+        );
       }
     }
 
@@ -107,7 +110,10 @@ export class WorldObjectService {
           mtime = stats.mtimeMs;
           fileExists = true;
         } catch (e) {
-          console.error(`Error reading existing file ${absolutePath}`, e);
+          MainNotificationService.error(
+            `Ошибка чтения существующего файла ${absolutePath}`,
+            String(e),
+          );
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
           fileExists = false; // Считаем, что его нет, раз не смогли прочитать
         }
@@ -155,7 +161,14 @@ export class WorldObjectService {
         'content.md',
       );
       // Не ждем завершения, чтобы не блокировать UI
-      fileSystemService.createFileWithDirs(filePath, '').catch(console.error);
+      fileSystemService
+        .createFileWithDirs(filePath, '')
+        .catch((error) =>
+          MainNotificationService.error(
+            'Ошибка создания файла объекта мира',
+            String(error),
+          ),
+        );
     }
 
     process.nextTick(() => {
@@ -195,7 +208,14 @@ export class WorldObjectService {
         template.id.toString(),
         object.id.toString(),
       );
-      fileSystemService.deleteDirectory(dirPath).catch(console.error);
+      fileSystemService
+        .deleteDirectory(dirPath)
+        .catch((error) =>
+          MainNotificationService.error(
+            'Ошибка удаления директории объекта мира',
+            String(error),
+          ),
+        );
     }
 
     const ok = this.worldObjectDao.deleteWorldObject(id);

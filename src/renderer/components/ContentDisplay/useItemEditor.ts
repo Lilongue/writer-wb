@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityType, ItemDetails } from '../../../common/types';
+import notificationService from '../../services/notificationService';
 
 interface UseItemEditorProps {
   details: ItemDetails | null;
@@ -86,7 +86,12 @@ const useItemEditor = ({
           properties: JSON.stringify(properties),
         })
         .then(() => fetchDetails && fetchDetails()) // Refresh details after save
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError(
+            'Ошибка обновления объекта мира',
+            String(error),
+          ),
+        );
     } else if (selectedType === EntityType.Narrative) {
       window.electron.ipcRenderer
         .invoke('narrative:update-details', {
@@ -97,7 +102,12 @@ const useItemEditor = ({
           plan: editedDetails.plan,
         })
         .then(() => fetchDetails && fetchDetails()) // Refresh to show updated values
-        .catch(console.error);
+        .catch((error) =>
+          notificationService.showError(
+            'Ошибка обновления элемента повествования',
+            String(error),
+          ),
+        );
     }
   }, [details, editedDetails, selectedType, fetchDetails]);
 
