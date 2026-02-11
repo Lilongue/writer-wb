@@ -219,7 +219,14 @@ export default class MenuBuilder {
             label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
             click: () => {
-              this.mainWindow.webContents.send('open-project-settings');
+              // Only open project settings if a project is currently open
+              if (ProjectService.getProjectRoot()) {
+                this.mainWindow.webContents.send('open-project-settings');
+              } else {
+                // Optionally, could show a message to the user here
+                // e.g., this.mainWindow.webContents.send('show-error-notification', { title: 'Нет открытого проекта', content: 'Для доступа к настройкам проекта сначала откройте проект.' });
+                console.log('Attempted to open project settings with no project open.');
+              }
             },
           },
           { type: 'separator' },
