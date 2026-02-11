@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed at [0.2.0]
 
+- Refactored notification system to use a unified IPC channel and enum for type safety.
+
 - **UI/UX Redesign:** Performed a major redesign of the application's user interface for a more modern and intuitive experience.
 - **Breaking Change - World Object Storage:** The file structure for world objects now uses static template IDs instead of template names in file paths. This change is not backward compatible with previous internal versions.
 

@@ -91,6 +91,13 @@ export interface ChecklistItem {
   status: ChecklistStatus;
 }
 
+export enum NotificationType {
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+  Success = 'success',
+}
+
 export interface ProjectSetting {
   key: string;
   value: any; // The actual value can be string, number, boolean, etc.

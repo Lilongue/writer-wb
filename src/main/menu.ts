@@ -8,6 +8,7 @@ import {
 } from 'electron';
 import path from 'path'; // Добавлено
 import ProjectService from './services/ProjectService';
+import MainNotificationService from './services/NotificationService';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -223,9 +224,10 @@ export default class MenuBuilder {
               if (ProjectService.getProjectRoot()) {
                 this.mainWindow.webContents.send('open-project-settings');
               } else {
-                // Optionally, could show a message to the user here
-                // e.g., this.mainWindow.webContents.send('show-error-notification', { title: 'Нет открытого проекта', content: 'Для доступа к настройкам проекта сначала откройте проект.' });
-                console.log('Attempted to open project settings with no project open.');
+                MainNotificationService.warning(
+                  'Нет открытого проекта',
+                  'Для доступа к настройкам проекта сначала откройте проект.',
+                );
               }
             },
           },

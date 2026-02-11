@@ -35,6 +35,7 @@ import { WorldObjectDao } from './data/daos/WorldObjectDao';
 import { TemplateDao } from './data/daos/TemplateDao';
 import { ConnectionDao } from './data/daos/ConnectionDao';
 import { SettingsDao } from './data/daos/SettingsDao';
+import MainNotificationService from './services/NotificationService';
 
 const getDb = () => projectService.getDb();
 
@@ -66,17 +67,11 @@ const projectSettingsService = new ProjectSettingsService(settingsDao);
 let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
 
-const notifyUserError = (title: string, content: string) => {
-  if (mainWindow) {
-    mainWindow.webContents.send('show-error-notification', { title, content });
-  }
-};
-
 process.on('uncaughtException', (error) => {
   console.error('--- Uncaught Main Exception ---');
   console.error(error);
   console.error('--------------------------------');
-  notifyUserError(
+  MainNotificationService.error(
     'Критическая ошибка',
     'Произошла непредвиденная ошибка. Рекомендуется перезапустить приложение.',
   );
@@ -196,6 +191,8 @@ const createWindow = async () => {
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+
+  MainNotificationService.initialize(mainWindow);
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {

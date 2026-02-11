@@ -13,7 +13,7 @@ import ProjectWizardModal from './components/ProjectWizardModal';
 import { useProject } from './contexts/ProjectContext'; // Import useProject
 import notificationService, { apiHolder } from './services/notificationService';
 import ErrorBoundary from './components/ErrorBoundary';
-import { EntityType } from '../common/types';
+import { EntityType, NotificationType } from '../common/types';
 
 const { Sider, Content } = Layout;
 
@@ -39,10 +39,10 @@ export default function App() {
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled Rejection:', event.reason);
       notificationService.showError(
         'Необработанная ошибка',
-        'Произошла асинхронная ошибка. Проверьте консоль для деталей.',
+        event.reason?.message ||
+          'Произошла асинхронная ошибка. Проверьте консоль для деталей.',
       );
     };
 
@@ -69,11 +69,32 @@ export default function App() {
       },
     );
 
-    const cleanupError = window.electron.ipcRenderer.on(
-      'show-error-notification',
+    const cleanupNotification = window.electron.ipcRenderer.on(
+      'show-notification',
       (arg: any) => {
-        const { title, content } = arg as { title: string; content?: string };
-        notificationService.showError(title, content);
+        const { type, title, content } = arg as {
+          type: NotificationType;
+          title: string;
+          content?: string;
+        };
+
+        switch (type) {
+          case NotificationType.Error:
+            notificationService.showError(title, content);
+            break;
+          case NotificationType.Warning:
+            notificationService.showWarning(title);
+            break;
+          case NotificationType.Info:
+            notificationService.showInfo(title);
+            break;
+          case NotificationType.Success:
+            notificationService.showSuccess(title);
+            break;
+          default:
+            // eslint-disable-next-line no-console
+            console.error(`Unknown notification type: ${type}`);
+        }
       },
     );
 
@@ -90,7 +111,7 @@ export default function App() {
       cleanupManager();
       cleanupSettings();
       cleanupWizard();
-      cleanupError();
+      cleanupNotification();
     };
   }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 

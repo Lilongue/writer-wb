@@ -22,7 +22,7 @@ export type Channels =
   | 'world-objects-changed'
   | 'open-template-manager'
   | 'open-project-settings'
-  | 'show-error-notification'
+  | 'show-notification'
   | 'open-project-wizard';
 
 const electronHandler = {
