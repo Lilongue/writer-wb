@@ -28,14 +28,11 @@ const notificationService = {
     }
   },
 
-  showInfo: (title: string, content?: string) => {
+  showInfo: (text: string) => {
     if (apiHolder.message) {
-      apiHolder.message.info({
-        message: title,
-        description: content,
-      });
+      apiHolder.message.info(text);
     } else {
-      console.error('Message API not initialized. Message:', title, content);
+      console.error('Message API not initialized. Message:', text);
     }
   },
 

@@ -111,8 +111,8 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
           const fileStats = stats as { mtimeMs: number } | null;
           if (fileStats && details.mtime !== fileStats.mtimeMs) {
             notificationService.showInfo(
-              'Изменение файла',
-              `Файл изменился, перезагружаю: ${details.path}`,
+              'Изменение файла' +
+                `Файл изменился, перезагружаю: ${details.path}`,
             );
             fetchDetails();
           }
