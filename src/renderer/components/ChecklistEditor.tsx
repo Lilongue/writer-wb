@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, FC } from 'react';
-import { Tag, Input, Button, Space, Tooltip } from 'antd';
+import { Tag, Input, Button, Tooltip } from 'antd';
 import { MinusCircleOutlined } from '@ant-design/icons';
 import {
   parseMarkdown,
@@ -48,12 +48,7 @@ const StatusTag: FC<{
     <Tag
       color={color}
       onClick={!readOnly ? onClick : undefined}
-      style={{
-        cursor: readOnly ? 'default' : 'pointer',
-        minWidth: '70px',
-        textAlign: 'center',
-        fontSize: '12px',
-      }}
+      className={`checklist-status-tag ${readOnly ? 'checklist-status-tag-readonly' : 'checklist-status-tag-interactive'}`}
     >
       {text}
     </Tag>
@@ -117,11 +112,7 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
   return (
     <div>
       {items.map((item, index) => (
-        <Space
-          key={index}
-          style={{ display: 'flex', marginBottom: 8 }}
-          align="center"
-        >
+        <div key={index} className="checklist-item-row">
           <StatusTag
             status={item.status}
             onClick={() => handleStatusChange(index)}
@@ -131,7 +122,7 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
             value={item.text}
             onChange={(e) => handleTextChange(index, e.target.value)}
             disabled={readOnly}
-            style={{ flexGrow: 1 }}
+            className="checklist-item-input"
           />
           {!readOnly && (
             <Tooltip title="Удалить">
@@ -143,7 +134,7 @@ const ChecklistEditor: FC<ChecklistEditorProps> = ({
               />
             </Tooltip>
           )}
-        </Space>
+        </div>
       ))}
     </div>
   );
