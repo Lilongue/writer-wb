@@ -113,10 +113,6 @@ class ProjectService {
     ]);
 
     this.projectRoot = projectPath;
-    MainNotificationService.info(
-      'Проект создан',
-      `Проект успешно создан по пути: ${projectPath}`,
-    );
     eventBus.emit('project-opened');
   }
 

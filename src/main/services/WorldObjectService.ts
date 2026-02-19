@@ -160,15 +160,7 @@ export class WorldObjectService {
         newId.toString(),
         'content.md',
       );
-      // Не ждем завершения, чтобы не блокировать UI
-      fileSystemService
-        .createFileWithDirs(filePath, '')
-        .catch((error) =>
-          MainNotificationService.error(
-            'Ошибка создания файла объекта мира',
-            String(error),
-          ),
-        );
+      fileSystemService.createFileWithDirs(filePath, '').catch(() => {});
     }
 
     process.nextTick(() => {
@@ -208,14 +200,7 @@ export class WorldObjectService {
         template.id.toString(),
         object.id.toString(),
       );
-      fileSystemService
-        .deleteDirectory(dirPath)
-        .catch((error) =>
-          MainNotificationService.error(
-            'Ошибка удаления директории объекта мира',
-            String(error),
-          ),
-        );
+      fileSystemService.deleteDirectory(dirPath).catch(() => {});
     }
 
     const ok = this.worldObjectDao.deleteWorldObject(id);

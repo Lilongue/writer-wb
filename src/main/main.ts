@@ -343,26 +343,13 @@ ipcMain.handle(
 
 ipcMain.handle('open-in-external-editor', async (_event, filePath: string) => {
   try {
-    MainNotificationService.info(
-      'Открытие файла',
-      `Попытка открыть файл: ${filePath}`,
-    );
     const allSettings = await projectSettingsService.getAllSettings();
     const editorPathSetting = allSettings.find(
       (setting) => setting.key === 'editor.mdPath',
     );
     const editorPath = editorPathSetting?.value;
 
-    MainNotificationService.info(
-      'Путь редактора',
-      `Сконфигурированный путь редактора: ${editorPath}`,
-    );
-
     if (editorPath && typeof editorPath === 'string' && editorPath.trim()) {
-      MainNotificationService.info(
-        'Использование редактора',
-        `Используется сконфигурированный редактор: ${editorPath}`,
-      );
       const editorProcess = spawn(editorPath, [filePath], {
         detached: true,
         stdio: 'ignore',
@@ -373,15 +360,10 @@ ipcMain.handle('open-in-external-editor', async (_event, filePath: string) => {
           'Ошибка запуска редактора',
           `Не удалось запустить внешний редактор: ${String(err)}`,
         );
-        // Optional: Notify the user that the editor failed to start
       });
 
       editorProcess.unref();
     } else {
-      MainNotificationService.info(
-        'Открытие файла',
-        'Используется системное приложение по умолчанию.',
-      );
       shell
         .openPath(filePath)
         .catch((error) =>
@@ -403,11 +385,10 @@ ipcMain.handle('open-in-external-editor', async (_event, filePath: string) => {
 
 ipcMain.handle('create-file', async (_event, filePath: string) => {
   try {
-    await fileSystemService.createFileWithDirs(filePath, '\n'); // Создаем с пустой строкой
+    await fileSystemService.createFileWithDirs(filePath, '\n');
     return { success: true };
   } catch (e) {
-    MainNotificationService.error('Ошибка создания файла', String(e));
-    return { success: false };
+    return { success: false, error: String(e) };
   }
 });
 
@@ -537,12 +518,8 @@ ipcMain.handle('project:create', async (_event, projectData) => {
       narrativeService,
     );
   } catch (error) {
-    MainNotificationService.error(
-      'Ошибка создания проекта',
-      `Произошла ошибка при создании проекта: ${String(error)}`,
-    );
-    projectService.close(); // Make sure to clean up
-    throw error; // Re-throw the error to the renderer process
+    projectService.close();
+    throw error;
   }
 });
 
