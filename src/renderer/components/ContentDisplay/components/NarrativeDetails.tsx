@@ -36,11 +36,17 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
   const planItemsCount = plan ? plan.split('\n').filter(Boolean).length : 0;
   const panelHeader = `Пунктов в плане: ${planItemsCount}`;
 
-  const handleAddPlanItem = (newItem: string) => {
-    if (newItem.trim() !== '') {
-      const newPlan = `${plan || ''}\n- [ ] ${newItem.trim()}`;
-      onPlanChange(newPlan.trim());
+  const handleAddPlanItem = (newItems: string[]) => {
+    if (newItems.length === 0) {
+      setIsModalVisible(false);
+      return;
     }
+
+    const newPlanItems = newItems
+      .map((item) => `- [ ] ${item.trim()}`)
+      .join('\n');
+    const newPlan = `${plan || ''}\n${newPlanItems}`;
+    onPlanChange(newPlan.trim());
     setIsModalVisible(false);
   };
 

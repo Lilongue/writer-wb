@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.1]
 
+- **Narrative Plan:** Implemented mass addition of narrative plan items from pasted text.
+
 ### Changed at [0.2.1]
 
 ### Fixed at [0.2.1]

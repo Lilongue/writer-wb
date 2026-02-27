@@ -3,7 +3,7 @@ import { Modal, Input } from 'antd';
 
 interface AddPlanItemModalProps {
   visible: boolean;
-  onOk: (value: string) => void;
+  onOk: (values: string[]) => void;
   onCancel: () => void;
 }
 
@@ -15,7 +15,10 @@ const AddPlanItemModal: React.FC<AddPlanItemModalProps> = ({
   const [value, setValue] = useState('');
 
   const handleOk = () => {
-    onOk(value);
+    const lines = value.split('\n').filter((line) => line.trim() !== '');
+    if (lines.length > 0) {
+      onOk(lines);
+    }
     setValue(''); // Reset after submit
   };
 
@@ -28,11 +31,16 @@ const AddPlanItemModal: React.FC<AddPlanItemModalProps> = ({
       okText="Добавить"
       cancelText="Отмена"
     >
-      <Input
+      <Input.TextArea
+        rows={4}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Введите текст пункта плана"
-        onPressEnter={handleOk}
+        placeholder="Введите текст пункта плана. Каждый новый абзац будет создан как отдельный элемент."
+        onPressEnter={(e) => {
+          if (e.ctrlKey || e.metaKey) {
+            handleOk();
+          }
+        }}
       />
     </Modal>
   );
