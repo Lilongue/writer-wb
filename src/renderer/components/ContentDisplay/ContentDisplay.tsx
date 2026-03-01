@@ -9,6 +9,7 @@ import NarrativeDetails from './components/NarrativeDetails';
 import ConnectionsManager from './components/ConnectionsManager';
 import FileContent from './components/FileContent';
 import { EntityType } from '../../../common/types';
+import AttachedFiles from './components/AttachedFiles';
 
 interface ContentDisplayProps {
   selectedId: number | null;
@@ -45,6 +46,7 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
       debouncedSearch,
       handleAddConnection,
       handleOpenFile,
+      handleOpenAttachedFile,
       handleCreateFile,
       handleDeleteConnection,
     } = useItemDetails({ selectedId, selectedType });
@@ -69,10 +71,7 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
       if (details?.path) {
         const folderPath = getDirname(details.path);
         if (folderPath) {
-          window.electron.ipcRenderer.sendMessage(
-            'open-in-external-editor',
-            folderPath,
-          );
+          window.electron.fs.openFolder(folderPath);
         }
       }
     };
@@ -87,6 +86,11 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
 
     const nameLabel =
       selectedType === EntityType.Narrative ? 'Название' : 'Имя объекта';
+
+    const folderPath =
+      selectedType === EntityType.WorldObject && details.path
+        ? getDirname(details.path)
+        : null;
 
     return (
       <Card
@@ -131,6 +135,11 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
             onPlanCollapseChange={setPlanCollapseKey}
           />
         )}
+
+        <AttachedFiles
+          folderPath={folderPath}
+          onOpenFile={handleOpenAttachedFile}
+        />
 
         <ConnectionsManager
           connections={details.connections || []}

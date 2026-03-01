@@ -396,6 +396,14 @@ ipcMain.handle('fs-stat', async (_event, filePath: string) => {
   return fileSystemService.getStats(filePath);
 });
 
+ipcMain.handle('fs:open-folder', (_event, folderPath: string) => {
+  return fileSystemService.openFolder(folderPath);
+});
+
+ipcMain.handle('fs:get-directory-files', (_event, folderPath: string) => {
+  return fileSystemService.getDirectoryFiles(folderPath);
+});
+
 // --- Narrative CRUD ---
 ipcMain.handle(
   'narrative:create',
