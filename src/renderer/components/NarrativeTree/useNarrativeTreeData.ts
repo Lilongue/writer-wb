@@ -81,6 +81,50 @@ const useNarrativeTreeData = (
     }
   }, []);
 
+  const handleDrop: TreeProps['onDrop'] = async (info) => {
+    const { dragNode, node: dropNode, dropPosition } = info;
+    const dragId = dragNode.key as number;
+
+    let dropId: number;
+    let dropType: 'before' | 'after' | 'inside';
+
+    if (dropNode) {
+      dropId = dropNode.key as number;
+      if (dropPosition === 0) {
+        dropType = 'inside';
+      } else if (dropPosition === -1) {
+        dropType = 'before';
+      } else {
+        dropType = 'after';
+      }
+    } else {
+      // This case might not be reachable if 'node' is always provided,
+      // but it's good practice to keep it as a fallback for root drops.
+      const rootNode = treeData.find((node) => node.parent_id === null);
+      if (rootNode) {
+        dropId = rootNode.key as number;
+        dropType = 'inside';
+      } else {
+        notificationService.showError(
+          'Ошибка перемещения',
+          'Не удалось найти корневой элемент проекта.',
+        );
+        return;
+      }
+    }
+
+    try {
+      await window.electron.ipcRenderer.invoke('narrative:update-order', {
+        dragId,
+        dropId,
+        dropType,
+      });
+      // The 'narrative-changed' event will trigger a refetch
+    } catch (error: any) {
+      notificationService.showError('Ошибка перемещения', error.message);
+    }
+  };
+
   useEffect(() => {
     fetchNarrativeItems();
 
@@ -191,6 +235,7 @@ const useNarrativeTreeData = (
     expandedKeys, // Export expandedKeys
     setExpandedKeys, // Export setExpandedKeys
     selectedKeys, // Export selectedKeys
+    handleDrop,
   };
 };
 

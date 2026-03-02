@@ -106,6 +106,28 @@ export class NarrativeDao extends BaseDao {
   }
 
   /**
+   * Атомарно обновляет порядок и вложенность для нескольких элементов повествования.
+   * @param updates Массив объектов для обновления.
+   */
+  public updateOrder(
+    updates: { id: number; parent_id: number | null; sort_order: number }[],
+  ): void {
+    const db = this.getDb();
+    const updateStmt = db.prepare(
+      'UPDATE narrative_items SET parent_id = ?, sort_order = ? WHERE id = ?',
+    );
+
+    const updateTransaction = db.transaction((items) => {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const item of items) {
+        updateStmt.run(item.parent_id, item.sort_order, item.id);
+      }
+    });
+
+    updateTransaction(updates);
+  }
+
+  /**
    * Переименовывает элемент повествования.
    * @param {number} itemId ID элемента повествования.
    * @param {string} newName Новое имя элемента повествования.

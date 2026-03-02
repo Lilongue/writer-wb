@@ -45,7 +45,7 @@ const templateDao = new TemplateDao(getDb);
 const connectionDao = new ConnectionDao(getDb);
 const settingsDao = new SettingsDao(getDb);
 
-const narrativeService = new NarrativeService(narrativeDao, () =>
+const narrativeService = new NarrativeService(narrativeDao, templateDao, () =>
   projectService.getProjectRoot(),
 );
 const manuscriptService = new ManuscriptService(narrativeDao, () =>
@@ -439,6 +439,14 @@ ipcMain.handle(
       description,
       plan,
     );
+    eventBus.emit('narrative-changed');
+  },
+);
+
+ipcMain.handle(
+  'narrative:update-order',
+  async (_event, { dragId, dropId, dropType }) => {
+    await narrativeService.updateNarrativeOrder(dragId, dropId, dropType);
     eventBus.emit('narrative-changed');
   },
 );

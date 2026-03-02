@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
+import notificationService from '../services/notificationService';
 
 interface AddConnectionModalProps {
   visible: boolean;
@@ -49,7 +49,13 @@ function AddConnectionModal({
             return null;
           })
           .catch((info) => {
-            console.log('Validate Failed:', info);
+            const errorMessages = info.errorFields
+              .map((field: any) => field.errors.join(', '))
+              .join('; ');
+            notificationService.showError(
+              'Проверка не пройдена',
+              errorMessages,
+            );
           });
       }}
       okButtonProps={{ disabled: isOkDisabled }}
