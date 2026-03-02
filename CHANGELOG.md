@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed at [0.2.1]
 
+- **File Deletion:** Fixed an issue where deleting a world object would leave its directory and files on disk.
 - Fixed some UI bugs.
 
 ## [0.2.0] - 2026-02-15

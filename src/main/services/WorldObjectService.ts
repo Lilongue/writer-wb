@@ -185,14 +185,26 @@ export class WorldObjectService {
     }
   }
 
-  public deleteObject(id: number): { success: boolean; typeId?: number } {
+  public async deleteObject(
+    id: number,
+  ): Promise<{ success: boolean; typeId?: number }> {
     const object = this.worldObjectDao.getWorldObjectById(id);
     if (!object) {
       return { success: false };
     }
 
+    const { template_id: templateId } = object;
+
+    // 1. Delete from database first
+    const ok = this.worldObjectDao.deleteWorldObject(id);
+
+    if (!ok) {
+      return { success: false, typeId: templateId };
+    }
+
+    // 2. Then, delete directory from filesystem
     const projectRoot = this.getProjectRoot();
-    const template = this.templateDao.getTemplate(object.template_id);
+    const template = this.templateDao.getTemplate(templateId);
     if (projectRoot && template) {
       const dirPath = path.join(
         projectRoot,
@@ -200,18 +212,24 @@ export class WorldObjectService {
         template.id.toString(),
         object.id.toString(),
       );
-      fileSystemService.deleteDirectory(dirPath).catch(() => {});
+      try {
+        await fileSystemService.deleteDirectory(dirPath);
+      } catch (error) {
+        MainNotificationService.error(
+          `Ошибка при удалении папки объекта: ${dirPath}`,
+          String(error),
+        );
+      }
     }
 
-    const ok = this.worldObjectDao.deleteWorldObject(id);
-    if (ok) {
-      process.nextTick(() => {
-        eventBus.emit('world-objects-changed', {
-          typeId: object.template_id,
-        });
+    // 3. Emit event
+    process.nextTick(() => {
+      eventBus.emit('world-objects-changed', {
+        typeId: templateId,
       });
-    }
-    return { success: ok, typeId: object.template_id };
+    });
+
+    return { success: true, typeId: templateId };
   }
 
   public updateObjectDetails({
