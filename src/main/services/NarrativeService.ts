@@ -155,24 +155,46 @@ export class NarrativeService {
   }
 
   public async deleteNarrativeItem(itemId: number): Promise<void> {
-    const childrenCount =
-      this.narrativeDao.countChildrenOfNarrativeItem(itemId);
-    if (childrenCount > 0) {
-      throw new Error(
-        'Нельзя удалить элемент, у которого есть дочерние элементы.',
+    const projectRoot = this.getProjectRoot();
+    if (!projectRoot) {
+      // Если проект не открыт, просто выходим, но не бросаем ошибку,
+      // чтобы не блокировать удаление из БД, если такое возможно.
+      MainNotificationService.warning(
+        'Корень проекта не установлен',
+        'Не удалось удалить связанные файлы, так как не задан корень проекта.',
       );
     }
 
-    const projectRoot = this.getProjectRoot();
-    const item = this.narrativeDao.getNarrativeItemById(itemId);
+    // 1. Найти все ID дочерних элементов рекурсивно.
+    const descendantIds = this.narrativeDao.findAllDescendantIds(itemId);
 
-    // Сначала удаляем из БД
-    this.narrativeDao.deleteNarrativeItem(itemId);
+    // 2. Собрать полный список ID для удаления.
+    const idsToDelete = [itemId, ...descendantIds];
 
-    // Затем удаляем файл, если он есть
-    if (item && item.file_path && projectRoot) {
-      const absoluteFilePath = path.join(projectRoot, item.file_path);
-      await fileSystemService.deleteFile(absoluteFilePath);
+    // 3. Получить информацию об удаляемых элементах (включая пути к файлам)
+    const itemsToDelete = this.narrativeDao.findAllByIds(idsToDelete);
+
+    // 4. Удалить все элементы из базы данных одной транзакцией.
+    this.narrativeDao.deleteByIds(idsToDelete);
+
+    // 5. Удалить связанные файлы.
+    if (projectRoot) {
+      const deletePromises = itemsToDelete.map(async (item) => {
+        if (item.file_path) {
+          const absoluteFilePath = path.join(projectRoot, item.file_path);
+          try {
+            // Удаляем файл, игнорируя ошибку, если он не найден
+            await fileSystemService.deleteFile(absoluteFilePath);
+          } catch (error) {
+            MainNotificationService.error(
+              `Ошибка удаления файла ${absoluteFilePath}`,
+              String(error),
+            );
+          }
+        }
+      });
+
+      await Promise.all(deletePromises);
     }
   }
 }

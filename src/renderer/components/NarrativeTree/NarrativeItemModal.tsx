@@ -59,8 +59,8 @@ const NarrativeItemModal: FC<NarrativeItemModalProps> = ({
     >
       {type === 'delete' && (
         <p>
-          Вы уверены, что хотите удалить &quot;{name}&quot;? Это действие нельзя
-          будет отменить.
+          Вы уверены, что хотите удалить &quot;{name}&quot;? Все вложенные
+          элементы будут также удалены. Это действие нельзя будет отменить.
         </p>
       )}
       {type === 'rename' && (

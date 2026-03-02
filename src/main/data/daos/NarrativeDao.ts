@@ -142,10 +142,63 @@ export class NarrativeDao extends BaseDao {
    * @param {number} itemId ID элемента повествования.
    */
   public deleteNarrativeItem(itemId: number): void {
+    this.deleteByIds([itemId]);
+  }
+
+  /**
+   * Находит все ID дочерних элементов для данного родителя рекурсивно.
+   * @param parentId ID родительского элемента.
+   * @returns Массив ID всех дочерних элементов.
+   */
+  public findAllDescendantIds(parentId: number): number[] {
     const db = this.getDb();
-    // Запись в all_entities удалится каскадно благодаря FOREIGN KEY в all_entities
-    const sql = 'DELETE FROM narrative_items WHERE id = ?';
-    db.prepare(sql).run(itemId);
+    const sql = `
+       WITH RECURSIVE descendants(id) AS (
+         SELECT id FROM narrative_items WHERE parent_id = ?
+         UNION ALL
+         SELECT ni.id FROM narrative_items ni
+         INNER JOIN descendants d ON ni.parent_id = d.id
+       )
+       SELECT id FROM descendants;
+     `;
+    const stmt = db.prepare(sql);
+    const result = stmt.all(parentId) as { id: number }[];
+    return result.map((row) => row.id);
+  }
+
+  /**
+   * Получает все данные для элементов повествования по списку их ID.
+   * @param ids Массив ID элементов.
+   * @returns Массив объектов NarrativeItem.
+   */
+  public findAllByIds(ids: number[]): NarrativeItem[] {
+    if (ids.length === 0) {
+      return [];
+    }
+    const db = this.getDb();
+    const placeholders = ids.map(() => '?').join(',');
+    const sql = `
+       SELECT id, name, title, parent_id, sort_order, file_path, description, plan, template_id
+       FROM narrative_items
+       WHERE id IN (${placeholders})
+     `;
+    const stmt = db.prepare(sql);
+    return stmt.all(ids) as NarrativeItem[];
+  }
+
+  /**
+   * Удаляет элементы повествования по списку их ID.
+   * @param ids Массив ID для удаления.
+   */
+  public deleteByIds(ids: number[]): void {
+    if (ids.length === 0) {
+      return;
+    }
+    const db = this.getDb();
+    const placeholders = ids.map(() => '?').join(',');
+    // Записи в all_entities удалятся каскадно
+    const sql = `DELETE FROM narrative_items WHERE id IN (${placeholders})`;
+    db.prepare(sql).run(...ids);
   }
 
   /**
