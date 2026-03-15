@@ -1,10 +1,14 @@
 import path from 'path';
-import { ItemDetails, NarrativeItem } from '../../common/types';
+import { ItemDetails, NarrativeItem, EntityTemplate } from '../../common/types';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
 import MainNotificationService from './NotificationService';
-
 import { slugify } from '../util';
+import { TemplateDao } from '../data/daos/TemplateDao';
+import {
+  calculateNarrativeOrderUpdates,
+  findNewParentAndSortOrder,
+} from './utils/narrativeReorderer';
 
 /**
  * Сервис для управления бизнес-логикой, связанной с элементами повествования.
@@ -12,10 +16,17 @@ import { slugify } from '../util';
 export class NarrativeService {
   private narrativeDao: NarrativeDao;
 
+  private templateDao: TemplateDao;
+
   private getProjectRoot: () => string | null;
 
-  constructor(narrativeDao: NarrativeDao, getProjectRoot: () => string | null) {
+  constructor(
+    narrativeDao: NarrativeDao,
+    templateDao: TemplateDao,
+    getProjectRoot: () => string | null,
+  ) {
     this.narrativeDao = narrativeDao;
+    this.templateDao = templateDao;
     this.getProjectRoot = getProjectRoot;
   }
 
@@ -88,11 +99,6 @@ export class NarrativeService {
       throw new Error('Проект не открыт');
     }
 
-    // const template = this.narrativeDao.findTemplateByName(itemType, 'narrative');
-    // if (!template) {
-    //   throw new Error(`Не найден шаблон для типа '${itemType}'`);
-    // }
-
     let parentPath = 'narrative';
     if (parentId) {
       const parent = this.narrativeDao.getNarrativeItemById(parentId);
@@ -155,24 +161,81 @@ export class NarrativeService {
   }
 
   public async deleteNarrativeItem(itemId: number): Promise<void> {
-    const childrenCount =
-      this.narrativeDao.countChildrenOfNarrativeItem(itemId);
-    if (childrenCount > 0) {
-      throw new Error(
-        'Нельзя удалить элемент, у которого есть дочерние элементы.',
+    const projectRoot = this.getProjectRoot();
+    if (!projectRoot) {
+      MainNotificationService.warning(
+        'Корень проекта не установлен',
+        'Не удалось удалить связанные файлы, так как не задан корень проекта.',
       );
     }
 
-    const projectRoot = this.getProjectRoot();
-    const item = this.narrativeDao.getNarrativeItemById(itemId);
+    const descendantIds = this.narrativeDao.findAllDescendantIds(itemId);
+    const idsToDelete = [itemId, ...descendantIds];
+    const itemsToDelete = this.narrativeDao.findAllByIds(idsToDelete);
+    this.narrativeDao.deleteByIds(idsToDelete);
 
-    // Сначала удаляем из БД
-    this.narrativeDao.deleteNarrativeItem(itemId);
+    if (projectRoot) {
+      const deletePromises = itemsToDelete.map(async (item) => {
+        if (item.file_path) {
+          const absoluteFilePath = path.join(projectRoot, item.file_path);
+          try {
+            await fileSystemService.deleteFile(absoluteFilePath);
+          } catch (error) {
+            MainNotificationService.error(
+              `Ошибка удаления файла ${absoluteFilePath}`,
+              String(error),
+            );
+          }
+        }
+      });
+      await Promise.all(deletePromises);
+    }
+  }
 
-    // Затем удаляем файл, если он есть
-    if (item && item.file_path && projectRoot) {
-      const absoluteFilePath = path.join(projectRoot, item.file_path);
-      await fileSystemService.deleteFile(absoluteFilePath);
+  public async updateNarrativeOrder(
+    dragId: number,
+    dropId: number,
+    dropType: 'before' | 'after' | 'inside',
+  ): Promise<void> {
+    const items = this.narrativeDao.getNarrativeItems();
+    const templates = this.templateDao.getAllTemplates(false, 'narrative');
+    const getTemplate = (id: number) => templates.find((t) => t.id === id);
+
+    const dragItem = items.find((i) => i.id === dragId);
+    const dropItem = items.find((i) => i.id === dropId);
+
+    if (!dragItem || !dropItem) {
+      throw new Error('Перемещаемый или целевой элемент не найден.');
+    }
+    if (dragId === dropId) return;
+
+    // Prevent dragging a parent into its own child
+    const itemsMap = new Map(items.map((i) => [i.id, i]));
+    let current = dropItem;
+    while (current && current.parent_id) {
+      if (current.parent_id === dragId) {
+        return; // Invalid move
+      }
+      current = itemsMap.get(current.parent_id)!;
+    }
+
+    const { newParentId, newSortOrder } = findNewParentAndSortOrder({
+      dragItem,
+      dropItem,
+      dropType,
+      items,
+      getTemplate: getTemplate as (id: number) => EntityTemplate,
+    });
+
+    const updates = calculateNarrativeOrderUpdates({
+      dragItem,
+      items,
+      newParentId,
+      newSortOrder,
+    });
+
+    if (updates.length > 0) {
+      this.narrativeDao.updateOrder(updates);
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "writer-world-builder",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A desktop application for writers to build consistent and logically structured worlds for their stories.",
   "keywords": [
     "electron",
@@ -41,7 +41,8 @@
     "start:main": "concurrently -k -P \"cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --watch --config ./.erb/configs/webpack.config.main.dev.ts\" \"electronmon . -- {@}\" --",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest -c jest.config.node.js"
   },
   "browserslist": [
     "extends browserslist-config-erb"

@@ -16,6 +16,17 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
   };
 };
 
+const getDirname = (filePath: string): string => {
+  if (!filePath) return '';
+  const lastSlash = filePath.lastIndexOf('/');
+  const lastBackslash = filePath.lastIndexOf('\\');
+  const index = Math.max(lastSlash, lastBackslash);
+  if (index === -1) {
+    return '';
+  }
+  return filePath.substring(0, index);
+};
+
 const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
   const [details, setDetails] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(false);
@@ -144,6 +155,26 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
     }
   }, [details]);
 
+  const handleOpenAttachedFile = useCallback(
+    (fileName: string) => {
+      if (details?.path) {
+        const folderPath = getDirname(details.path);
+        // This is not platform-agnostic, but electron will handle it.
+        const fullPath = `${folderPath}/${fileName}`;
+
+        window.electron.ipcRenderer
+          .invoke('open-in-external-editor', fullPath)
+          .catch((error) =>
+            notificationService.showError(
+              'Ошибка открытия файла во внешнем редакторе',
+              String(error),
+            ),
+          );
+      }
+    },
+    [details],
+  );
+
   const handleCreateFile = useCallback(() => {
     if (details?.path) {
       setLoading(true);
@@ -184,6 +215,7 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
     debouncedSearch,
     handleAddConnection,
     handleOpenFile,
+    handleOpenAttachedFile,
     handleCreateFile,
     handleDeleteConnection,
   };

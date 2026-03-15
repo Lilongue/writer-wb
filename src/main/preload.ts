@@ -80,6 +80,10 @@ export type ElectronAPI = typeof electronHandler & {
       createSubfolder: boolean;
     }) => Promise<void>;
   };
+  fs: {
+    openFolder: (folderPath: string) => Promise<void>;
+    getDirectoryFiles: (folderPath: string) => Promise<string[]>;
+  };
 };
 
 contextBridge.exposeInMainWorld('electron', {
@@ -103,7 +107,14 @@ contextBridge.exposeInMainWorld('electron', {
       location: string;
       projectName: string;
       narrativeStructure: string[];
+      createSubfolder: boolean;
     }) => ipcRenderer.invoke('project:create', projectData),
+  },
+  fs: {
+    openFolder: (folderPath: string) =>
+      ipcRenderer.invoke('fs:open-folder', folderPath),
+    getDirectoryFiles: (folderPath: string) =>
+      ipcRenderer.invoke('fs:get-directory-files', folderPath),
   },
 });
 

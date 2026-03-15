@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { FC, useEffect, useState } from 'react';
 import { Modal, Button, Input, Form, message, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
@@ -55,9 +54,11 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
       const values = await form.validateFields();
       await onSave(values);
       onClose();
-    } catch (errorInfo) {
-      console.log('Failed:', errorInfo);
-      message.error('Проверка не пройдена');
+    } catch (errorInfo: any) {
+      const errorMessages = errorInfo.errorFields
+        .map((field: any) => field.errors.join(', '))
+        .join('; ');
+      message.error(`Проверка не пройдена: ${errorMessages}`);
     }
   };
 

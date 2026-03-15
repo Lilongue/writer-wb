@@ -5,7 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-01-18
+## [0.2.1] - 2026-02-20
+
+### Added at [0.2.1]
+
+- **Drag-and-Drop Reordering:** Implemented drag-and-drop reordering for narrative items with intelligent "Contextual Dive" correction for invalid moves.
+- **Recursive Deletion:** Implemented recursive deletion for narrative items.
+- **File Attachment:** Added the ability to attach auxiliary files to a world object and access them from the UI.
+- **Auto-save:** Added auto-save functionality when switching between items.
+- **Narrative Plan:** Implemented mass addition of narrative plan items from pasted text.
+
+### Changed at [0.2.1]
+
+### Fixed at [0.2.1]
+
+- **File Deletion:** Fixed an issue where deleting a world object would leave its directory and files on disk.
+- Fixed some UI bugs.
+
+## [0.2.0] - 2026-02-15
 
 ### Added at [0.2.0]
 

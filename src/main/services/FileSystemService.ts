@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import { shell } from 'electron';
 import fs from 'fs/promises';
 import { Stats } from 'fs';
 import path from 'path';
@@ -21,6 +22,44 @@ class FileSystemService {
         (error as { code: string }).code === 'ENOENT'
       ) {
         return false;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Opens a folder in the native file explorer.
+   * @param folderPath - The absolute path to the folder.
+   */
+  public async openFolder(folderPath: string): Promise<void> {
+    const err = await shell.openPath(folderPath);
+    if (err) {
+      throw new Error(err);
+    }
+  }
+
+  /**
+   * Gets a list of files in a directory, excluding certain files.
+   * @param folderPath - The absolute path to the folder.
+   * @returns A list of file names.
+   */
+  public async getDirectoryFiles(folderPath: string): Promise<string[]> {
+    try {
+      const files = await fs.readdir(folderPath);
+      const ignoredFiles = ['content.md'];
+      const alphanumericRegex = /^[a-zA-Z0-9а-яА-ЯёЁ]/;
+      return files.filter(
+        (file) => !ignoredFiles.includes(file) && alphanumericRegex.test(file),
+      );
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ENOENT'
+      ) {
+        // Directory doesn't exist, return empty array.
+        return [];
       }
       throw error;
     }

@@ -1,4 +1,5 @@
 import { Tree } from 'antd';
+import { HolderOutlined } from '@ant-design/icons';
 import NarrativeContextMenu from './NarrativeContextMenu';
 import NarrativeItemModal from './NarrativeItemModal';
 import useNarrativeTreeData from './useNarrativeTreeData';
@@ -31,7 +32,13 @@ function NarrativeTree({
     expandedKeys, // New: Import expandedKeys
     setExpandedKeys, // New: Import setExpandedKeys
     selectedKeys, // New: Import selectedKeys
+    handleDrop,
   } = useNarrativeTreeData(onSelect, selectedId, selectedType);
+
+  const draggableConfig = {
+    icon: <HolderOutlined />,
+    nodeDraggable: () => true,
+  };
 
   return (
     <div className="sidebar-section" onContextMenu={(e) => e.preventDefault()}>
@@ -42,9 +49,10 @@ function NarrativeTree({
         onMenuClick={handleMenuClick}
       >
         <Tree
-          blockNode
+          draggable={draggableConfig}
           onSelect={handleSelect}
           onRightClick={onRightClick}
+          onDrop={handleDrop}
           treeData={treeData}
           expandedKeys={expandedKeys} // New: Pass expandedKeys
           onExpand={setExpandedKeys} // New: Pass onExpand

@@ -28,6 +28,27 @@ const useItemEditor = ({
     }
   }, [details]);
 
+  const isChanged = useMemo(() => {
+    if (!details || !editedDetails) return false;
+
+    if (details.name !== editedDetails.name) return true;
+    if (details.title !== editedDetails.title) return true;
+
+    if (selectedType === EntityType.WorldObject) {
+      return (
+        JSON.stringify(details.customFields) !==
+        JSON.stringify(editedDetails.customFields)
+      );
+    }
+
+    if (selectedType === EntityType.Narrative) {
+      if (details.description !== editedDetails.description) return true;
+      if (details.plan !== editedDetails.plan) return true;
+    }
+
+    return false;
+  }, [details, editedDetails, selectedType]);
+
   const handleFieldChange = useCallback(
     (index: number, value: string) => {
       if (!editedDetails?.customFields) return;
@@ -66,9 +87,12 @@ const useItemEditor = ({
     [editedDetails],
   );
 
-  const handleSave = useCallback(() => {
-    if (!details || !editedDetails || !selectedType) return;
+  const handleSave = useCallback(async () => {
+    if (!isChanged || !details || !editedDetails || !selectedType) {
+      return Promise.resolve();
+    }
 
+    let promise;
     if (selectedType === EntityType.WorldObject) {
       const properties =
         editedDetails.customFields?.reduce(
@@ -79,58 +103,44 @@ const useItemEditor = ({
           {} as Record<string, string>,
         ) || {};
 
-      window.electron.ipcRenderer
-        .invoke('world-object:update-details', {
+      promise = window.electron.ipcRenderer.invoke(
+        'world-object:update-details',
+        {
           id: details.id,
           name: editedDetails.name,
           properties: JSON.stringify(properties),
-        })
-        .then(() => fetchDetails && fetchDetails()) // Refresh details after save
-        .catch((error) =>
-          notificationService.showError(
-            'Ошибка обновления объекта мира',
-            String(error),
-          ),
-        );
-    } else if (selectedType === EntityType.Narrative) {
-      window.electron.ipcRenderer
-        .invoke('narrative:update-details', {
-          id: details.id,
-          name: editedDetails.name,
-          title: editedDetails.title,
-          description: editedDetails.description,
-          plan: editedDetails.plan,
-        })
-        .then(() => fetchDetails && fetchDetails()) // Refresh to show updated values
-        .catch((error) =>
-          notificationService.showError(
-            'Ошибка обновления элемента повествования',
-            String(error),
-          ),
-        );
-    }
-  }, [details, editedDetails, selectedType, fetchDetails]);
-
-  const isChanged = useMemo(() => {
-    if (!details || !editedDetails) return false;
-
-    if (details.name !== editedDetails.name) return true;
-    if (details.title !== editedDetails.title) return true;
-
-    if (selectedType === EntityType.WorldObject) {
-      return (
-        JSON.stringify(details.customFields) !==
-        JSON.stringify(editedDetails.customFields)
+        },
       );
+    } else if (selectedType === EntityType.Narrative) {
+      promise = window.electron.ipcRenderer.invoke('narrative:update-details', {
+        id: details.id,
+        name: editedDetails.name,
+        title: editedDetails.title,
+        description: editedDetails.description,
+        plan: editedDetails.plan,
+      });
+    } else {
+      return Promise.resolve();
     }
 
-    if (selectedType === EntityType.Narrative) {
-      if (details.description !== editedDetails.description) return true;
-      if (details.plan !== editedDetails.plan) return true;
-    }
-
-    return false;
-  }, [details, editedDetails, selectedType]);
+    return promise
+      .then(() => {
+        notificationService.showSuccess('Изменения успешно сохранены');
+        return fetchDetails ? fetchDetails() : null;
+      })
+      .catch((error) => {
+        notificationService.showError(
+          `Ошибка обновления ${
+            selectedType === EntityType.Narrative
+              ? 'элемента повествования'
+              : 'объекта мира'
+          }`,
+          String(error),
+        );
+        // Re-throw the error if you want the caller to be able to catch it
+        throw error;
+      });
+  }, [details, editedDetails, selectedType, fetchDetails, isChanged]);
 
   return {
     editedDetails,

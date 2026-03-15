@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
@@ -14,6 +14,7 @@ import { useProject } from './contexts/ProjectContext'; // Import useProject
 import notificationService, { apiHolder } from './services/notificationService';
 import ErrorBoundary from './components/ErrorBoundary';
 import { EntityType, NotificationType } from '../common/types';
+import { ContentDisplayRef } from './components/ContentDisplay/ContentDisplay';
 
 const { Sider, Content } = Layout;
 
@@ -22,6 +23,8 @@ export default function App() {
   const [notificationApi, notificationContextHolder] =
     notification.useNotification();
   const [messageApi, messageContextHolder] = message.useMessage();
+
+  const contentDisplayRef = useRef<ContentDisplayRef>(null);
 
   useEffect(() => {
     // Make APIs available to the service
@@ -115,15 +118,25 @@ export default function App() {
     };
   }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
 
-  const handleNarrativeSelect = (id: number | null) => {
-    setSelection({ id, type: EntityType.Narrative });
-  };
+  const handleSelect = async (id: number | null, type: EntityType | null) => {
+    // Do nothing if the selection hasn't changed
+    if (id === selection.id && type === selection.type) {
+      return;
+    }
 
-  const handleWorldObjectSelect = (key: string | null) => {
-    setSelection({
-      id: key ? parseInt(key, 10) : null,
-      type: EntityType.WorldObject,
-    });
+    try {
+      // Await saving of any pending changes before changing the selection
+      await contentDisplayRef.current?.save();
+      // If save is successful (or not needed), update the selection
+      setSelection({ id, type });
+    } catch (error) {
+      console.error('Failed to save before switching:', error);
+      // Optionally notify the user that the switch was aborted due to save failure
+      notificationService.showError(
+        'Не удалось сохранить изменения',
+        'Переключение элемента было отменено, так как не удалось сохранить текущие изменения.',
+      );
+    }
   };
 
   const handleCreateProject = async (values: any) => {
@@ -151,7 +164,7 @@ export default function App() {
           {isProjectOpen ? ( // Use isProjectOpen from context
             <>
               <NarrativeTree
-                onSelect={handleNarrativeSelect}
+                onSelect={(id) => handleSelect(id, EntityType.Narrative)}
                 selectedId={selection.id}
                 selectedType={
                   selection.type === EntityType.Narrative
@@ -160,7 +173,12 @@ export default function App() {
                 }
               />
               <WorldObjectTree
-                onSelect={handleWorldObjectSelect}
+                onSelect={(key) =>
+                  handleSelect(
+                    key ? parseInt(key, 10) : null,
+                    EntityType.WorldObject,
+                  )
+                }
                 selectedId={selection.id}
                 selectedType={
                   selection.type === EntityType.WorldObject
@@ -177,6 +195,7 @@ export default function App() {
         </Sider>
         <Content>
           <ContentDisplay
+            ref={contentDisplayRef}
             selectedId={selection.id}
             selectedType={selection.type}
           />
