@@ -248,5 +248,22 @@ describe('narrativeReorderer', () => {
       expect(newParentId).toBe(8);
       expect(newSortOrder).toBe(0); // First child
     });
+
+    it('REGRESSION: should find a deeper home when dropping a low-level item into a high-level one', () => {
+      // USER ACTION: Drag "Scene 1.2" (weight 10) inside "Project" (weight 1000).
+      // EXPECTED: Logic should not allow a direct child relationship.
+      // It should dive into the project and find the first suitable parent, which is "Chapter 1".
+      // Then it should place the scene as the first child of "Chapter 1".
+      const { newParentId, newSortOrder } = findNewParentAndSortOrder({
+        dragItem: getItem(4), // Scene 1.2
+        dropItem: getItem(1), // Project
+        dropType: 'inside',
+        items: mockItems,
+        getTemplate,
+      });
+
+      expect(newParentId).toBe(2); // Should be placed in Chapter 1
+      expect(newSortOrder).toBe(0); // As the first child, pushing others down
+    });
   });
 });

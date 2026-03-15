@@ -116,12 +116,7 @@ export const findNewParentAndSortOrder = ({
   const isSiblingMove = dragTemplate.weight === dropTemplate.weight;
 
   if (dropType === 'inside') {
-    if (canBeChild(dragItem, dropItem)) {
-      newParentId = dropItem.id;
-      newSortOrder = 0;
-    } else {
-      handleInvalidMove();
-    }
+    handleInvalidMove();
   } else if (isSiblingMove) {
     newParentId = dropItem.parent_id;
     const siblings = (childrenByParentId.get(newParentId!) || []).filter(
