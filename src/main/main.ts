@@ -544,8 +544,8 @@ ipcMain.handle('project:isProjectOpen', () => {
 });
 
 // --- Connections CRUD ---
-ipcMain.handle('entities:search', (_event, { query, currentEntityId }) => {
-  return connectionService.searchEntities(query, currentEntityId);
+ipcMain.handle('entities:search', (_event, { query, currentEntity }) => {
+  return connectionService.searchEntities(query, currentEntity);
 });
 
 ipcMain.handle(

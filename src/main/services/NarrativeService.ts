@@ -1,5 +1,5 @@
 import path from 'path';
-import { ItemDetails, NarrativeItem, EntityTemplate } from '../../common/types';
+import { ItemDetails, NarrativeItem, EntityTemplate, EntityType } from '../../common/types';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
 import MainNotificationService from './NotificationService';
@@ -198,7 +198,7 @@ export class NarrativeService {
     dropType: 'before' | 'after' | 'inside',
   ): Promise<void> {
     const items = this.narrativeDao.getNarrativeItems();
-    const templates = this.templateDao.getAllTemplates(false, 'narrative');
+    const templates = this.templateDao.getAllTemplates(false, EntityType.Narrative);
     const getTemplate = (id: number) => templates.find((t) => t.id === id);
 
     const dragItem = items.find((i) => i.id === dragId);

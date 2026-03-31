@@ -1,3 +1,4 @@
+import { EntityType } from '../../common/types';
 import { ConnectionDao } from '../data/daos/ConnectionDao';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
@@ -19,7 +20,7 @@ class ConnectionService {
     this.worldObjectDao = worldObjectDao;
   }
 
-  getConnections(type: 'narrative' | 'world', id: number) {
+  getConnections(type: EntityType, id: number) {
     const allEntityId = this.connectionDao.findEntityId(type, id);
     if (!allEntityId) return [];
 
@@ -34,10 +35,10 @@ class ConnectionService {
       this.connectionDao.resolveAllEntityIds(otherEntityIds);
 
     const narrativeIds = resolvedEntities
-      .filter((r) => r.type === 'narrative')
+      .filter((r) => r.type === EntityType.Narrative)
       .map((r) => r.id);
     const worldIds = resolvedEntities
-      .filter((r) => r.type === 'world')
+      .filter((r) => r.type === EntityType.WorldObject)
       .map((r) => r.id);
 
     const narrativeInfo = this.narrativeDao.getNarrativeItemsInfo(narrativeIds);
@@ -78,9 +79,9 @@ class ConnectionService {
   }
 
   createConnection(
-    sourceType: 'narrative' | 'world',
+    sourceType: EntityType,
     sourceId: number,
-    targetType: 'narrative' | 'world',
+    targetType: EntityType,
     targetId: number,
     description: string,
   ) {
@@ -102,8 +103,12 @@ class ConnectionService {
     return this.connectionDao.deleteConnection(connectionId);
   }
 
-  searchEntities(query: string, currentEntityId: number) {
-    return this.connectionDao.searchEntities(query, currentEntityId);
+  searchEntities(query: string, currentEntity: { id: number, type: EntityType }) {
+    const allEntityId = this.connectionDao.findEntityId(currentEntity.type, currentEntity.id);
+    if (allEntityId === null) {
+      return []; // Should not happen if currentEntity is valid, but good for safety
+    }
+    return this.connectionDao.searchEntities(query, allEntityId);
   }
 }
 

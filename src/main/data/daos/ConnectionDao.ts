@@ -1,4 +1,8 @@
-import { RawConnection, ResolvedEntity } from '../../../common/types';
+import {
+  EntityType,
+  RawConnection,
+  ResolvedEntity,
+} from '../../../common/types';
 import { BaseDao } from './BaseDao';
 
 export class ConnectionDao extends BaseDao {
@@ -15,7 +19,7 @@ export class ConnectionDao extends BaseDao {
     const narrativeItems = db
       .prepare(
         `SELECT
-          'narrative' as type,
+          '${EntityType.Narrative}' as type,
           ni.id,
           ni.name,
           ae.id as entityId
@@ -28,7 +32,7 @@ export class ConnectionDao extends BaseDao {
     const worldObjects = db
       .prepare(
         `SELECT
-          'world' as type,
+          '${EntityType.WorldObject}' as type,
           wo.id,
           wo.name,
           ae.id as entityId
@@ -47,9 +51,10 @@ export class ConnectionDao extends BaseDao {
    * @param {number} id ID сущности.
    * @returns {number | null} ID сущности в таблице all_entities или null, если сущность не найдена.
    */
-  public findEntityId(type: 'narrative' | 'world', id: number): number | null {
+  public findEntityId(type: EntityType, id: number): number | null {
     const db = this.getDb();
-    const column = type === 'narrative' ? 'narrative_id' : 'world_object_id';
+    const column =
+      type === EntityType.Narrative ? 'narrative_id' : 'world_object_id';
     const sql = `SELECT id FROM all_entities WHERE ${column} = ?`;
     const result = db.prepare(sql).get(id) as { id: number } | undefined;
     return result?.id ?? null;
@@ -86,8 +91,8 @@ export class ConnectionDao extends BaseDao {
           id as allEntityId,
           COALESCE(world_object_id, narrative_id) as id,
           CASE
-            WHEN world_object_id IS NOT NULL THEN 'world'
-            ELSE 'narrative'
+            WHEN world_object_id IS NOT NULL THEN '${EntityType.WorldObject}'
+            ELSE '${EntityType.Narrative}'
           END as type
         FROM all_entities
         WHERE id IN (${placeholders})
