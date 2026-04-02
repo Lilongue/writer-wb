@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed at [0.2.2]
 
+- Fixed: User now receives a warning when attempting to archive a template that is currently in use.
 - Prevented creation of narrative items with empty names.
 - Fixed an issue where ContentDisplay would not clear its content after the currently selected item was deleted.
 
