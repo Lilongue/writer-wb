@@ -200,3 +200,19 @@
 * **Renderer-процесс** (React-компоненты) использует `window.electron.ipcRenderer` для двух типов операций:
   * **Запрос-ответ:** `invoke('channel')` для получения данных от `main`-процесса (например, `project:create`, `get-narrative-items`, `dialog:show-open-dialog`).
   * **Подписка на события:** `on('channel', ...)` для реакции на события, инициированные `main`-процессом (например, `project-opened`).
+
+  Список основных IPC-каналов, используемых для взаимодействия:
+
+  | Канал IPC | Тип взаимодействия | Описание |
+  | :------------------------------ | :---------------- | :------------------------------------ |
+  | `project-opened` | `on` | **Источник:** `ProjectService` (main) после успешной загрузки проекта. **Назначение:** `ProjectContext` (renderer) переключает состояние `isProjectOpen` в `true`, активируя основной интерфейс. |
+  | `project-closed` | `on` | **Источник:** `ProjectService` (main) при закрытии проекта. **Назначение:** `ProjectContext` (renderer) переключает `isProjectOpen` в `false`, возвращая приложение на экран приветствия. |
+  | `open-in-external-editor` | `invoke` | **Источник:** `useItemDetails` (renderer) при клике на "Открыть в редакторе". **Назначение:** `main.ts` использует `shell.openPath` для открытия файла в системном приложении. |
+  | `narrative-changed` | `on` | **Источник:** `NarrativeService` (main) после CRUD-операций. **Назначение:** `useNarrativeTreeData` (renderer) перезапрашивает дерево повествования для обновления UI. |
+  | `export-full-manuscript` | `invoke` | **Источник:** `NarrativeTree` (renderer) из контекстного меню. **Назначение:** `main.ts` запускает `ManuscriptService` для сборки и сохранения файла рукописи. |
+  | `world-objects-changed` | `on` | **Источник:** `WorldObjectService` или `TemplateService` (main) после изменений. **Назначение:** `useWorldObjectTreeData` и `useItemDetails` (renderer) перезапрашивают данные для обновления UI. |
+  | `open-template-manager` | `on` | **Источник:** `menu.ts` (main) при выборе пункта в меню. **Назначение:** `App.tsx` (renderer) открывает модальное окно `TemplateManagerModal`. |
+  | `open-project-settings` | `on` | **Источник:** `menu.ts` (main) при выборе пункта в меню. **Назначение:** `App.tsx` (renderer) открывает модальное окно `ProjectSettingsModal`. |
+  | `show-notification` | `on` | **Источник:** Любой сервис в `main` через `MainNotificationService`. **Назначение:** `notificationService` (renderer) отображает уведомление через Ant Design. |
+  | `open-project-wizard` | `on` | **Источник:** `menu.ts` (main) при выборе "Новый проект". **Назначение:** `App.tsx` (renderer) открывает `ProjectWizardModal`. |
+  | `item-deleted` | `on` | **Источник:** `NarrativeService` или `WorldObjectService` (main) после удаления. **Назначение:** `App.tsx` (renderer) сбрасывает активный выбор, если удален текущий элемент, чтобы избежать показа устаревших данных. |

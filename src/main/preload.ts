@@ -23,7 +23,8 @@ export type Channels =
   | 'open-template-manager'
   | 'open-project-settings'
   | 'show-notification'
-  | 'open-project-wizard';
+  | 'open-project-wizard'
+  | 'item-deleted';
 
 const electronHandler = {
   ipcRenderer: {

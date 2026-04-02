@@ -101,6 +101,16 @@ export default function App() {
       },
     );
 
+    const cleanupItemDeleted = window.electron.ipcRenderer.on(
+      'item-deleted',
+      (arg: any) => {
+        const { id, type } = arg as { id: number; type: EntityType };
+        if (selection.id === id && selection.type === type) {
+          setSelection({ id: null, type: null });
+        }
+      },
+    );
+
     // If project is closed, clear selection
     if (!isProjectOpen) {
       setSelection({ id: null, type: null });
@@ -115,8 +125,9 @@ export default function App() {
       cleanupSettings();
       cleanupWizard();
       cleanupNotification();
+      cleanupItemDeleted();
     };
-  }, [isProjectOpen]); // Rerun effect when isProjectOpen changes
+  }, [isProjectOpen, selection.id, selection.type]); // Rerun effect when isProjectOpen or selection changes
 
   const handleSelect = async (id: number | null, type: EntityType | null) => {
     // Do nothing if the selection hasn't changed

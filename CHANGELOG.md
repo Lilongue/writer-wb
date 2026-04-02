@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed at [0.2.2]
 
+- Fixed an issue where ContentDisplay would not clear its content after the currently selected item was deleted.
+
 - **Connection Creation:** Fixed some bugs in connection creation flow, including preventing recursive connections and refactoring for better type safety.
 
 ## [0.2.1] - 2026-03-15

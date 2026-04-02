@@ -36,6 +36,7 @@ import { TemplateDao } from './data/daos/TemplateDao';
 import { ConnectionDao } from './data/daos/ConnectionDao';
 import { SettingsDao } from './data/daos/SettingsDao';
 import MainNotificationService from './services/NotificationService';
+import { EntityType } from '../common/types';
 
 const getDb = () => projectService.getDb();
 
@@ -323,7 +324,7 @@ ipcMain.handle('get-world-objects-by-type', (_event, typeId) => {
 
 ipcMain.handle(
   'get-item-details',
-  async (_event, { id, type }: { id: number; type: 'narrative' | 'world' }) => {
+  async (_event, { id, type }: { id: number; type: EntityType }) => {
     let details;
     if (type === 'narrative') {
       details = await narrativeService.getDetails(id);
@@ -426,6 +427,10 @@ ipcMain.handle('narrative:rename', async (_event, { itemId, newName }) => {
 
 ipcMain.handle('narrative:delete', async (_event, itemId) => {
   await narrativeService.deleteNarrativeItem(itemId);
+  _event.sender.send('item-deleted', {
+    id: itemId,
+    type: EntityType.Narrative,
+  });
   eventBus.emit('narrative-changed');
 });
 
@@ -463,8 +468,14 @@ ipcMain.handle('world-object:rename', (_event, { id, newName }) => {
   worldObjectService.renameObject({ id, newName });
 });
 
-ipcMain.handle('world-object:delete', (_event, id) => {
-  return worldObjectService.deleteObject(id);
+ipcMain.handle('world-object:delete', async (_event, id) => {
+  const result = await worldObjectService.deleteObject(id);
+  if (result.success) {
+    _event.sender.send('item-deleted', {
+      id,
+      type: EntityType.WorldObject,
+    });
+  }
 });
 
 ipcMain.on('world-objects-changed', () => {
