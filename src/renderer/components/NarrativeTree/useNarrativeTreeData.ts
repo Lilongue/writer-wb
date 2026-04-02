@@ -193,6 +193,13 @@ const useNarrativeTreeData = (
     const { type, node, name, title, templateId } = modalState;
     try {
       if (type === 'create') {
+        if (!name.trim()) {
+          notificationService.showError(
+            'Ошибка создания',
+            'Имя элемента повествования не может быть пустым.',
+          );
+          return;
+        }
         await window.electron.ipcRenderer.invoke('narrative:create', {
           parentId: node.key,
           templateId,
