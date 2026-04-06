@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.2]
 
+- Added automatic trimming and sanitization for all user text inputs to improve data consistency and prevent invalid characters.
+
 ### Changed at [0.2.2]
 
 ### Fixed at [0.2.2]

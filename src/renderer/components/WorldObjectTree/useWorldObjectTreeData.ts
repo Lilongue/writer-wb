@@ -5,6 +5,7 @@ import type { MenuProps } from 'antd';
 import notificationService from '../../services/notificationService';
 import { WorldObject, WorldObjectType } from '../../../common/types';
 import { ModalState } from './components/WorldObjectModal';
+import { cleanNameInput } from '../../../common/utils';
 
 type TreeNode = (WorldObjectType & { children?: any[] }) | WorldObject;
 
@@ -217,11 +218,19 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     const { type, node, name } = modalState;
     try {
       if (type === 'create') {
+        const trimmedName = cleanNameInput(name);
+        if (!trimmedName) {
+          notificationService.showError(
+            'Ошибка создания',
+            'Имя объекта мира не может быть пустым.',
+          );
+          return;
+        }
         const typeId = Number(node.key.split('-')[1]);
         const properties = JSON.stringify({}); // Create with empty properties
         const newId = await window.electron.ipcRenderer.invoke(
           'world-object:create',
-          { name, typeId, properties },
+          { name: trimmedName, typeId, properties },
         );
         if (newId) {
           onSelect(newId.toString());
