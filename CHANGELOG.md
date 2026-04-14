@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed at [0.2.2]
 
+- **Data Integrity:** Switched to ID-based file naming for new narrative items to improve data integrity and prevent file path desynchronization.
+
 ### Fixed at [0.2.2]
 
 - Fixed: User now receives a warning when attempting to archive a template that is currently in use.

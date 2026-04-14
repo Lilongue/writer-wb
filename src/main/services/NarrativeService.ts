@@ -1,9 +1,13 @@
 import path from 'path';
-import { ItemDetails, NarrativeItem, EntityTemplate, EntityType } from '../../common/types';
+import {
+  ItemDetails,
+  NarrativeItem,
+  EntityTemplate,
+  EntityType,
+} from '../../common/types';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import fileSystemService from './FileSystemService';
 import MainNotificationService from './NotificationService';
-import { slugify } from '../util';
 import { TemplateDao } from '../data/daos/TemplateDao';
 import {
   calculateNarrativeOrderUpdates,
@@ -107,20 +111,25 @@ export class NarrativeService {
       }
     }
 
-    const newFileName = `${slugify(name)}.md`;
-    const relativeFilePath = path.join(parentPath, newFileName);
-
     const sortOrder = this.narrativeDao.getMaxSortOrder(parentId) + 1;
+
+    // Определяем функцию, которая будет возвращать путь к файлу на основе ID
+    const getFilePath = (id: number): string => {
+      const newFileName = `${id}.md`;
+      return path.join(parentPath, newFileName);
+    };
 
     const newItemId = this.narrativeDao.createNarrativeItem(
       name,
       title,
       parentId,
       templateId,
-      relativeFilePath,
+      getFilePath, // Передаем функцию
       sortOrder,
     );
 
+    // После создания элемента в БД, получаем окончательный путь к файлу
+    const relativeFilePath = getFilePath(newItemId);
     const absoluteFilePath = path.join(projectRoot, relativeFilePath);
     const fileContent = title ? `# ${title}\n` : '';
     await fileSystemService.createFileWithDirs(absoluteFilePath, fileContent);
@@ -198,7 +207,10 @@ export class NarrativeService {
     dropType: 'before' | 'after' | 'inside',
   ): Promise<void> {
     const items = this.narrativeDao.getNarrativeItems();
-    const templates = this.templateDao.getAllTemplates(false, EntityType.Narrative);
+    const templates = this.templateDao.getAllTemplates(
+      false,
+      EntityType.Narrative,
+    );
     const getTemplate = (id: number) => templates.find((t) => t.id === id);
 
     const dragItem = items.find((i) => i.id === dragId);
