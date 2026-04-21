@@ -111,6 +111,19 @@ export default function App() {
       },
     );
 
+    const cleanupArchiveRequest = window.electron.ipcRenderer.on(
+      'project:archive-request',
+      async () => {
+        notificationService.showInfo('Архивирование проекта');
+        try {
+          await window.electron.project.performArchive();
+        } catch (error: any) {
+          console.error('Failed to perform archive from renderer:', error);
+          // Main process will also send a show-notification IPC for errors
+        }
+      },
+    );
+
     // If project is closed, clear selection
     if (!isProjectOpen) {
       setSelection({ id: null, type: null });
@@ -126,6 +139,7 @@ export default function App() {
       cleanupWizard();
       cleanupNotification();
       cleanupItemDeleted();
+      cleanupArchiveRequest();
     };
   }, [isProjectOpen, selection.id, selection.type]); // Rerun effect when isProjectOpen or selection changes
 

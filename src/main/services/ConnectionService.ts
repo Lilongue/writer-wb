@@ -103,8 +103,14 @@ class ConnectionService {
     return this.connectionDao.deleteConnection(connectionId);
   }
 
-  searchEntities(query: string, currentEntity: { id: number, type: EntityType }) {
-    const allEntityId = this.connectionDao.findEntityId(currentEntity.type, currentEntity.id);
+  searchEntities(
+    query: string,
+    currentEntity: { id: number; type: EntityType },
+  ) {
+    const allEntityId = this.connectionDao.findEntityId(
+      currentEntity.type,
+      currentEntity.id,
+    );
     if (allEntityId === null) {
       return []; // Should not happen if currentEntity is valid, but good for safety
     }

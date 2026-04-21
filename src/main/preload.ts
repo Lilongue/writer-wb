@@ -24,7 +24,9 @@ export type Channels =
   | 'open-project-settings'
   | 'show-notification'
   | 'open-project-wizard'
-  | 'item-deleted';
+  | 'item-deleted'
+  | 'project-archive'
+  | 'project:archive-request';
 
 const electronHandler = {
   ipcRenderer: {
@@ -80,6 +82,12 @@ export type ElectronAPI = typeof electronHandler & {
       narrativeStructure: string[];
       createSubfolder: boolean;
     }) => Promise<void>;
+    performArchive: () => Promise<{
+      success: boolean;
+      filePath?: string;
+      error?: string;
+      canceled?: boolean;
+    }>;
   };
   fs: {
     openFolder: (folderPath: string) => Promise<void>;
@@ -110,6 +118,7 @@ contextBridge.exposeInMainWorld('electron', {
       narrativeStructure: string[];
       createSubfolder: boolean;
     }) => ipcRenderer.invoke('project:create', projectData),
+    performArchive: () => ipcRenderer.invoke('project:perform-archive'),
   },
   fs: {
     openFolder: (folderPath: string) =>

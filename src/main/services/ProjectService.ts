@@ -168,6 +168,17 @@ class ProjectService {
     return this.projectRoot;
   }
 
+  public getProjectPathDetails(): {
+    projectRoot: string;
+    dbPath: string;
+  } | null {
+    if (!this.projectRoot) {
+      return null;
+    }
+    const dbPath = path.join(this.projectRoot, 'project.sqlite');
+    return { projectRoot: this.projectRoot, dbPath };
+  }
+
   // --- Private Helpers ---
 
   private _initDatabase(dbPath: string): Database.Database {

@@ -15,6 +15,7 @@ import {
   shell,
   ipcMain,
   dialog,
+  Menu, // Added Menu
   OpenDialogOptions,
 } from 'electron';
 import fs from 'fs';
@@ -36,6 +37,7 @@ import { TemplateDao } from './data/daos/TemplateDao';
 import { ConnectionDao } from './data/daos/ConnectionDao';
 import { SettingsDao } from './data/daos/SettingsDao';
 import MainNotificationService from './services/NotificationService';
+import ArchiveService from './services/ArchiveService';
 import { EntityType } from '../common/types';
 
 const getDb = () => projectService.getDb();
@@ -211,10 +213,20 @@ const createWindow = async () => {
   // Прослушивание событий и пересылка их в рендерер
   eventBus.on('project-opened', () => {
     mainWindow?.webContents.send('project-opened');
+    const menu = Menu.getApplicationMenu();
+    const archiveMenuItem = menu?.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) {
+      archiveMenuItem.enabled = true;
+    }
   });
 
   eventBus.on('project-closed', () => {
     mainWindow?.webContents.send('project-closed');
+    const menu = Menu.getApplicationMenu();
+    const archiveMenuItem = menu?.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) {
+      archiveMenuItem.enabled = false;
+    }
   });
 
   eventBus.on('narrative-changed', () => {
@@ -574,6 +586,50 @@ ipcMain.handle(
 
 ipcMain.handle('connections:delete', (_event, connectionId) => {
   return connectionService.deleteConnection(connectionId);
+});
+
+// --- Project Archive ---
+// This IPC handler will be invoked by the renderer to perform the archiving
+ipcMain.handle('project:perform-archive', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка архивации',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const projectRoot = projectService.getProjectRoot();
+    if (!projectRoot) {
+      MainNotificationService.error('Ошибка архивации', 'Проект не открыт.');
+      return { success: false, error: 'Project not open.' };
+    }
+
+    // This part remains in the main process as it's a native dialog
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Сохранить архив проекта',
+      defaultPath: path.join(projectRoot, 'project-archive.zip'),
+      filters: [{ name: 'Zip Archives', extensions: ['zip'] }],
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true };
+    }
+
+    await ArchiveService.createProjectArchive(filePath);
+    MainNotificationService.success(
+      'Архив создан',
+      `Проект успешно заархивирован в ${filePath}`,
+    );
+    return { success: true, filePath };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка архивации проекта',
+      `Не удалось создать архив: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
 });
 
 // --- Export Narrative ---

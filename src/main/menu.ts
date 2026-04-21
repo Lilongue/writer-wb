@@ -8,6 +8,7 @@ import {
 import path from 'path'; // Добавлено
 import ProjectService from './services/ProjectService';
 import MainNotificationService from './services/NotificationService';
+// import { handleProjectArchiveRequest } from './main'; // REMOVED
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -16,9 +17,14 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
 
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
+  // private handleProjectArchive: (window: BrowserWindow) => Promise<any>; // REMOVED
 
-  constructor(mainWindow: BrowserWindow) {
+  constructor(
+    mainWindow: BrowserWindow,
+    // handleProjectArchive: (window: BrowserWindow) => Promise<any>, // REMOVED
+  ) {
     this.mainWindow = mainWindow;
+    // this.handleProjectArchive = handleProjectArchive; // REMOVED
   }
 
   buildMenu(): Menu {
@@ -218,6 +224,15 @@ export default class MenuBuilder {
             },
           },
           { type: 'separator' },
+          {
+            label: '&Заархивировать проект...',
+            id: 'archive-project-menu-item', // Added ID for dynamic control
+            accelerator: 'Ctrl+Shift+S', // Common shortcut for save as / archive
+            enabled: ProjectService.getProjectRoot() !== null,
+            click: async () => {
+              this.mainWindow.webContents.send('project:archive-request'); // Send IPC message to renderer
+            },
+          },
           {
             label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
