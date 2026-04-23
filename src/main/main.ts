@@ -38,6 +38,7 @@ import { ConnectionDao } from './data/daos/ConnectionDao';
 import { SettingsDao } from './data/daos/SettingsDao';
 import MainNotificationService from './services/NotificationService';
 import ArchiveService from './services/ArchiveService';
+import ImportExportService from './services/ImportExportService';
 import { EntityType } from '../common/types';
 
 const getDb = () => projectService.getDb();
@@ -66,6 +67,11 @@ const connectionService = new ConnectionService(
   worldObjectDao,
 );
 const projectSettingsService = new ProjectSettingsService(settingsDao);
+const importExportService = new ImportExportService(
+  projectSettingsService,
+  templateDao,
+  worldObjectDao,
+);
 
 let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
@@ -218,6 +224,12 @@ const createWindow = async () => {
     if (archiveMenuItem) {
       archiveMenuItem.enabled = true;
     }
+    const exportMenuItem = menu?.getMenuItemById(
+      'export-world-objects-menu-item',
+    );
+    if (exportMenuItem) {
+      exportMenuItem.enabled = true;
+    }
   });
 
   eventBus.on('project-closed', () => {
@@ -226,6 +238,12 @@ const createWindow = async () => {
     const archiveMenuItem = menu?.getMenuItemById('archive-project-menu-item');
     if (archiveMenuItem) {
       archiveMenuItem.enabled = false;
+    }
+    const exportMenuItem = menu?.getMenuItemById(
+      'export-world-objects-menu-item',
+    );
+    if (exportMenuItem) {
+      exportMenuItem.enabled = false;
     }
   });
 
@@ -659,6 +677,42 @@ ipcMain.handle(
     }
   },
 );
+
+// --- Import/Export ---
+ipcMain.handle('export:world-objects', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка экспорта',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const jsonContent = await importExportService.exportWorldObjects();
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Экспорт объектов мира',
+      defaultPath: `world-objects-export.json`,
+      filters: [{ name: 'JSON Files', extensions: ['json'] }],
+    });
+
+    if (!canceled && filePath) {
+      await fs.promises.writeFile(filePath, jsonContent, 'utf-8');
+      MainNotificationService.success(
+        'Экспорт завершен',
+        `Объекты успешно экспортированы в ${filePath}`,
+      );
+      return { success: true, filePath };
+    }
+    return { success: false, canceled: true };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка экспорта',
+      `Не удалось экспортировать объекты: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
+});
 
 // --- Project Settings ---
 ipcMain.handle('project-settings:get-all', () => {

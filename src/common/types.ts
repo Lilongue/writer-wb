@@ -154,3 +154,28 @@ export type PredefinedTemplatesFile = {
   world_templates: PredefinedWorldTemplate[];
   narrative_templates: PredefinedNarrativeTemplate[];
 };
+
+/**
+ * Описывает структуру объекта мира в экспортном файле.
+ */
+export interface ExportedWorldObject {
+  templateName: string;
+  objectData: {
+    name: string;
+    description?: string;
+    properties?: string;
+  };
+}
+
+/**
+ * Описывает корневую структуру экспортного файла.
+ */
+export interface ExportFile {
+  version: string;
+  type: string;
+  sourceProjectName: string;
+  templates: {
+    world_templates: PredefinedWorldTemplate[];
+  };
+  worldObjects: ExportedWorldObject[];
+}

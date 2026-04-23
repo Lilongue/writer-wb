@@ -1,0 +1,96 @@
+import {
+  PredefinedWorldTemplate,
+  ExportedWorldObject,
+  ExportFile,
+  EntityType,
+} from '../../common/types';
+import { TemplateDao } from '../data/daos/TemplateDao';
+import { WorldObjectDao } from '../data/daos/WorldObjectDao';
+import MainNotificationService from './NotificationService';
+import ProjectSettingsService from './ProjectSettingsService';
+
+class ImportExportService {
+  private projectSettingsService: ProjectSettingsService;
+
+  private templateDao: TemplateDao;
+
+  private worldObjectDao: WorldObjectDao;
+
+  constructor(
+    projectSettingsService: ProjectSettingsService,
+    templateDao: TemplateDao,
+    worldObjectDao: WorldObjectDao,
+  ) {
+    this.projectSettingsService = projectSettingsService;
+    this.templateDao = templateDao;
+    this.worldObjectDao = worldObjectDao;
+  }
+
+  /**
+   * Экспортирует все объекты мира в виде JSON-строки.
+   */
+  public async exportWorldObjects(): Promise<string> {
+    const settings = await this.projectSettingsService.getAllSettings();
+    const projectNameSetting = settings.find((s) => s.key === 'project.name');
+    const projectName =
+      (projectNameSetting?.value as string) || 'Unknown Project';
+
+    const templatesToExport = new Map<number, PredefinedWorldTemplate>();
+    const objectsToExport: ExportedWorldObject[] = [];
+
+    const allObjects = this.worldObjectDao.getAllWorldObjects();
+
+    allObjects.forEach((object) => {
+      const template = this.templateDao.getTemplate(object.template_id);
+      if (!template) {
+        MainNotificationService.warning(
+          `Шаблон для объекта "${object.name}" не найден и объект будет пропущен.`,
+        );
+        return; // continue
+      }
+
+      const namespacedTemplateName = `[${projectName}] ${template.name}`;
+
+      // Добавляем шаблон в список для экспорта, если его там еще нет
+      if (!templatesToExport.has(template.id)) {
+        try {
+          const fields = JSON.parse(template.fields_schema);
+          templatesToExport.set(template.id, {
+            name: namespacedTemplateName,
+            category: EntityType.WorldObject,
+            fields,
+          });
+        } catch {
+          MainNotificationService.error(
+            `Ошибка парсинга схемы для шаблона "${template.name}". Шаблон не будет экспортирован.`,
+          );
+          return; // continue
+        }
+      }
+
+      // Добавляем объект в список для экспорта
+      objectsToExport.push({
+        templateName: namespacedTemplateName,
+        objectData: {
+          name: object.name,
+          description: object.description,
+          properties: object.properties,
+        },
+      });
+    });
+
+    const exportFile: ExportFile = {
+      version: '1.1',
+      type: 'WriterWorldBuilder-Export',
+      sourceProjectName: projectName,
+      templates: {
+        world_templates: Array.from(templatesToExport.values()),
+      },
+      worldObjects: objectsToExport,
+    };
+
+    return JSON.stringify(exportFile, null, 2);
+  }
+}
+
+export default ImportExportService;

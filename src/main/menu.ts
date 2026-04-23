@@ -234,6 +234,14 @@ export default class MenuBuilder {
             },
           },
           {
+            label: 'Экспортировать объекты мира...',
+            id: 'export-world-objects-menu-item',
+            enabled: ProjectService.getProjectRoot() !== null,
+            click: () => {
+              this.mainWindow.webContents.send('trigger-export-world-objects');
+            },
+          },
+          {
             label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
             click: () => {

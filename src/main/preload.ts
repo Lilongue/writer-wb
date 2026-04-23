@@ -26,7 +26,8 @@ export type Channels =
   | 'open-project-wizard'
   | 'item-deleted'
   | 'project-archive'
-  | 'project:archive-request';
+  | 'project:archive-request'
+  | 'trigger-export-world-objects';
 
 const electronHandler = {
   ipcRenderer: {
@@ -89,6 +90,14 @@ export type ElectronAPI = typeof electronHandler & {
       canceled?: boolean;
     }>;
   };
+  worldObjects: {
+    export: () => Promise<{
+      success: boolean;
+      filePath?: string;
+      error?: string;
+      canceled?: boolean;
+    }>;
+  };
   fs: {
     openFolder: (folderPath: string) => Promise<void>;
     getDirectoryFiles: (folderPath: string) => Promise<string[]>;
@@ -119,6 +128,9 @@ contextBridge.exposeInMainWorld('electron', {
       createSubfolder: boolean;
     }) => ipcRenderer.invoke('project:create', projectData),
     performArchive: () => ipcRenderer.invoke('project:perform-archive'),
+  },
+  worldObjects: {
+    export: () => ipcRenderer.invoke('export:world-objects'),
   },
   fs: {
     openFolder: (folderPath: string) =>

@@ -143,6 +143,25 @@ export default function App() {
     };
   }, [isProjectOpen, selection.id, selection.type]); // Rerun effect when isProjectOpen or selection changes
 
+  useEffect(() => {
+    const cleanupExport = window.electron.ipcRenderer.on(
+      'trigger-export-world-objects',
+      async () => {
+        notificationService.showInfo('Экспорт объектов мира...');
+        try {
+          await window.electron.worldObjects.export();
+        } catch (error: any) {
+          console.error('Failed to perform export from renderer:', error);
+          // Main process will also send a show-notification IPC for errors
+        }
+      },
+    );
+
+    return () => {
+      cleanupExport();
+    };
+  }, []);
+
   const handleSelect = async (id: number | null, type: EntityType | null) => {
     // Do nothing if the selection hasn't changed
     if (id === selection.id && type === selection.type) {
