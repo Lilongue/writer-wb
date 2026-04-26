@@ -3,9 +3,11 @@ import {
   ExportedWorldObject,
   ExportFile,
   EntityType,
+  ExportedConnection,
 } from '../../common/types';
 import { TemplateDao } from '../data/daos/TemplateDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
+import { ConnectionDao } from '../data/daos/ConnectionDao'; // <-- Добавлено
 import MainNotificationService from './NotificationService';
 import ProjectSettingsService from './ProjectSettingsService';
 
@@ -16,14 +18,18 @@ class ImportExportService {
 
   private worldObjectDao: WorldObjectDao;
 
+  private connectionDao: ConnectionDao; // <-- Добавлено
+
   constructor(
     projectSettingsService: ProjectSettingsService,
     templateDao: TemplateDao,
     worldObjectDao: WorldObjectDao,
+    connectionDao: ConnectionDao, // <-- Добавлено
   ) {
     this.projectSettingsService = projectSettingsService;
     this.templateDao = templateDao;
     this.worldObjectDao = worldObjectDao;
+    this.connectionDao = connectionDao; // <-- Добавлено
   }
 
   /**
@@ -36,7 +42,9 @@ class ImportExportService {
       (projectNameSetting?.value as string) || 'Unknown Project';
 
     const templatesToExport = new Map<number, PredefinedWorldTemplate>();
-    const objectsToExport: ExportedWorldObject[] = [];
+    const exportedWorldObjects: ExportedWorldObject[] = [];
+    const allEntityIdToLocalIdMap = new Map<number, number>();
+    let localIdCounter = 1;
 
     const allObjects = this.worldObjectDao.getAllWorldObjects();
 
@@ -46,12 +54,22 @@ class ImportExportService {
         MainNotificationService.warning(
           `Шаблон для объекта "${object.name}" не найден и объект будет пропущен.`,
         );
-        return; // continue
+        return;
+      }
+
+      const allEntityId = this.connectionDao.findEntityId(
+        EntityType.WorldObject,
+        object.id,
+      );
+      if (!allEntityId) {
+        MainNotificationService.warning(
+          `Сущность для объекта "${object.name}" не найдена и объект будет пропущен.`,
+        );
+        return;
       }
 
       const namespacedTemplateName = `[${projectName}] ${template.name}`;
 
-      // Добавляем шаблон в список для экспорта, если его там еще нет
       if (!templatesToExport.has(template.id)) {
         try {
           const fields = JSON.parse(template.fields_schema);
@@ -64,12 +82,13 @@ class ImportExportService {
           MainNotificationService.error(
             `Ошибка парсинга схемы для шаблона "${template.name}". Шаблон не будет экспортирован.`,
           );
-          return; // continue
+          return;
         }
       }
 
-      // Добавляем объект в список для экспорта
-      objectsToExport.push({
+      allEntityIdToLocalIdMap.set(allEntityId, localIdCounter);
+      exportedWorldObjects.push({
+        localId: localIdCounter,
         templateName: namespacedTemplateName,
         objectData: {
           name: object.name,
@@ -77,16 +96,37 @@ class ImportExportService {
           properties: object.properties,
         },
       });
+      localIdCounter += 1;
     });
 
+    const allConnections = this.connectionDao.getAllConnections();
+    const worldObjectAllEntityIds =
+      this.connectionDao.getAllWorldObjectEntityIds();
+    const worldObjectAllEntityIdSet = new Set(worldObjectAllEntityIds);
+
+    const exportedConnections: ExportedConnection[] = allConnections
+      .filter(
+        (connection) =>
+          worldObjectAllEntityIdSet.has(connection.source_id) &&
+          worldObjectAllEntityIdSet.has(connection.target_id) &&
+          allEntityIdToLocalIdMap.has(connection.source_id) &&
+          allEntityIdToLocalIdMap.has(connection.target_id),
+      )
+      .map((connection) => ({
+        sourceLocalId: allEntityIdToLocalIdMap.get(connection.source_id)!,
+        targetLocalId: allEntityIdToLocalIdMap.get(connection.target_id)!,
+        description: connection.description,
+      }));
+
     const exportFile: ExportFile = {
-      version: '1.1',
+      version: '1.0', // Версия не меняется по запросу пользователя
       type: 'WriterWorldBuilder-Export',
       sourceProjectName: projectName,
       templates: {
         world_templates: Array.from(templatesToExport.values()),
       },
-      worldObjects: objectsToExport,
+      worldObjects: exportedWorldObjects,
+      connections: exportedConnections, // <-- Добавлено
     };
 
     return JSON.stringify(exportFile, null, 2);

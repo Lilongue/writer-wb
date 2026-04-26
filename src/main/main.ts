@@ -71,6 +71,7 @@ const importExportService = new ImportExportService(
   projectSettingsService,
   templateDao,
   worldObjectDao,
+  connectionDao,
 );
 
 let mainWindow: BrowserWindow | null = null;

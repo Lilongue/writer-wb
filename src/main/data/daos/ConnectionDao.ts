@@ -128,6 +128,28 @@ export class ConnectionDao extends BaseDao {
     const sql = 'DELETE FROM connections WHERE id = ?';
     db.prepare(sql).run(connectionId);
   }
+
+  /**
+   * Получает все ID сущностей из таблицы all_entities, которые относятся к world_objects.
+   * @returns {number[]} Массив all_entity_id для world_objects.
+   */
+  public getAllWorldObjectEntityIds(): number[] {
+    const db = this.getDb();
+    const sql = 'SELECT id FROM all_entities WHERE world_object_id IS NOT NULL';
+    return (db.prepare(sql).all() as Array<{ id: number }>).map(
+      (row) => row.id,
+    );
+  }
+
+  /**
+   * Получает все связи из базы данных.
+   * @returns {RawConnection[]} Список всех RawConnection.
+   */
+  public getAllConnections(): RawConnection[] {
+    const db = this.getDb();
+    const sql = 'SELECT id, description, source_id, target_id FROM connections';
+    return db.prepare(sql).all() as RawConnection[];
+  }
 }
 
 export default ConnectionDao;
