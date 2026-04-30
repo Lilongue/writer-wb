@@ -1,3 +1,4 @@
+import { app } from 'electron';
 import {
   PredefinedWorldTemplate,
   ExportedWorldObject,
@@ -119,7 +120,7 @@ class ImportExportService {
       }));
 
     const exportFile: ExportFile = {
-      version: '1.0', // Версия не меняется по запросу пользователя
+      version: app.getVersion(),
       type: 'WriterWorldBuilder-Export',
       sourceProjectName: projectName,
       templates: {
@@ -130,6 +131,159 @@ class ImportExportService {
     };
 
     return JSON.stringify(exportFile, null, 2);
+  }
+
+  public async importFromFile(
+    selectedTemplates: PredefinedWorldTemplate[],
+    shouldImportWorldObjects: boolean,
+    shouldImportConnections: boolean,
+    worldObjectsToImport: ExportedWorldObject[],
+    connectionsToImport: ExportedConnection[],
+  ): Promise<void> {
+    const templateNameIdMap = new Map<string, number>(); // Maps template name to its actual DB ID
+
+    // 1. Import Templates
+    await selectedTemplates.reduce(async (previousPromise, templateData) => {
+      await previousPromise; // Wait for the previous item to complete
+
+      const existingTemplate = this.templateDao.findTemplateByName(
+        templateData.name,
+        templateData.category,
+      );
+      if (existingTemplate) {
+        templateNameIdMap.set(templateData.name, existingTemplate.id);
+        MainNotificationService.info(
+          'Импорт шаблонов',
+          `Шаблон "${templateData.name}" уже существует и будет использоваться.`,
+        );
+      } else {
+        try {
+          const newTemplateId = this.templateDao.createTemplate(
+            templateData.name,
+            templateData.category,
+            JSON.stringify(templateData.fields),
+          );
+          templateNameIdMap.set(templateData.name, newTemplateId);
+          MainNotificationService.success(
+            'Импорт шаблонов',
+            `Шаблон "${templateData.name}" успешно импортирован.`,
+          );
+        } catch (error) {
+          MainNotificationService.error(
+            'Ошибка импорта шаблона',
+            `Не удалось импортировать шаблон "${templateData.name}": ${String(
+              error,
+            )}`,
+          );
+        }
+      }
+      return Promise.resolve();
+    }, Promise.resolve());
+
+    // 2. Import World Objects
+    const localIdToNewAllEntityIdMap = new Map<number, number>();
+    if (shouldImportWorldObjects) {
+      await worldObjectsToImport.reduce(
+        async (previousPromise, exportedObject) => {
+          await previousPromise; // Wait for the previous item to complete
+
+          const templateId = templateNameIdMap.get(exportedObject.templateName);
+          if (!templateId) {
+            MainNotificationService.warning(
+              'Импорт объектов',
+              `Шаблон "${
+                exportedObject.templateName
+              }" для объекта "${exportedObject.objectData.name}" не найден. Объект будет пропущен.`,
+            );
+            return Promise.resolve(); // Continue with the next item
+          }
+
+          try {
+            const newObjectId = this.worldObjectDao.createWorldObject(
+              exportedObject.objectData.name,
+              templateId,
+              exportedObject.objectData.properties || '',
+            );
+
+            const newAllEntityId = this.connectionDao.findEntityId(
+              EntityType.WorldObject,
+              newObjectId,
+            );
+            if (newAllEntityId) {
+              localIdToNewAllEntityIdMap.set(
+                exportedObject.localId,
+                newAllEntityId,
+              );
+              MainNotificationService.success(
+                'Импорт объектов',
+                `Объект "${exportedObject.objectData.name}" успешно импортирован.`,
+              );
+            } else {
+              MainNotificationService.error(
+                'Импорт объектов',
+                `Не удалось найти allEntityId для объекта "${exportedObject.objectData.name}". Связи для него могут быть некорректны.`,
+              );
+            }
+          } catch (error) {
+            MainNotificationService.error(
+              'Ошибка импорта объекта',
+              `Не удалось импортировать объект "${
+                exportedObject.objectData.name
+              }": ${String(error)}`,
+            );
+          }
+          return Promise.resolve();
+        },
+        Promise.resolve(),
+      );
+    }
+
+    // 3. Import Connections
+    if (shouldImportWorldObjects && shouldImportConnections) {
+      await connectionsToImport.reduce(
+        async (previousPromise, exportedConnection) => {
+          await previousPromise; // Wait for the previous item to complete
+
+          const sourceAllEntityId = localIdToNewAllEntityIdMap.get(
+            exportedConnection.sourceLocalId,
+          );
+          const targetAllEntityId = localIdToNewAllEntityIdMap.get(
+            exportedConnection.targetLocalId,
+          );
+
+          if (sourceAllEntityId && targetAllEntityId) {
+            try {
+              this.connectionDao.createConnection(
+                sourceAllEntityId,
+                targetAllEntityId,
+                exportedConnection.description,
+              );
+              MainNotificationService.success(
+                'Импорт связей',
+                `Связь успешно импортирована.`,
+              );
+            } catch (error) {
+              MainNotificationService.error(
+                'Ошибка импорта связи',
+                `Не удалось импортировать связь: ${String(error)}`,
+              );
+            }
+          } else {
+            MainNotificationService.warning(
+              'Импорт связей',
+              `Пропущена связь из-за отсутствия импортированных исходных или целевых объектов.`,
+            );
+          }
+          return Promise.resolve();
+        },
+        Promise.resolve(),
+      );
+    }
+
+    MainNotificationService.success(
+      'Импорт завершен',
+      'Процесс импорта данных завершен.',
+    );
   }
 }
 

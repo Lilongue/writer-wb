@@ -36,6 +36,17 @@ const useTemplates = (category: string) => {
 
   useEffect(() => {
     fetchTemplates();
+
+    const removeListener = window.electron.ipcRenderer.on(
+      'templates-changed',
+      () => {
+        fetchTemplates();
+      },
+    );
+
+    return () => {
+      removeListener();
+    };
   }, [fetchTemplates]);
 
   useEffect(() => {

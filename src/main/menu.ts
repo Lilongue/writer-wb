@@ -276,6 +276,14 @@ export default class MenuBuilder {
               this.mainWindow.webContents.send('open-template-manager');
             },
           },
+          {
+            label: 'Импортировать объекты мира...',
+            id: 'import-world-objects-menu-item',
+            enabled: ProjectService.getProjectRoot() !== null,
+            click: () => {
+              this.mainWindow.webContents.send('trigger-import-world-objects');
+            },
+          },
         ],
       },
       {

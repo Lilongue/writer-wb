@@ -61,6 +61,24 @@ export class ConnectionDao extends BaseDao {
   }
 
   /**
+   * Находит реальный ID сущности (narrative_id или world_object_id) по allEntityId.
+   * @param {number} allEntityId ID сущности в таблице all_entities.
+   * @returns {number | null} Реальный ID сущности или null, если не найден.
+   */
+  public findIdByAllEntityId(allEntityId: number): number | null {
+    const db = this.getDb();
+    const sql = `
+      SELECT COALESCE(world_object_id, narrative_id) as id
+      FROM all_entities
+      WHERE id = ?
+    `;
+    const result = db.prepare(sql).get(allEntityId) as
+      | { id: number }
+      | undefined;
+    return result?.id ?? null;
+  }
+
+  /**
    * Находит все связи, связанные с указанной сущностью.
    * @param {number} allEntityId ID сущности в таблице all_entities.
    * @returns {RawConnection[]} Список всех связей.

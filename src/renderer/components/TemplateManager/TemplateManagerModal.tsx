@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button, List, Checkbox, Space } from 'antd';
 import useTemplates from './useTemplates';
+import {
+  PredefinedTemplate,
+  ExportedWorldObject,
+  ExportedConnection,
+  EntityType,
+} from '../../../common/types';
 import TemplateEditorModal, {
   TemplateEditModalState,
 } from './components/TemplateEditorModal';
@@ -10,9 +16,11 @@ import ImportTemplatesModal from './components/ImportTemplatesModal';
 function TemplateManagerModal({
   visible,
   onClose,
+  initialImportData, // Add new prop
 }: {
   visible: boolean;
   onClose: () => void;
+  initialImportData?: string; // Add to props interface
 }) {
   const {
     templates,
@@ -36,8 +44,12 @@ function TemplateManagerModal({
   useEffect(() => {
     if (visible) {
       fetchTemplates();
+      // If initialImportData is present, open the import modal immediately
+      if (initialImportData) {
+        setImportModalVisible(true);
+      }
     }
-  }, [visible, fetchTemplates]);
+  }, [visible, fetchTemplates, initialImportData]); // Add initialImportData to dependencies
 
   const handleEditModalSave = async (values: any) => {
     const { mode, template } = editModalState;
@@ -75,8 +87,33 @@ function TemplateManagerModal({
 
   const onTemplatesImport = (selectedTemplates: any[]) => {
     handleBulkImport(selectedTemplates);
-    setImportModalVisible(false);
+    setImportModalVisible(false); // Close only sub-modal
   };
+
+  const onImportFromFile = async (
+    selectedTemplates: PredefinedTemplate[],
+    shouldImportWorldObjects: boolean,
+    shouldImportConnections: boolean,
+    worldObjects: ExportedWorldObject[],
+    connections: ExportedConnection[],
+  ) => {
+    try {
+      await window.electron.ipcRenderer.invoke('import:from-file', {
+        selectedTemplates,
+        shouldImportWorldObjects,
+        shouldImportConnections,
+        worldObjectsToImport: worldObjects,
+        connectionsToImport: connections,
+      });
+      fetchTemplates(); // Refresh template list
+      window.electron.ipcRenderer.sendMessage('world-objects-changed');
+    } catch (error) {
+      console.error('File import failed:', error);
+    }
+    onClose(); // Close the entire manager
+  };
+
+  const isFileImportFlow = !!initialImportData;
 
   return (
     <Modal
@@ -102,7 +139,7 @@ function TemplateManagerModal({
           setEditModalState({
             open: true,
             mode: 'create',
-            template: { category: 'world' },
+            template: { category: EntityType.WorldObject },
           })
         }
         style={{ marginLeft: 16 }}
@@ -111,10 +148,10 @@ function TemplateManagerModal({
       </Button>
       <Button
         style={{ marginLeft: 8 }}
-        disabled={availableToImport.length === 0}
+        disabled={availableToImport.length === 0 && !initialImportData}
         onClick={() => setImportModalVisible(true)}
       >
-        Импорт из библиотеки
+        Импорт
       </Button>
       <List
         loading={loading}
@@ -173,8 +210,34 @@ function TemplateManagerModal({
         <ImportTemplatesModal
           visible={isImportModalVisible}
           templatesToImport={availableToImport}
-          onClose={() => setImportModalVisible(false)}
-          onImport={onTemplatesImport}
+          initialImportData={initialImportData}
+          onClose={() => {
+            console.log(
+              'TemplateManagerModal: Closing ImportTemplatesModal. Setting isImportModalVisible(false).',
+            );
+            setImportModalVisible(false);
+          }}
+          onImport={
+            isFileImportFlow
+              ? async (...args) => {
+                  console.log(
+                    'TemplateManagerModal: onImport prop for file import flow. Calling onImportFromFile.',
+                  );
+                  await onImportFromFile(...args);
+                  console.log(
+                    'TemplateManagerModal: onImportFromFile finished. Modal should close.',
+                  );
+                }
+              : (selected) => {
+                  console.log(
+                    'TemplateManagerModal: Starting onTemplatesImport',
+                  );
+                  onTemplatesImport(selected);
+                  console.log(
+                    'TemplateManagerModal: onTemplatesImport finished. Modal should close.',
+                  );
+                }
+          }
         />
       )}
     </Modal>

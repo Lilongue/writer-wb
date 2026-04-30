@@ -221,31 +221,39 @@ const createWindow = async () => {
   eventBus.on('project-opened', () => {
     mainWindow?.webContents.send('project-opened');
     const menu = Menu.getApplicationMenu();
-    const archiveMenuItem = menu?.getMenuItemById('archive-project-menu-item');
-    if (archiveMenuItem) {
-      archiveMenuItem.enabled = true;
-    }
-    const exportMenuItem = menu?.getMenuItemById(
+    if (!menu) return;
+
+    const archiveMenuItem = menu.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) archiveMenuItem.enabled = true;
+
+    const exportMenuItem = menu.getMenuItemById(
       'export-world-objects-menu-item',
     );
-    if (exportMenuItem) {
-      exportMenuItem.enabled = true;
-    }
+    if (exportMenuItem) exportMenuItem.enabled = true;
+
+    const importMenuItem = menu.getMenuItemById(
+      'import-world-objects-menu-item',
+    );
+    if (importMenuItem) importMenuItem.enabled = true;
   });
 
   eventBus.on('project-closed', () => {
     mainWindow?.webContents.send('project-closed');
     const menu = Menu.getApplicationMenu();
-    const archiveMenuItem = menu?.getMenuItemById('archive-project-menu-item');
-    if (archiveMenuItem) {
-      archiveMenuItem.enabled = false;
-    }
-    const exportMenuItem = menu?.getMenuItemById(
+    if (!menu) return;
+
+    const archiveMenuItem = menu.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) archiveMenuItem.enabled = false;
+
+    const exportMenuItem = menu.getMenuItemById(
       'export-world-objects-menu-item',
     );
-    if (exportMenuItem) {
-      exportMenuItem.enabled = false;
-    }
+    if (exportMenuItem) exportMenuItem.enabled = false;
+
+    const importMenuItem = menu.getMenuItemById(
+      'import-world-objects-menu-item',
+    );
+    if (importMenuItem) importMenuItem.enabled = false;
   });
 
   eventBus.on('narrative-changed', () => {
@@ -254,6 +262,10 @@ const createWindow = async () => {
 
   eventBus.on('world-objects-changed', (payload) => {
     mainWindow?.webContents.send('world-objects-changed', payload);
+  });
+
+  eventBus.on('templates-changed', () => {
+    mainWindow?.webContents.send('templates-changed');
   });
 
   mainWindow.on('closed', () => {
@@ -710,6 +722,75 @@ ipcMain.handle('export:world-objects', async () => {
     MainNotificationService.error(
       'Ошибка экспорта',
       `Не удалось экспортировать объекты: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle(
+  'import:from-file',
+  async (
+    _event,
+    {
+      selectedTemplates,
+      shouldImportWorldObjects,
+      shouldImportConnections,
+      worldObjectsToImport,
+      connectionsToImport,
+    },
+  ) => {
+    try {
+      await importExportService.importFromFile(
+        selectedTemplates,
+        shouldImportWorldObjects,
+        shouldImportConnections,
+        worldObjectsToImport,
+        connectionsToImport,
+      );
+      eventBus.emit('world-objects-changed');
+      eventBus.emit('templates-changed');
+      return { success: true };
+    } catch (error: any) {
+      MainNotificationService.error(
+        'Ошибка импорта',
+        `Не удалось импортировать данные из файла: ${String(error)}`,
+      );
+      return { success: false, error: error.message };
+    }
+  },
+);
+
+ipcMain.handle('trigger-import-world-objects', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка импорта',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Импорт объектов мира',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON Files', extensions: ['json'] }],
+    });
+
+    if (canceled || filePaths.length === 0) {
+      return { success: false, canceled: true };
+    }
+
+    const filePath = filePaths[0];
+    const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+
+    // Send the file content to the renderer to open the import modal
+    mainWindow.webContents.send('open-import-from-file-modal', fileContent);
+
+    return { success: true };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка импорта',
+      `Не удалось импортировать объекты: ${String(error)}`,
     );
     return { success: false, error: error.message };
   }

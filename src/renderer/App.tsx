@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
@@ -39,6 +39,9 @@ export default function App() {
   const [templateManagerVisible, setTemplateManagerVisible] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false); // State for settings modal
   const [isWizardVisible, setIsWizardVisible] = useState(false);
+  const [importFileContent, setImportFileContent] = useState<string | null>(
+    null,
+  ); // New state for import file content
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -54,7 +57,16 @@ export default function App() {
     const cleanupManager = window.electron.ipcRenderer.on(
       'open-template-manager',
       () => {
+        setImportFileContent(null); // Clear previous import data if opening standard template manager
         setTemplateManagerVisible(true);
+      },
+    );
+
+    const cleanupImportFromFile = window.electron.ipcRenderer.on(
+      'open-import-from-file-modal',
+      (content: unknown) => {
+        setImportFileContent(content as string); // Store the file content
+        setTemplateManagerVisible(true); // Open the template manager modal
       },
     );
 
@@ -135,13 +147,14 @@ export default function App() {
         handleUnhandledRejection,
       );
       cleanupManager();
+      cleanupImportFromFile(); // Cleanup the new listener
       cleanupSettings();
       cleanupWizard();
       cleanupNotification();
       cleanupItemDeleted();
       cleanupArchiveRequest();
     };
-  }, [isProjectOpen, selection.id, selection.type]); // Rerun effect when isProjectOpen or selection changes
+  }, [isProjectOpen, selection.id, selection.type, importFileContent]); // Rerun effect when isProjectOpen or selection changes
 
   useEffect(() => {
     const cleanupExport = window.electron.ipcRenderer.on(
@@ -157,8 +170,21 @@ export default function App() {
       },
     );
 
+    const cleanupImport = window.electron.ipcRenderer.on(
+      'trigger-import-world-objects',
+      async () => {
+        notificationService.showInfo('Импорт объектов мира...');
+        try {
+          await window.electron.worldObjects.import();
+        } catch (error: any) {
+          console.error('Failed to perform import from renderer:', error);
+        }
+      },
+    );
+
     return () => {
       cleanupExport();
+      cleanupImport();
     };
   }, []);
 
@@ -198,6 +224,14 @@ export default function App() {
       );
     }
   };
+
+  const handleTemplateManagerClose = useCallback(() => {
+    console.log(
+      'App.tsx: TemplateManagerModal onClose triggered. Closing modal and clearing data.',
+    );
+    setTemplateManagerVisible(false);
+    setImportFileContent(null); // Clear content when modal closes
+  }, []); // Empty dependency array as no external state is used by the function itself
 
   return (
     <ErrorBoundary>
@@ -246,7 +280,8 @@ export default function App() {
         </Content>
         <TemplateManagerModal
           visible={templateManagerVisible}
-          onClose={() => setTemplateManagerVisible(false)}
+          onClose={handleTemplateManagerClose}
+          initialImportData={importFileContent ?? undefined} // Pass the new state
         />
         <ProjectSettingsModal
           show={showSettingsModal}
