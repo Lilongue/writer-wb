@@ -5,7 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-02-20
+## [0.2.2] - 2026-05-01
+
+### Added at [0.2.2]
+
+- Added ability to import world objects from a file into the current project, including template, object data, and connections, with conflict resolution.
+
+- **World Object Export:** Added a feature to export all project's world objects into a single JSON file.
+- **Project Archiving:** Added ability to archive projects to a ZIP file for backup and portability.
+- Added automatic trimming and sanitization for all user text inputs to improve data consistency and prevent invalid characters.
+
+### Changed at [0.2.2]
+
+- **Data Integrity:** Switched to ID-based file naming for new narrative items to improve data integrity and prevent file path desynchronization.
+
+### Fixed at [0.2.2]
+
+- Fixed: User now receives a warning when attempting to archive a template that is currently in use.
+- Prevented creation of narrative items with empty names.
+- Fixed an issue where ContentDisplay would not clear its content after the currently selected item was deleted.
+
+- **Connection Creation:** Fixed some bugs in connection creation flow, including preventing recursive connections and refactoring for better type safety.
+
+## [0.2.1] - 2026-03-15
 
 ### Added at [0.2.1]
 

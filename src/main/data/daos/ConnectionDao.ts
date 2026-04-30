@@ -1,4 +1,8 @@
-import { RawConnection, ResolvedEntity } from '../../../common/types';
+import {
+  EntityType,
+  RawConnection,
+  ResolvedEntity,
+} from '../../../common/types';
 import { BaseDao } from './BaseDao';
 
 export class ConnectionDao extends BaseDao {
@@ -15,7 +19,7 @@ export class ConnectionDao extends BaseDao {
     const narrativeItems = db
       .prepare(
         `SELECT
-          'narrative' as type,
+          '${EntityType.Narrative}' as type,
           ni.id,
           ni.name,
           ae.id as entityId
@@ -28,7 +32,7 @@ export class ConnectionDao extends BaseDao {
     const worldObjects = db
       .prepare(
         `SELECT
-          'world' as type,
+          '${EntityType.WorldObject}' as type,
           wo.id,
           wo.name,
           ae.id as entityId
@@ -47,11 +51,30 @@ export class ConnectionDao extends BaseDao {
    * @param {number} id ID сущности.
    * @returns {number | null} ID сущности в таблице all_entities или null, если сущность не найдена.
    */
-  public findEntityId(type: 'narrative' | 'world', id: number): number | null {
+  public findEntityId(type: EntityType, id: number): number | null {
     const db = this.getDb();
-    const column = type === 'narrative' ? 'narrative_id' : 'world_object_id';
+    const column =
+      type === EntityType.Narrative ? 'narrative_id' : 'world_object_id';
     const sql = `SELECT id FROM all_entities WHERE ${column} = ?`;
     const result = db.prepare(sql).get(id) as { id: number } | undefined;
+    return result?.id ?? null;
+  }
+
+  /**
+   * Находит реальный ID сущности (narrative_id или world_object_id) по allEntityId.
+   * @param {number} allEntityId ID сущности в таблице all_entities.
+   * @returns {number | null} Реальный ID сущности или null, если не найден.
+   */
+  public findIdByAllEntityId(allEntityId: number): number | null {
+    const db = this.getDb();
+    const sql = `
+      SELECT COALESCE(world_object_id, narrative_id) as id
+      FROM all_entities
+      WHERE id = ?
+    `;
+    const result = db.prepare(sql).get(allEntityId) as
+      | { id: number }
+      | undefined;
     return result?.id ?? null;
   }
 
@@ -86,8 +109,8 @@ export class ConnectionDao extends BaseDao {
           id as allEntityId,
           COALESCE(world_object_id, narrative_id) as id,
           CASE
-            WHEN world_object_id IS NOT NULL THEN 'world'
-            ELSE 'narrative'
+            WHEN world_object_id IS NOT NULL THEN '${EntityType.WorldObject}'
+            ELSE '${EntityType.Narrative}'
           END as type
         FROM all_entities
         WHERE id IN (${placeholders})
@@ -122,6 +145,28 @@ export class ConnectionDao extends BaseDao {
     const db = this.getDb();
     const sql = 'DELETE FROM connections WHERE id = ?';
     db.prepare(sql).run(connectionId);
+  }
+
+  /**
+   * Получает все ID сущностей из таблицы all_entities, которые относятся к world_objects.
+   * @returns {number[]} Массив all_entity_id для world_objects.
+   */
+  public getAllWorldObjectEntityIds(): number[] {
+    const db = this.getDb();
+    const sql = 'SELECT id FROM all_entities WHERE world_object_id IS NOT NULL';
+    return (db.prepare(sql).all() as Array<{ id: number }>).map(
+      (row) => row.id,
+    );
+  }
+
+  /**
+   * Получает все связи из базы данных.
+   * @returns {RawConnection[]} Список всех RawConnection.
+   */
+  public getAllConnections(): RawConnection[] {
+    const db = this.getDb();
+    const sql = 'SELECT id, description, source_id, target_id FROM connections';
+    return db.prepare(sql).all() as RawConnection[];
   }
 }
 

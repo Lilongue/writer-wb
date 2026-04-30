@@ -73,7 +73,7 @@ export class NarrativeDao extends BaseDao {
    * @param {string} name Имя элемента повествования.
    * @param {number | null} parentId ID родительского элемента повествования.
    * @param {number} templateId ID шаблона элемента повествования.
-   * @param {string} filePath Путь к файлу элемента повествования.
+   * @param {function(id: number): string} getFilePath Функция, возвращающая путь к файлу на основе ID элемента.
    * @param {number} sortOrder Порядок сортировки элемента повествования.
    * @returns {number} ID созданного элемента повествования.
    */
@@ -82,20 +82,29 @@ export class NarrativeDao extends BaseDao {
     title: string | undefined,
     parentId: number | null,
     templateId: number,
-    filePath: string,
+    getFilePath: (id: number) => string,
     sortOrder: number,
   ): number {
     const db = this.getDb();
     const createTransaction = db.transaction(() => {
-      const narrativeSql = `
+      // 1. Вставляем запись с пустым file_path, чтобы получить ID
+      const insertSql = `
         INSERT INTO narrative_items (name, title, parent_id, template_id, file_path, sort_order)
         VALUES (?, ?, ?, ?, ?, ?)
       `;
-      const info = db
-        .prepare(narrativeSql)
-        .run(name, title, parentId, templateId, filePath, sortOrder);
-      const newNarrativeId = info.lastInsertRowid as number;
+      const insertInfo = db
+        .prepare(insertSql)
+        .run(name, title, parentId, templateId, '', sortOrder); // Временно пустой путь
+      const newNarrativeId = insertInfo.lastInsertRowid as number;
 
+      // 2. Определяем финальный file_path с использованием полученного ID
+      const finalFilePath = getFilePath(newNarrativeId);
+
+      // 3. Обновляем запись, устанавливая корректный file_path
+      const updateSql = `UPDATE narrative_items SET file_path = ? WHERE id = ?`;
+      db.prepare(updateSql).run(finalFilePath, newNarrativeId);
+
+      // 4. Вставляем запись в all_entities
       const entitySql = 'INSERT INTO all_entities (narrative_id) VALUES (?)';
       db.prepare(entitySql).run(newNarrativeId);
 

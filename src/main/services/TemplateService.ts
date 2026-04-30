@@ -159,9 +159,10 @@ export class TemplateService {
   toggleTemplateVisibility(id: number): boolean {
     const count = this.worldObjectDao.countWorldObjectsByTemplateId(id);
     if (count > 0) {
-      throw new Error(
-        `Нельзя архивировать шаблон, так как он используется ${count} объектом(ами).`,
+      MainNotificationService.error(
+        `Этот шаблон используется ${count} объектом(ами) и не может быть заархивирован.`,
       );
+      return false;
     }
     return this.templateDao.toggleTemplateVisibility(id);
   }

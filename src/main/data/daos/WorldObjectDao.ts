@@ -48,6 +48,17 @@ export class WorldObjectDao extends BaseDao {
   }
 
   /**
+   * Получает все объекты мира из базы данных.
+   * @returns {WorldObject[]} Массив всех объектов мира.
+   */
+  public getAllWorldObjects(): WorldObject[] {
+    const db = this.getDb();
+    const sql = 'SELECT * FROM world_objects';
+    const stmt = db.prepare(sql);
+    return stmt.all() as WorldObject[];
+  }
+
+  /**
    * Создает новый объект мира.
    * @param {string} name Имя объекта мира.
    * @param {number} templateId ID шаблона объекта мира.

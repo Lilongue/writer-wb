@@ -15,6 +15,7 @@ import {
   shell,
   ipcMain,
   dialog,
+  Menu, // Added Menu
   OpenDialogOptions,
 } from 'electron';
 import fs from 'fs';
@@ -36,6 +37,9 @@ import { TemplateDao } from './data/daos/TemplateDao';
 import { ConnectionDao } from './data/daos/ConnectionDao';
 import { SettingsDao } from './data/daos/SettingsDao';
 import MainNotificationService from './services/NotificationService';
+import ArchiveService from './services/ArchiveService';
+import ImportExportService from './services/ImportExportService';
+import { EntityType } from '../common/types';
 
 const getDb = () => projectService.getDb();
 
@@ -63,6 +67,12 @@ const connectionService = new ConnectionService(
   worldObjectDao,
 );
 const projectSettingsService = new ProjectSettingsService(settingsDao);
+const importExportService = new ImportExportService(
+  projectSettingsService,
+  templateDao,
+  worldObjectDao,
+  connectionDao,
+);
 
 let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
@@ -210,10 +220,40 @@ const createWindow = async () => {
   // Прослушивание событий и пересылка их в рендерер
   eventBus.on('project-opened', () => {
     mainWindow?.webContents.send('project-opened');
+    const menu = Menu.getApplicationMenu();
+    if (!menu) return;
+
+    const archiveMenuItem = menu.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) archiveMenuItem.enabled = true;
+
+    const exportMenuItem = menu.getMenuItemById(
+      'export-world-objects-menu-item',
+    );
+    if (exportMenuItem) exportMenuItem.enabled = true;
+
+    const importMenuItem = menu.getMenuItemById(
+      'import-world-objects-menu-item',
+    );
+    if (importMenuItem) importMenuItem.enabled = true;
   });
 
   eventBus.on('project-closed', () => {
     mainWindow?.webContents.send('project-closed');
+    const menu = Menu.getApplicationMenu();
+    if (!menu) return;
+
+    const archiveMenuItem = menu.getMenuItemById('archive-project-menu-item');
+    if (archiveMenuItem) archiveMenuItem.enabled = false;
+
+    const exportMenuItem = menu.getMenuItemById(
+      'export-world-objects-menu-item',
+    );
+    if (exportMenuItem) exportMenuItem.enabled = false;
+
+    const importMenuItem = menu.getMenuItemById(
+      'import-world-objects-menu-item',
+    );
+    if (importMenuItem) importMenuItem.enabled = false;
   });
 
   eventBus.on('narrative-changed', () => {
@@ -222,6 +262,10 @@ const createWindow = async () => {
 
   eventBus.on('world-objects-changed', (payload) => {
     mainWindow?.webContents.send('world-objects-changed', payload);
+  });
+
+  eventBus.on('templates-changed', () => {
+    mainWindow?.webContents.send('templates-changed');
   });
 
   mainWindow.on('closed', () => {
@@ -323,7 +367,7 @@ ipcMain.handle('get-world-objects-by-type', (_event, typeId) => {
 
 ipcMain.handle(
   'get-item-details',
-  async (_event, { id, type }: { id: number; type: 'narrative' | 'world' }) => {
+  async (_event, { id, type }: { id: number; type: EntityType }) => {
     let details;
     if (type === 'narrative') {
       details = await narrativeService.getDetails(id);
@@ -426,6 +470,10 @@ ipcMain.handle('narrative:rename', async (_event, { itemId, newName }) => {
 
 ipcMain.handle('narrative:delete', async (_event, itemId) => {
   await narrativeService.deleteNarrativeItem(itemId);
+  _event.sender.send('item-deleted', {
+    id: itemId,
+    type: EntityType.Narrative,
+  });
   eventBus.emit('narrative-changed');
 });
 
@@ -463,8 +511,14 @@ ipcMain.handle('world-object:rename', (_event, { id, newName }) => {
   worldObjectService.renameObject({ id, newName });
 });
 
-ipcMain.handle('world-object:delete', (_event, id) => {
-  return worldObjectService.deleteObject(id);
+ipcMain.handle('world-object:delete', async (_event, id) => {
+  const result = await worldObjectService.deleteObject(id);
+  if (result.success) {
+    _event.sender.send('item-deleted', {
+      id,
+      type: EntityType.WorldObject,
+    });
+  }
 });
 
 ipcMain.on('world-objects-changed', () => {
@@ -544,8 +598,8 @@ ipcMain.handle('project:isProjectOpen', () => {
 });
 
 // --- Connections CRUD ---
-ipcMain.handle('entities:search', (_event, { query, currentEntityId }) => {
-  return connectionService.searchEntities(query, currentEntityId);
+ipcMain.handle('entities:search', (_event, { query, currentEntity }) => {
+  return connectionService.searchEntities(query, currentEntity);
 });
 
 ipcMain.handle(
@@ -563,6 +617,50 @@ ipcMain.handle(
 
 ipcMain.handle('connections:delete', (_event, connectionId) => {
   return connectionService.deleteConnection(connectionId);
+});
+
+// --- Project Archive ---
+// This IPC handler will be invoked by the renderer to perform the archiving
+ipcMain.handle('project:perform-archive', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка архивации',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const projectRoot = projectService.getProjectRoot();
+    if (!projectRoot) {
+      MainNotificationService.error('Ошибка архивации', 'Проект не открыт.');
+      return { success: false, error: 'Project not open.' };
+    }
+
+    // This part remains in the main process as it's a native dialog
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Сохранить архив проекта',
+      defaultPath: path.join(projectRoot, 'project-archive.zip'),
+      filters: [{ name: 'Zip Archives', extensions: ['zip'] }],
+    });
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true };
+    }
+
+    await ArchiveService.createProjectArchive(filePath);
+    MainNotificationService.success(
+      'Архив создан',
+      `Проект успешно заархивирован в ${filePath}`,
+    );
+    return { success: true, filePath };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка архивации проекта',
+      `Не удалось создать архив: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
 });
 
 // --- Export Narrative ---
@@ -592,6 +690,111 @@ ipcMain.handle(
     }
   },
 );
+
+// --- Import/Export ---
+ipcMain.handle('export:world-objects', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка экспорта',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const jsonContent = await importExportService.exportWorldObjects();
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Экспорт объектов мира',
+      defaultPath: `world-objects-export.json`,
+      filters: [{ name: 'JSON Files', extensions: ['json'] }],
+    });
+
+    if (!canceled && filePath) {
+      await fs.promises.writeFile(filePath, jsonContent, 'utf-8');
+      MainNotificationService.success(
+        'Экспорт завершен',
+        `Объекты успешно экспортированы в ${filePath}`,
+      );
+      return { success: true, filePath };
+    }
+    return { success: false, canceled: true };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка экспорта',
+      `Не удалось экспортировать объекты: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle(
+  'import:from-file',
+  async (
+    _event,
+    {
+      selectedTemplates,
+      shouldImportWorldObjects,
+      shouldImportConnections,
+      worldObjectsToImport,
+      connectionsToImport,
+    },
+  ) => {
+    try {
+      await importExportService.importFromFile(
+        selectedTemplates,
+        shouldImportWorldObjects,
+        shouldImportConnections,
+        worldObjectsToImport,
+        connectionsToImport,
+      );
+      eventBus.emit('world-objects-changed');
+      eventBus.emit('templates-changed');
+      return { success: true };
+    } catch (error: any) {
+      MainNotificationService.error(
+        'Ошибка импорта',
+        `Не удалось импортировать данные из файла: ${String(error)}`,
+      );
+      return { success: false, error: error.message };
+    }
+  },
+);
+
+ipcMain.handle('trigger-import-world-objects', async () => {
+  if (!mainWindow) {
+    MainNotificationService.error(
+      'Ошибка импорта',
+      'Основное окно не определено.',
+    );
+    return { success: false, error: 'Main window not defined.' };
+  }
+
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Импорт объектов мира',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON Files', extensions: ['json'] }],
+    });
+
+    if (canceled || filePaths.length === 0) {
+      return { success: false, canceled: true };
+    }
+
+    const filePath = filePaths[0];
+    const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+
+    // Send the file content to the renderer to open the import modal
+    mainWindow.webContents.send('open-import-from-file-modal', fileContent);
+
+    return { success: true };
+  } catch (error: any) {
+    MainNotificationService.error(
+      'Ошибка импорта',
+      `Не удалось импортировать объекты: ${String(error)}`,
+    );
+    return { success: false, error: error.message };
+  }
+});
 
 // --- Project Settings ---
 ipcMain.handle('project-settings:get-all', () => {

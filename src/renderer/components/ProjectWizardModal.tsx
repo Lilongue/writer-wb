@@ -11,6 +11,7 @@ import {
   Checkbox,
 } from 'antd';
 import { PredefinedNarrativeTemplate } from '../../common/types';
+import { cleanNameInput } from '../../common/utils';
 
 const { Step } = Steps;
 const { Title, Text } = Typography;
@@ -83,7 +84,11 @@ const ProjectWizardModal: FC<ProjectWizardModalProps> = ({
     form
       .validateFields()
       .then((values) => {
-        onCreate(values);
+        const trimmedValues = {
+          ...values,
+          projectName: cleanNameInput(values.projectName),
+        };
+        onCreate(trimmedValues);
         form.resetFields(); // Reset form fields on successful creation
         setCurrent(0); // Reset step to 0 on successful creation
         onClose(); // Close modal after reset

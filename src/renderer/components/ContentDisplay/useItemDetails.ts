@@ -58,7 +58,10 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
     (query: string) => {
       if (query && details) {
         window.electron.ipcRenderer
-          .invoke('entities:search', { query, currentEntityId: details.id })
+          .invoke('entities:search', {
+            query,
+            currentEntity: { id: details.id, type: selectedType },
+          })
           .then((result: unknown) => setSearchResults(result as any[]))
           .catch((error) =>
             notificationService.showError(
@@ -70,7 +73,7 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
         setSearchResults([]);
       }
     },
-    [details],
+    [details, selectedType],
   );
 
   const debouncedSearch = useMemo(

@@ -1,6 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityType, ItemDetails } from '../../../common/types';
 import notificationService from '../../services/notificationService';
+import { cleanNameInput } from '../../../common/utils';
 
 interface UseItemEditorProps {
   details: ItemDetails | null;
@@ -97,7 +98,7 @@ const useItemEditor = ({
       const properties =
         editedDetails.customFields?.reduce(
           (acc, field) => {
-            acc[field.key] = field.value;
+            acc[field.key] = cleanNameInput(field.value); // Trim custom field value
             return acc;
           },
           {} as Record<string, string>,
@@ -107,16 +108,16 @@ const useItemEditor = ({
         'world-object:update-details',
         {
           id: details.id,
-          name: editedDetails.name,
+          name: cleanNameInput(editedDetails.name || ''), // Trim name
           properties: JSON.stringify(properties),
         },
       );
     } else if (selectedType === EntityType.Narrative) {
       promise = window.electron.ipcRenderer.invoke('narrative:update-details', {
         id: details.id,
-        name: editedDetails.name,
-        title: editedDetails.title,
-        description: editedDetails.description,
+        name: cleanNameInput(editedDetails.name || ''), // Trim name
+        title: cleanNameInput(editedDetails.title || ''), // Trim title
+        description: cleanNameInput(editedDetails.description || ''), // Trim description
         plan: editedDetails.plan,
       });
     } else {

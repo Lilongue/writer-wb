@@ -20,10 +20,17 @@ export type Channels =
   | 'narrative-changed'
   | 'export-full-manuscript'
   | 'world-objects-changed'
+  | 'templates-changed'
   | 'open-template-manager'
   | 'open-project-settings'
   | 'show-notification'
-  | 'open-project-wizard';
+  | 'open-project-wizard'
+  | 'open-import-from-file-modal'
+  | 'item-deleted'
+  | 'project-archive'
+  | 'project:archive-request'
+  | 'trigger-export-world-objects'
+  | 'trigger-import-world-objects';
 
 const electronHandler = {
   ipcRenderer: {
@@ -79,6 +86,26 @@ export type ElectronAPI = typeof electronHandler & {
       narrativeStructure: string[];
       createSubfolder: boolean;
     }) => Promise<void>;
+    performArchive: () => Promise<{
+      success: boolean;
+      filePath?: string;
+      error?: string;
+      canceled?: boolean;
+    }>;
+  };
+  worldObjects: {
+    export: () => Promise<{
+      success: boolean;
+      filePath?: string;
+      error?: string;
+      canceled?: boolean;
+    }>;
+    import: () => Promise<{
+      success: boolean;
+      filePath?: string;
+      error?: string;
+      canceled?: boolean;
+    }>;
   };
   fs: {
     openFolder: (folderPath: string) => Promise<void>;
@@ -109,6 +136,11 @@ contextBridge.exposeInMainWorld('electron', {
       narrativeStructure: string[];
       createSubfolder: boolean;
     }) => ipcRenderer.invoke('project:create', projectData),
+    performArchive: () => ipcRenderer.invoke('project:perform-archive'),
+  },
+  worldObjects: {
+    export: () => ipcRenderer.invoke('export:world-objects'),
+    import: () => ipcRenderer.invoke('trigger-import-world-objects'),
   },
   fs: {
     openFolder: (folderPath: string) =>

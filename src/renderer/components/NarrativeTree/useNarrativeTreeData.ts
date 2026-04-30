@@ -7,6 +7,7 @@ import { NarrativeItem, EntityType } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
 import notificationService from '../../services/notificationService';
+import { cleanNameInput } from '../../../common/utils';
 
 const useNarrativeTreeData = (
   onSelect: (id: number | null) => void,
@@ -193,11 +194,21 @@ const useNarrativeTreeData = (
     const { type, node, name, title, templateId } = modalState;
     try {
       if (type === 'create') {
+        const trimmedName = cleanNameInput(name);
+        const trimmedTitle = cleanNameInput(title || '');
+
+        if (!trimmedName) {
+          notificationService.showError(
+            'Ошибка создания',
+            'Имя элемента повествования не может быть пустым.',
+          );
+          return;
+        }
         await window.electron.ipcRenderer.invoke('narrative:create', {
           parentId: node.key,
           templateId,
-          name,
-          title,
+          name: trimmedName,
+          title: trimmedTitle,
         });
       } else if (type === 'delete') {
         await window.electron.ipcRenderer.invoke('narrative:delete', node.key);

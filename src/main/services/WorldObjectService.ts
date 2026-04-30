@@ -1,6 +1,7 @@
 import path from 'path';
 import {
   CustomField,
+  EntityType,
   ItemDetails,
   WorldObject,
   WorldObjectType,
@@ -36,7 +37,7 @@ export class WorldObjectService {
    * @returns {WorldObjectType[]} Массив типов объектов мира.
    */
   public getWorldObjectTypes(): WorldObjectType[] {
-    return this.templateDao.getAllTemplates(false, 'world');
+    return this.templateDao.getAllTemplates(false, EntityType.WorldObject);
   }
 
   /**

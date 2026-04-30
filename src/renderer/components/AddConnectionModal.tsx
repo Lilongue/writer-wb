@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import notificationService from '../services/notificationService';
+import { cleanNameInput } from '../../common/utils';
 
 interface AddConnectionModalProps {
   visible: boolean;
@@ -45,7 +46,11 @@ function AddConnectionModal({
           .validateFields()
           .then((values) => {
             form.resetFields();
-            onOk(values);
+            const trimmedValues = {
+              ...values,
+              description: cleanNameInput(values.description),
+            };
+            onOk(trimmedValues);
             return null;
           })
           .catch((info) => {

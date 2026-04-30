@@ -3,6 +3,7 @@ import { Modal, Button, Input, Form, message, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { EntityTemplate } from '../../../../common/types';
 import '../../../App.css';
+import { cleanNameInput } from '../../../../common/utils';
 
 export interface TemplateEditModalState {
   open: boolean;
@@ -52,7 +53,17 @@ const TemplateEditorModal: FC<TemplateEditorModalProps> = ({
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      await onSave(values);
+      const trimmedValues = {
+        ...values,
+        name: cleanNameInput(values.name),
+        fields:
+          values.fields?.map((field: any) => ({
+            ...field,
+            label: cleanNameInput(field.label),
+            comment: cleanNameInput(field.comment),
+          })) || [],
+      };
+      await onSave(trimmedValues);
       onClose();
     } catch (errorInfo: any) {
       const errorMessages = errorInfo.errorFields

@@ -1,6 +1,6 @@
 {
   "name": "writer-world-builder",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A desktop application for writers to build consistent and logically structured worlds for their stories.",
   "keywords": [
     "electron",
@@ -97,6 +97,7 @@
     "@ant-design/icons": "^6.1.0",
     "@electron/notarize": "^3.0.0",
     "antd": "^5.27.5",
+    "archiver": "^7.0.1",
     "electron-debug": "^4.1.0",
     "electron-log": "^5.3.2",
     "electron-updater": "^6.3.9",
@@ -121,6 +122,7 @@
     "@types/react-dom": "^19.0.4",
     "@types/react-test-renderer": "^19.0.0",
     "@types/webpack-bundle-analyzer": "^4.7.0",
+    "@types/archiver": "^5.3.4",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "browserslist-config-erb": "^0.0.3",
