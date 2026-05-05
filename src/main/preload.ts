@@ -85,7 +85,7 @@ export type ElectronAPI = typeof electronHandler & {
       projectName: string;
       narrativeStructure: string[];
       createSubfolder: boolean;
-    }) => Promise<void>;
+    }) => Promise<boolean>;
     performArchive: () => Promise<{
       success: boolean;
       filePath?: string;

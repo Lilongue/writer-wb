@@ -581,15 +581,19 @@ ipcMain.handle('templates:updateSchema', (_event, { id, schema }) => {
 // Project State
 ipcMain.handle('project:create', async (_event, projectData) => {
   try {
-    await projectService.createProject(
+    return await projectService.createProject(
       projectData,
       templateService,
       projectSettingsService,
       narrativeService,
     );
   } catch (error) {
-    projectService.close();
-    throw error;
+    console.error('Unexpected error during project creation:', error);
+    MainNotificationService.error(
+      'Ошибка создания проекта',
+      `Произошла непредвиденная ошибка: ${String(error)}`,
+    );
+    return false;
   }
 });
 

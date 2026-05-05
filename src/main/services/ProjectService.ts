@@ -35,7 +35,7 @@ class ProjectService {
     templateService: TemplateService,
     projectSettingsService: ProjectSettingsService,
     narrativeService: NarrativeService,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { location, projectName, narrativeStructure, createSubfolder } =
       projectData;
     let projectPath = location;
@@ -48,9 +48,11 @@ class ProjectService {
     // Check if the location is already a project
     const isProject = await this._validateProjectStructure(projectPath);
     if (isProject) {
-      throw new Error(
+      MainNotificationService.error(
+        'Ошибка создания проекта',
         'Выбранная папка уже является проектом. Пожалуйста, выберите другую папку.',
       );
+      return false;
     }
 
     if (this.db) {
@@ -114,6 +116,7 @@ class ProjectService {
 
     this.projectRoot = projectPath;
     eventBus.emit('project-opened');
+    return true;
   }
 
   public async open(projectPath: string): Promise<boolean> {
