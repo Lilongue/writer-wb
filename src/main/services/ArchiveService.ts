@@ -5,11 +5,10 @@ import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
 import FileSystemService from './FileSystemService';
 import ProjectService from './ProjectService';
-import MainNotificationService from './NotificationService';
 import { EntityType } from '../../common/types';
 
 class ArchiveService {
-  public async createProjectArchive(targetZipPath: string): Promise<void> {
+  public async createProjectArchive(targetZipPath: string): Promise<string[]> {
     const projectDetails = ProjectService.getProjectPathDetails();
 
     if (!projectDetails) {
@@ -17,6 +16,7 @@ class ArchiveService {
     }
 
     const { projectRoot, dbPath } = projectDetails;
+    const warnings: string[] = [];
 
     // Ensure the target directory for the zip file exists
     await fs.mkdir(path.dirname(targetZipPath), { recursive: true });
@@ -26,18 +26,14 @@ class ArchiveService {
       zlib: { level: 9 }, // Sets the compression level.
     });
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string[]>((resolve, reject) => {
       output.on('close', () => {
-        MainNotificationService.info(
-          'Архив проекта',
-          `Архив создан: ${archive.pointer()} total bytes`,
-        );
-        resolve();
+        resolve(warnings);
       });
 
       archive.on('warning', (err) => {
         if (err.code === 'ENOENT') {
-          MainNotificationService.warning(`Archive warning: ${err.message}`);
+          warnings.push(err.message);
         } else {
           reject(err);
         }
@@ -61,9 +57,7 @@ class ArchiveService {
           if (wwbFile) {
             archive.file(path.join(projectRoot, wwbFile), { name: wwbFile });
           } else {
-            MainNotificationService.warning(
-              'No .wwb file found in project root.',
-            );
+            warnings.push('No .wwb file found in project root.');
           }
           return undefined;
         }),
@@ -76,9 +70,7 @@ class ArchiveService {
           if (exists) {
             archive.directory(narrativePath, EntityType.Narrative);
           } else {
-            MainNotificationService.warning(
-              `Narrative directory not found: ${narrativePath}`,
-            );
+            warnings.push(`Narrative directory not found: ${narrativePath}`);
           }
           return undefined;
         }),
@@ -91,9 +83,7 @@ class ArchiveService {
           if (exists) {
             archive.directory(worldPath, EntityType.WorldObject);
           } else {
-            MainNotificationService.warning(
-              `World directory not found: ${worldPath}`,
-            );
+            warnings.push(`World directory not found: ${worldPath}`);
           }
           return undefined;
         }),

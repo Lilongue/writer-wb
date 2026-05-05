@@ -126,7 +126,6 @@ export default function App() {
     const cleanupArchiveRequest = window.electron.ipcRenderer.on(
       'project:archive-request',
       async () => {
-        notificationService.showInfo('Архивирование проекта');
         try {
           await window.electron.project.performArchive();
         } catch (error: any) {
@@ -160,7 +159,6 @@ export default function App() {
     const cleanupExport = window.electron.ipcRenderer.on(
       'trigger-export-world-objects',
       async () => {
-        notificationService.showInfo('Экспорт объектов мира...');
         try {
           await window.electron.worldObjects.export();
         } catch (error: any) {

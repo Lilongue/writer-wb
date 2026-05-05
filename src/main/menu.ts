@@ -285,8 +285,9 @@ export default class MenuBuilder {
               this.mainWindow.webContents.send('trigger-export-world-objects');
             },
           },
-          ],
-          },      {
+        ],
+      },
+      {
         label: '&Повествование',
         submenu: [
           {

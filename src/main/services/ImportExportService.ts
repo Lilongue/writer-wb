@@ -5,11 +5,11 @@ import {
   ExportFile,
   EntityType,
   ExportedConnection,
+  ImportResult,
 } from '../../common/types';
 import { TemplateDao } from '../data/daos/TemplateDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
 import { ConnectionDao } from '../data/daos/ConnectionDao'; // <-- Добавлено
-import MainNotificationService from './NotificationService';
 import ProjectSettingsService from './ProjectSettingsService';
 
 class ImportExportService {
@@ -36,12 +36,16 @@ class ImportExportService {
   /**
    * Экспортирует все объекты мира в виде JSON-строки.
    */
-  public async exportWorldObjects(): Promise<string> {
+  public async exportWorldObjects(): Promise<{
+    jsonContent: string;
+    warnings: string[];
+  }> {
     const settings = await this.projectSettingsService.getAllSettings();
     const projectNameSetting = settings.find((s) => s.key === 'project.name');
     const projectName =
       (projectNameSetting?.value as string) || 'Unknown Project';
 
+    const warnings: string[] = [];
     const templatesToExport = new Map<number, PredefinedWorldTemplate>();
     const exportedWorldObjects: ExportedWorldObject[] = [];
     const allEntityIdToLocalIdMap = new Map<number, number>();
@@ -52,7 +56,7 @@ class ImportExportService {
     allObjects.forEach((object) => {
       const template = this.templateDao.getTemplate(object.template_id);
       if (!template) {
-        MainNotificationService.warning(
+        warnings.push(
           `Шаблон для объекта "${object.name}" не найден и объект будет пропущен.`,
         );
         return;
@@ -63,8 +67,8 @@ class ImportExportService {
         object.id,
       );
       if (!allEntityId) {
-        MainNotificationService.warning(
-          `Сущность для объекта "${object.name}" не найдена и объект будет пропущен.`,
+        warnings.push(
+          `Сущность для объекта "${object.name}" не найдена и объект будет пропущена.`,
         );
         return;
       }
@@ -80,7 +84,7 @@ class ImportExportService {
             fields,
           });
         } catch {
-          MainNotificationService.error(
+          warnings.push(
             `Ошибка парсинга схемы для шаблона "${template.name}". Шаблон не будет экспортирован.`,
           );
           return;
@@ -130,7 +134,7 @@ class ImportExportService {
       connections: exportedConnections, // <-- Добавлено
     };
 
-    return JSON.stringify(exportFile, null, 2);
+    return { jsonContent: JSON.stringify(exportFile, null, 2), warnings };
   }
 
   public async importFromFile(
@@ -139,8 +143,15 @@ class ImportExportService {
     shouldImportConnections: boolean,
     worldObjectsToImport: ExportedWorldObject[],
     connectionsToImport: ExportedConnection[],
-  ): Promise<void> {
+  ): Promise<ImportResult> {
     const templateNameIdMap = new Map<string, number>(); // Maps template name to its actual DB ID
+
+    const results: ImportResult = {
+      templates: { imported: 0, skipped: 0, errors: 0 },
+      worldObjects: { imported: 0, skipped: 0, errors: 0 },
+      connections: { imported: 0, skipped: 0, errors: 0 },
+      messages: [],
+    };
 
     // 1. Import Templates
     await selectedTemplates.reduce(async (previousPromise, templateData) => {
@@ -152,8 +163,8 @@ class ImportExportService {
       );
       if (existingTemplate) {
         templateNameIdMap.set(templateData.name, existingTemplate.id);
-        MainNotificationService.info(
-          'Импорт шаблонов',
+        results.templates.skipped += 1;
+        results.messages.push(
           `Шаблон "${templateData.name}" уже существует и будет использоваться.`,
         );
       } else {
@@ -164,16 +175,13 @@ class ImportExportService {
             JSON.stringify(templateData.fields),
           );
           templateNameIdMap.set(templateData.name, newTemplateId);
-          MainNotificationService.success(
-            'Импорт шаблонов',
-            `Шаблон "${templateData.name}" успешно импортирован.`,
-          );
+          results.templates.imported += 1;
         } catch (error) {
-          MainNotificationService.error(
-            'Ошибка импорта шаблона',
-            `Не удалось импортировать шаблон "${templateData.name}": ${String(
-              error,
-            )}`,
+          results.templates.errors += 1;
+          results.messages.push(
+            `Не удалось импортировать шаблон "${
+              templateData.name
+            }": ${String(error)}`,
           );
         }
       }
@@ -189,11 +197,9 @@ class ImportExportService {
 
           const templateId = templateNameIdMap.get(exportedObject.templateName);
           if (!templateId) {
-            MainNotificationService.warning(
-              'Импорт объектов',
-              `Шаблон "${
-                exportedObject.templateName
-              }" для объекта "${exportedObject.objectData.name}" не найден. Объект будет пропущен.`,
+            results.worldObjects.skipped += 1;
+            results.messages.push(
+              `Шаблон "${exportedObject.templateName}" для объекта "${exportedObject.objectData.name}" не найден. Объект будет пропущен.`,
             );
             return Promise.resolve(); // Continue with the next item
           }
@@ -214,19 +220,16 @@ class ImportExportService {
                 exportedObject.localId,
                 newAllEntityId,
               );
-              MainNotificationService.success(
-                'Импорт объектов',
-                `Объект "${exportedObject.objectData.name}" успешно импортирован.`,
-              );
+              results.worldObjects.imported += 1;
             } else {
-              MainNotificationService.error(
-                'Импорт объектов',
+              results.worldObjects.errors += 1;
+              results.messages.push(
                 `Не удалось найти allEntityId для объекта "${exportedObject.objectData.name}". Связи для него могут быть некорректны.`,
               );
             }
           } catch (error) {
-            MainNotificationService.error(
-              'Ошибка импорта объекта',
+            results.worldObjects.errors += 1;
+            results.messages.push(
               `Не удалось импортировать объект "${
                 exportedObject.objectData.name
               }": ${String(error)}`,
@@ -258,19 +261,16 @@ class ImportExportService {
                 targetAllEntityId,
                 exportedConnection.description,
               );
-              MainNotificationService.success(
-                'Импорт связей',
-                `Связь успешно импортирована.`,
-              );
+              results.connections.imported += 1;
             } catch (error) {
-              MainNotificationService.error(
-                'Ошибка импорта связи',
+              results.connections.errors += 1;
+              results.messages.push(
                 `Не удалось импортировать связь: ${String(error)}`,
               );
             }
           } else {
-            MainNotificationService.warning(
-              'Импорт связей',
+            results.connections.skipped += 1;
+            results.messages.push(
               `Пропущена связь из-за отсутствия импортированных исходных или целевых объектов.`,
             );
           }
@@ -280,10 +280,7 @@ class ImportExportService {
       );
     }
 
-    MainNotificationService.success(
-      'Импорт завершен',
-      'Процесс импорта данных завершен.',
-    );
+    return results;
   }
 }
 

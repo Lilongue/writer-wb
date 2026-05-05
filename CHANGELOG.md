@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed at [0.2.3]
 
+- Reduced excessive notifications during import, export, and archiving operations to a single summary message.
+
 ## [0.2.2] - 2026-05-01
 
 ### Added at [0.2.2]

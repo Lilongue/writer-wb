@@ -190,3 +190,22 @@ export interface ExportFile {
   worldObjects: ExportedWorldObject[];
   connections: ExportedConnection[];
 }
+
+export interface ImportResult {
+  templates: {
+    imported: number;
+    skipped: number;
+    errors: number;
+  };
+  worldObjects: {
+    imported: number;
+    skipped: number;
+    errors: number;
+  };
+  connections: {
+    imported: number;
+    skipped: number;
+    errors: number;
+  };
+  messages: string[]; // To store detailed error/warning messages
+}

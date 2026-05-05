@@ -588,7 +588,6 @@ ipcMain.handle('project:create', async (_event, projectData) => {
       narrativeService,
     );
   } catch (error) {
-    console.error('Unexpected error during project creation:', error);
     MainNotificationService.error(
       'Ошибка создания проекта',
       `Произошла непредвиденная ошибка: ${String(error)}`,
@@ -652,11 +651,18 @@ ipcMain.handle('project:perform-archive', async () => {
       return { success: false, canceled: true };
     }
 
-    await ArchiveService.createProjectArchive(filePath);
-    MainNotificationService.success(
-      'Архив создан',
-      `Проект успешно заархивирован в ${filePath}`,
-    );
+    const warnings = await ArchiveService.createProjectArchive(filePath);
+    if (warnings.length > 0) {
+      MainNotificationService.warning(
+        'Архив создан с предупреждениями',
+        `Проект успешно заархивирован в ${filePath}. Предупреждения: ${warnings.join('; ')}`,
+      );
+    } else {
+      MainNotificationService.success(
+        'Архив создан',
+        `Проект успешно заархивирован в ${filePath}`,
+      );
+    }
     return { success: true, filePath };
   } catch (error: any) {
     MainNotificationService.error(
@@ -706,7 +712,8 @@ ipcMain.handle('export:world-objects', async () => {
   }
 
   try {
-    const jsonContent = await importExportService.exportWorldObjects();
+    const { jsonContent, warnings } =
+      await importExportService.exportWorldObjects();
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: 'Экспорт объектов мира',
       defaultPath: `world-objects-export.json`,
@@ -715,10 +722,17 @@ ipcMain.handle('export:world-objects', async () => {
 
     if (!canceled && filePath) {
       await fs.promises.writeFile(filePath, jsonContent, 'utf-8');
-      MainNotificationService.success(
-        'Экспорт завершен',
-        `Объекты успешно экспортированы в ${filePath}`,
-      );
+      if (warnings.length > 0) {
+        MainNotificationService.warning(
+          'Экспорт завершен с предупреждениями',
+          `Объекты успешно экспортированы в ${filePath}. Предупреждения: ${warnings.join('; ')}`,
+        );
+      } else {
+        MainNotificationService.success(
+          'Экспорт завершен',
+          `Объекты успешно экспортированы в ${filePath}`,
+        );
+      }
       return { success: true, filePath };
     }
     return { success: false, canceled: true };
@@ -744,7 +758,7 @@ ipcMain.handle(
     },
   ) => {
     try {
-      await importExportService.importFromFile(
+      const importResult = await importExportService.importFromFile(
         selectedTemplates,
         shouldImportWorldObjects,
         shouldImportConnections,
@@ -753,6 +767,99 @@ ipcMain.handle(
       );
       eventBus.emit('world-objects-changed');
       eventBus.emit('templates-changed');
+
+      const notificationTitle = 'Импорт завершен';
+      let notificationContent = 'Данные успешно импортированы.';
+      let notificationType = 'success';
+      const messages: string[] = [];
+
+      if (importResult.templates.imported > 0) {
+        messages.push(
+          `Шаблонов импортировано: ${importResult.templates.imported}`,
+        );
+      }
+      if (importResult.templates.skipped > 0) {
+        messages.push(`Шаблонов пропущено: ${importResult.templates.skipped}`);
+        notificationType = 'warning';
+      }
+      if (importResult.templates.errors > 0) {
+        messages.push(
+          `Ошибок импорта шаблонов: ${importResult.templates.errors}`,
+        );
+        notificationType = 'error';
+      }
+
+      if (shouldImportWorldObjects) {
+        if (importResult.worldObjects.imported > 0) {
+          messages.push(
+            `Объектов мира импортировано: ${importResult.worldObjects.imported}`,
+          );
+        }
+        if (importResult.worldObjects.skipped > 0) {
+          messages.push(
+            `Объектов мира пропущено: ${importResult.worldObjects.skipped}`,
+          );
+          notificationType = 'warning';
+        }
+        if (importResult.worldObjects.errors > 0) {
+          messages.push(
+            `Ошибок импорта объектов мира: ${importResult.worldObjects.errors}`,
+          );
+          notificationType = 'error';
+        }
+      }
+
+      if (shouldImportWorldObjects && shouldImportConnections) {
+        if (importResult.connections.imported > 0) {
+          messages.push(
+            `Связей импортировано: ${importResult.connections.imported}`,
+          );
+        }
+        if (importResult.connections.skipped > 0) {
+          messages.push(
+            `Связей пропущено: ${importResult.connections.skipped}`,
+          );
+          notificationType = 'warning';
+        }
+        if (importResult.connections.errors > 0) {
+          messages.push(
+            `Ошибок импорта связей: ${importResult.connections.errors}`,
+          );
+          notificationType = 'error';
+        }
+      }
+
+      if (importResult.messages.length > 0) {
+        messages.push('Подробности:');
+        messages.push(...importResult.messages);
+        if (notificationType === 'success') {
+          // If there were only non-critical messages, elevate to warning
+          notificationType = 'warning';
+        }
+      }
+
+      notificationContent = messages.join('\n');
+
+      switch (notificationType) {
+        case 'success':
+          MainNotificationService.success(
+            notificationTitle,
+            notificationContent,
+          );
+          break;
+        case 'warning':
+          MainNotificationService.warning(
+            notificationTitle,
+            notificationContent,
+          );
+          break;
+        case 'error':
+          MainNotificationService.error(notificationTitle, notificationContent);
+          break;
+        default:
+          MainNotificationService.info(notificationTitle, notificationContent);
+          break;
+      }
       return { success: true };
     } catch (error: any) {
       MainNotificationService.error(
