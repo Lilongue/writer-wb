@@ -234,14 +234,6 @@ export default class MenuBuilder {
             },
           },
           {
-            label: 'Экспортировать объекты мира...',
-            id: 'export-world-objects-menu-item',
-            enabled: ProjectService.getProjectRoot() !== null,
-            click: () => {
-              this.mainWindow.webContents.send('trigger-export-world-objects');
-            },
-          },
-          {
             label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
             click: () => {
@@ -284,9 +276,17 @@ export default class MenuBuilder {
               this.mainWindow.webContents.send('trigger-import-world-objects');
             },
           },
-        ],
-      },
-      {
+          { type: 'separator' }, // Adding a separator for better organization
+          {
+            label: 'Экспортировать объекты мира...',
+            id: 'export-world-objects-menu-item',
+            enabled: ProjectService.getProjectRoot() !== null,
+            click: () => {
+              this.mainWindow.webContents.send('trigger-export-world-objects');
+            },
+          },
+          ],
+          },      {
         label: '&Повествование',
         submenu: [
           {
