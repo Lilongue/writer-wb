@@ -448,6 +448,15 @@ ipcMain.handle('fs:get-directory-files', (_event, folderPath: string) => {
   return fileSystemService.getDirectoryFiles(folderPath);
 });
 
+ipcMain.handle('fs-readdir', async (_event, folderPath: string) => {
+  try {
+    const files = await fileSystemService.getDirectoryFiles(folderPath);
+    return { success: true, files };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
 // --- Narrative CRUD ---
 ipcMain.handle(
   'narrative:create',

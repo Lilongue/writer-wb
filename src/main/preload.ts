@@ -110,6 +110,9 @@ export type ElectronAPI = typeof electronHandler & {
   fs: {
     openFolder: (folderPath: string) => Promise<void>;
     getDirectoryFiles: (folderPath: string) => Promise<string[]>;
+    readdir: (
+      folderPath: string,
+    ) => Promise<{ success: boolean; files: string[]; error?: string }>;
   };
 };
 
@@ -147,6 +150,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('fs:open-folder', folderPath),
     getDirectoryFiles: (folderPath: string) =>
       ipcRenderer.invoke('fs:get-directory-files', folderPath),
+    readdir: (folderPath: string) =>
+      ipcRenderer.invoke('fs-readdir', folderPath),
   },
 });
 

@@ -275,7 +275,7 @@ export default function App() {
         <TemplateManagerModal
           visible={templateManagerVisible}
           onClose={handleTemplateManagerClose}
-          initialImportData={importFileContent ?? undefined} // Pass the new state
+          initialImportData={importFileContent ?? undefined}
         />
         <ProjectSettingsModal
           show={showSettingsModal}

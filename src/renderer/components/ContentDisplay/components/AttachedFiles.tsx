@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, List, Collapse } from 'antd';
 import notificationService from '../../../services/notificationService';
 
@@ -7,12 +7,26 @@ interface AttachedFilesProps {
   onOpenFile: (fileName: string) => void;
 }
 
+const areFileListsEqual = (listA: string[], listB: string[]): boolean => {
+  if (listA.length !== listB.length) {
+    return false;
+  }
+  const sortedA = [...listA].sort();
+  const sortedB = [...listB].sort();
+  return sortedA.every((value, index) => value === sortedB[index]);
+};
+
 const AttachedFiles: React.FC<AttachedFilesProps> = ({
   folderPath,
   onOpenFile,
 }) => {
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const attachedFilesRef = useRef(attachedFiles);
+
+  useEffect(() => {
+    attachedFilesRef.current = attachedFiles;
+  }, [attachedFiles]);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -35,6 +49,36 @@ const AttachedFiles: React.FC<AttachedFilesProps> = ({
     };
 
     fetchFiles();
+
+    const intervalId = setInterval(() => {
+      if (!folderPath) {
+        return;
+      }
+      window.electron.fs
+        .readdir(folderPath)
+        .then((result) => {
+          if (result.success) {
+            // Сравниваем, чтобы избежать ненужных перерисовок
+            if (!areFileListsEqual(result.files, attachedFilesRef.current)) {
+              setAttachedFiles(result.files);
+            }
+          }
+          return null;
+        })
+        .catch((error) => {
+          // Отключаем уведомления, чтобы не спамить пользователя
+          // notificationService.showError(
+          //   'Ошибка проверки дополнительных файлов',
+          //   String(error),
+          // );
+          // eslint-disable-next-line no-console
+          console.error('Error polling for attached files:', error);
+        });
+    }, 3000); // Опрашиваем каждые 3 секунды
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [folderPath]);
 
   if (!folderPath || loading || attachedFiles.length === 0) {
