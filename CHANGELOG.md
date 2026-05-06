@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed at [0.2.3]
 
+- Ensured database integrity during project archiving by forcing a WAL checkpoint before compression, preventing data loss.
 - Reduced excessive notifications during import, export, and archiving operations to a single summary message.
 
 ## [0.2.2] - 2026-05-01
@@ -47,8 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **File Attachment:** Added the ability to attach auxiliary files to a world object and access them from the UI.
 - **Auto-save:** Added auto-save functionality when switching between items.
 - **Narrative Plan:** Implemented mass addition of narrative plan items from pasted text.
-
-### Changed at [0.2.1]
 
 ### Fixed at [0.2.1]
 

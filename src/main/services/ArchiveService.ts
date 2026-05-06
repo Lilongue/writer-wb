@@ -9,6 +9,9 @@ import { EntityType } from '../../common/types';
 
 class ArchiveService {
   public async createProjectArchive(targetZipPath: string): Promise<string[]> {
+    // Ensure all pending database changes are written to the main DB file.
+    ProjectService.flushDatabase();
+
     const projectDetails = ProjectService.getProjectPathDetails();
 
     if (!projectDetails) {
