@@ -755,6 +755,21 @@ ipcMain.handle('export:world-objects', async () => {
 });
 
 ipcMain.handle(
+  'import:check-template-names',
+  async (_event, templateNames: string[]) => {
+    try {
+      return await importExportService.checkExistingTemplateNames(templateNames);
+    } catch (error: any) {
+      MainNotificationService.error(
+        'Ошибка проверки шаблонов',
+        `Не удалось проверить существующие шаблоны: ${String(error)}`,
+      );
+      return []; // Return empty array on error
+    }
+  },
+);
+
+ipcMain.handle(
   'import:from-file',
   async (
     _event,

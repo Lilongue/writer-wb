@@ -50,6 +50,30 @@ const ImportTemplatesModal = ({
   >([]);
   const [shouldImportObjects, setShouldImportObjects] = useState(false);
   const [shouldImportConnections, setShouldImportConnections] = useState(false);
+  const [existingTemplateNames, setExistingTemplateNames] = useState<string[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (fileTemplatesToDisplay.length > 0) {
+      const templateNames = fileTemplatesToDisplay.map((t) => t.name);
+      window.electron.template
+        .checkTemplateNames(templateNames)
+        .then((existingNames) => {
+          setExistingTemplateNames(existingNames);
+          return existingNames; // Return for consistency
+        })
+        .catch((error) => {
+          console.error('Failed to check for existing templates:', error);
+          notificationService.showError(
+            'Ошибка проверки шаблонов',
+            'Не удалось проверить наличие дубликатов шаблонов.',
+          );
+        });
+    } else {
+      setExistingTemplateNames([]); // Clear if no templates to display
+    }
+  }, [fileTemplatesToDisplay]);
 
   useEffect(() => {
     if (visible && initialImportData) {
@@ -94,6 +118,7 @@ const ImportTemplatesModal = ({
       setParsedConnections([]);
       setShouldImportObjects(false);
       setShouldImportConnections(false);
+      setExistingTemplateNames([]);
     }
   }, [visible, initialImportData, onClose]); // onClose added to dependencies
 
@@ -205,6 +230,7 @@ const ImportTemplatesModal = ({
               template={template}
               selected={selectedTemplateNames.includes(template.name)}
               onSelect={handleToggleSelection}
+              isDuplicate={existingTemplateNames.includes(template.name)}
             />
           ))
         ) : (

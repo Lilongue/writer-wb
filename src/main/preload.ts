@@ -127,6 +127,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('templates:get-predefined'),
     importTemplate: (templateData: PredefinedTemplate) =>
       ipcRenderer.invoke('templates:import', templateData),
+    checkTemplateNames: (names: string[]) =>
+      ipcRenderer.invoke('import:check-template-names', names),
   },
   dialog: {
     showOpenDialog: (options?: OpenDialogOptions) =>

@@ -137,6 +137,22 @@ class ImportExportService {
     return { jsonContent: JSON.stringify(exportFile, null, 2), warnings };
   }
 
+  public async checkExistingTemplateNames(
+    templateNames: string[],
+  ): Promise<string[]> {
+    const existingNames: string[] = [];
+    templateNames.forEach((name) => {
+      const existing = this.templateDao.findTemplateByName(
+        name,
+        EntityType.WorldObject,
+      );
+      if (existing) {
+        existingNames.push(name);
+      }
+    });
+    return existingNames;
+  }
+
   public async importFromFile(
     selectedTemplates: PredefinedWorldTemplate[],
     shouldImportWorldObjects: boolean,

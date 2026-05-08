@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed at [0.2.3]
 
+- **Import:** Implemented a visual indicator for duplicate templates on the file import screen.
+
 ### Fixed at [0.2.3]
 
 - Ensured database integrity during project archiving by forcing a WAL checkpoint before compression, preventing data loss.
