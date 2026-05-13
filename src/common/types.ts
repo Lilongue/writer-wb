@@ -1,5 +1,3 @@
-// Этот файл содержит общие типы данных, используемые в приложении.
-
 /**
  * Представление элемента повествования (часть, глава, сцена) в коде.
  */
@@ -63,6 +61,30 @@ export interface CustomField {
   comment?: string;
 }
 
+export interface WorldObjectInfoForConnection {
+  id: number;
+  name: string;
+  template_id: number;
+  template_name: string;
+}
+
+export interface ConnectedEntity {
+  id: number;
+  name: string;
+  type: EntityType;
+  template?: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface DetailedConnection {
+  id: number;
+  description: string;
+  connectionType: 'source' | 'target'; // Переименовано с 'direction'
+  connectedEntity: ConnectedEntity;
+}
+
 export interface ItemDetails {
   id: number;
   name: string;
@@ -73,7 +95,8 @@ export interface ItemDetails {
   fileExists: boolean;
   customFields?: CustomField[];
   mtime: number | null;
-  connections?: any[];
+  all_entities_id?: number | null; // Добавляем глобальный ID для контекста
+  connections?: DetailedConnection[]; // Обновляем тип на DetailedConnection[]
   plan?: string;
 }
 

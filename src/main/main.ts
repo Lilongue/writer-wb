@@ -378,6 +378,7 @@ ipcMain.handle(
     }
 
     if (details) {
+      details.all_entities_id = connectionDao.findEntityId(type, id); // Добавляем all_entities_id
       details.connections = connectionService.getConnections(type, id);
     }
 
@@ -758,7 +759,9 @@ ipcMain.handle(
   'import:check-template-names',
   async (_event, templateNames: string[]) => {
     try {
-      return await importExportService.checkExistingTemplateNames(templateNames);
+      return await importExportService.checkExistingTemplateNames(
+        templateNames,
+      );
     } catch (error: any) {
       MainNotificationService.error(
         'Ошибка проверки шаблонов',

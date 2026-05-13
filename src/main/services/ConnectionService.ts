@@ -1,7 +1,18 @@
-import { EntityType } from '../../common/types';
+import {
+  EntityType,
+  DetailedConnection,
+  ConnectedEntity,
+  WorldObjectInfoForConnection,
+} from '../../common/types';
 import { ConnectionDao } from '../data/daos/ConnectionDao';
 import { NarrativeDao } from '../data/daos/NarrativeDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
+
+// Тип для информации о нарративе, возвращаемой NarrativeDao
+interface NarrativeInfoForConnection {
+  id: number;
+  name: string;
+}
 
 class ConnectionService {
   private connectionDao: ConnectionDao;
@@ -20,19 +31,19 @@ class ConnectionService {
     this.worldObjectDao = worldObjectDao;
   }
 
-  getConnections(type: EntityType, id: number) {
+  getConnections(type: EntityType, id: number): DetailedConnection[] {
     const allEntityId = this.connectionDao.findEntityId(type, id);
     if (!allEntityId) return [];
 
     const rawConnections = this.connectionDao.getConnections(allEntityId);
     if (rawConnections.length === 0) return [];
 
-    const otherEntityIds = rawConnections.map((c) =>
+    const otherEntityAllIds = rawConnections.map((c) =>
       c.source_id === allEntityId ? c.target_id : c.source_id,
     );
 
     const resolvedEntities =
-      this.connectionDao.resolveAllEntityIds(otherEntityIds);
+      this.connectionDao.resolveAllEntityIds(otherEntityAllIds);
 
     const narrativeIds = resolvedEntities
       .filter((r) => r.type === EntityType.Narrative)
@@ -41,16 +52,24 @@ class ConnectionService {
       .filter((r) => r.type === EntityType.WorldObject)
       .map((r) => r.id);
 
-    const narrativeInfo = this.narrativeDao.getNarrativeItemsInfo(narrativeIds);
-    const worldInfo = this.worldObjectDao.getWorldObjectsInfo(worldIds);
+    const narrativeInfo = this.narrativeDao.getNarrativeItemsInfo(
+      narrativeIds,
+    ) as NarrativeInfoForConnection[];
+    const worldInfo = this.worldObjectDao.getWorldObjectsInfo(
+      worldIds,
+    ) as WorldObjectInfoForConnection[];
 
-    const infoMap = new Map<string, { id: number; name: string }>();
-    [...narrativeInfo, ...worldInfo].forEach((info) =>
-      infoMap.set(
-        `${resolvedEntities.find((r) => r.id === info.id)?.type}-${info.id}`,
-        info,
-      ),
-    );
+    // Map для быстрого доступа к информации об "другом" объекте
+    const infoMap = new Map<
+      string,
+      NarrativeInfoForConnection | WorldObjectInfoForConnection
+    >();
+    [...narrativeInfo, ...worldInfo].forEach((info) => {
+      const resolved = resolvedEntities.find((r) => r.id === info.id);
+      if (resolved) {
+        infoMap.set(`${resolved.type}-${resolved.id}`, info);
+      }
+    });
 
     return rawConnections
       .map((raw) => {
@@ -64,18 +83,33 @@ class ConnectionService {
         const info = infoMap.get(`${resolved.type}-${resolved.id}`);
         if (!info) return null;
 
+        // Определяем тип связи относительно текущего allEntityId
+        const connectionType: 'source' | 'target' =
+          raw.source_id === allEntityId ? 'source' : 'target';
+
+        const connectedEntity: ConnectedEntity = {
+          id: info.id,
+          name: info.name,
+          type: resolved.type,
+        };
+
+        // Если это WorldObject, добавляем информацию о шаблоне
+        if (resolved.type === EntityType.WorldObject) {
+          const worldObjectInfo = info as WorldObjectInfoForConnection;
+          connectedEntity.template = {
+            id: worldObjectInfo.template_id,
+            name: worldObjectInfo.template_name,
+          };
+        }
+
         return {
           id: raw.id,
           description: raw.description,
-          other_entity: {
-            id: info.id,
-            name: info.name,
-            type: resolved.type,
-            entityId: otherAllEntityId,
-          },
+          connectionType,
+          connectedEntity,
         };
       })
-      .filter(Boolean);
+      .filter(Boolean) as DetailedConnection[];
   }
 
   createConnection(
