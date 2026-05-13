@@ -105,7 +105,7 @@ function TemplateManagerModal({
         worldObjectsToImport: worldObjects,
         connectionsToImport: connections,
       });
-      fetchTemplates(); // Refresh template list
+      fetchTemplates();
       window.electron.ipcRenderer.sendMessage('world-objects-changed');
     } catch (error) {
       console.error('File import failed:', error);
@@ -212,30 +212,15 @@ function TemplateManagerModal({
           templatesToImport={availableToImport}
           initialImportData={initialImportData}
           onClose={() => {
-            console.log(
-              'TemplateManagerModal: Closing ImportTemplatesModal. Setting isImportModalVisible(false).',
-            );
             setImportModalVisible(false);
           }}
           onImport={
             isFileImportFlow
               ? async (...args) => {
-                  console.log(
-                    'TemplateManagerModal: onImport prop for file import flow. Calling onImportFromFile.',
-                  );
                   await onImportFromFile(...args);
-                  console.log(
-                    'TemplateManagerModal: onImportFromFile finished. Modal should close.',
-                  );
                 }
               : (selected) => {
-                  console.log(
-                    'TemplateManagerModal: Starting onTemplatesImport',
-                  );
                   onTemplatesImport(selected);
-                  console.log(
-                    'TemplateManagerModal: onTemplatesImport finished. Modal should close.',
-                  );
                 }
           }
         />

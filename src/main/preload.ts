@@ -73,6 +73,7 @@ export type ElectronAPI = typeof electronHandler & {
     importTemplate: (
       templateData: PredefinedTemplate,
     ) => Promise<EntityTemplate>;
+    checkTemplateNames: (names: string[]) => Promise<string[]>;
   };
   dialog: {
     showOpenDialog: (
