@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.3]
 
+- **Interactive Graph View:** Implemented an interactive graph view for connections within object details, allowing non-draggable nodes and clear directional arrows.
 - **Filterable Connections List:** Added a filterable list view for entity connections with dynamic template filtering.
 - **File Sync:** The 'Attached Files' panel now automatically updates when files are changed externally.
 

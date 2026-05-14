@@ -15,6 +15,7 @@ import {
   BarsOutlined,
   FilterOutlined,
 } from '@ant-design/icons';
+import ConnectionGraph from './ConnectionGraph';
 import {
   DetailedConnection,
   ResolvedEntity,
@@ -29,6 +30,7 @@ interface ConnectionsManagerProps {
   onAddConnection: (values: any) => void;
   searchResults: ResolvedEntity[];
   onSearch: (query: string) => void;
+  currentEntity: { id: number | null; type: EntityType | null; name: string };
 }
 
 type FilterTemplate = { id: number; name: string };
@@ -39,6 +41,7 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
   onAddConnection,
   searchResults,
   onSearch,
+  currentEntity,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'schema'>('list');
@@ -233,7 +236,10 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
 
           {viewMode === 'schema' && (
             <div className="connections-schema-view">
-              <p>Отображение схемы будет реализовано позже.</p>
+              <ConnectionGraph
+                connections={filteredConnections}
+                currentEntity={currentEntity}
+              />
             </div>
           )}
         </Collapse.Panel>

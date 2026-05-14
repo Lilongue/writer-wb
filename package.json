@@ -104,7 +104,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^6.0.3",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.3.0",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.10.2",

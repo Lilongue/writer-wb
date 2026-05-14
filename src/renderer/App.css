@@ -345,3 +345,9 @@
   flex-basis: 10%;
   text-align: right;
 }
+
+.connection-graph-container {
+  height: 400px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
