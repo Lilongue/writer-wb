@@ -81,7 +81,7 @@ export interface ConnectedEntity {
 export interface DetailedConnection {
   id: number;
   description: string;
-  connectionType: 'source' | 'target'; // Переименовано с 'direction'
+  connectionType: 'source' | 'target';
   connectedEntity: ConnectedEntity;
 }
 

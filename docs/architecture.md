@@ -131,7 +131,10 @@
 * **`ContentDisplay/`**:
   * **Оркестратор:** `ContentDisplay.tsx`.
   * **Хуки:** `useItemDetails.ts` (загрузка данных, опрос ФС, управление связями) и `useItemEditor.ts` (управление состоянием редактирования, сохранение).
-  * **UI-компоненты:** `ContentDisplayHeader.tsx`, `WorldObjectDetails.tsx`, `NarrativeDetails.tsx`, `ConnectionsManager.tsx`, `FileContent.tsx`.
+  * **UI-компоненты:** `ContentDisplayHeader.tsx`, `WorldObjectDetails.tsx`, `NarrativeDetails.tsx`, `FileContent.tsx`.
+  * **Подсистема управления связями:**
+    * **`ConnectionsManager.tsx`**: Компонент-менеджер, отвечающий за отображение списка связей. Он инкапсулирует всю логику фильтрации, включая управление состоянием фильтров и динамическое формирование UI на основе доступных данных.
+    * **`ConnectionListItem.tsx`**: Новый "глупый" компонент, ответственный исключительно за рендеринг одного элемента в списке связей.
 
 * **`TemplateManager/`**:
   * **Оркестратор:** `TemplateManagerModal.tsx` (управляет видимостью модальных окон, координацией импорта/экспорта шаблонов и объектов мира, а также обработкой данных перед передачей в `main`-процесс).

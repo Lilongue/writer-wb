@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.3]
 
+- **Filterable Connections List:** Added a filterable list view for entity connections with dynamic template filtering.
 - **File Sync:** The 'Attached Files' panel now automatically updates when files are changed externally.
 
 ### Changed at [0.2.3]
 
+- **Connections UI:** Improved visual representation and layout of entity connections list.
 - **Import:** Implemented a visual indicator for duplicate templates on the file import screen.
 
 ### Fixed at [0.2.3]
