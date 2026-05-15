@@ -7,13 +7,19 @@ interface TemplateImportCardProps {
   template: PredefinedTemplate;
   selected: boolean;
   onSelect: (templateName: string) => void;
+  isDuplicate: boolean;
 }
 
 const TemplateImportCard = ({
   template,
   selected,
   onSelect,
+  isDuplicate,
 }: TemplateImportCardProps) => {
+  const cardStyle = isDuplicate
+    ? { backgroundColor: 'rgba(255, 236, 179, 0.5)' }
+    : {}; // Light yellow-ish background for duplicates
+
   return (
     <Card
       title={template.name}
@@ -29,6 +35,7 @@ const TemplateImportCard = ({
           }}
         />
       }
+      style={cardStyle}
       styles={{ header: { backgroundColor: '#f0f0f0' } }}
     >
       <List

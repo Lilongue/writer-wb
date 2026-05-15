@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-05-15
+
+### Added at [0.2.3]
+
+- **Interactive Graph View:** Implemented an interactive graph view for connections within object details, allowing non-draggable nodes and clear directional arrows.
+- **Filterable Connections List:** Added a filterable list view for entity connections with dynamic template filtering.
+- **File Sync:** The 'Attached Files' panel now automatically updates when files are changed externally.
+
+### Changed at [0.2.3]
+
+- **Connections UI:** Improved visual representation and layout of entity connections list.
+- **Import:** Implemented a visual indicator for duplicate templates on the file import screen.
+
+### Fixed at [0.2.3]
+
+- Ensured database integrity during project archiving by forcing a WAL checkpoint before compression, preventing data loss.
+- Reduced excessive notifications during import, export, and archiving operations to a single summary message.
+
 ## [0.2.2] - 2026-05-01
 
 ### Added at [0.2.2]
@@ -13,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **World Object Export:** Added a feature to export all project's world objects into a single JSON file.
 - **Project Archiving:** Added ability to archive projects to a ZIP file for backup and portability.
-- Added automatic trimming and sanitization for all user text inputs to improve data consistency and prevent invalid characters.
+- **Automatic trimming** and sanitization for all user text inputs to improve data consistency and prevent invalid characters.
 
 ### Changed at [0.2.2]
 
@@ -24,8 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: User now receives a warning when attempting to archive a template that is currently in use.
 - Prevented creation of narrative items with empty names.
 - Fixed an issue where ContentDisplay would not clear its content after the currently selected item was deleted.
-
-- **Connection Creation:** Fixed some bugs in connection creation flow, including preventing recursive connections and refactoring for better type safety.
+- Fixed some bugs in connection creation flow, including preventing recursive connections and refactoring for better type safety.
 
 ## [0.2.1] - 2026-03-15
 
@@ -36,8 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **File Attachment:** Added the ability to attach auxiliary files to a world object and access them from the UI.
 - **Auto-save:** Added auto-save functionality when switching between items.
 - **Narrative Plan:** Implemented mass addition of narrative plan items from pasted text.
-
-### Changed at [0.2.1]
 
 ### Fixed at [0.2.1]
 
@@ -56,7 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed at [0.2.0]
 
 - Refactored notification system to use a unified IPC channel and enum for type safety.
-
 - **UI/UX Redesign:** Performed a major redesign of the application's user interface for a more modern and intuitive experience.
 - **Breaking Change - World Object Storage:** The file structure for world objects now uses static template IDs instead of template names in file paths. This change is not backward compatible with previous internal versions.
 

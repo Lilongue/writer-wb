@@ -35,7 +35,7 @@ class ProjectService {
     templateService: TemplateService,
     projectSettingsService: ProjectSettingsService,
     narrativeService: NarrativeService,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { location, projectName, narrativeStructure, createSubfolder } =
       projectData;
     let projectPath = location;
@@ -48,9 +48,11 @@ class ProjectService {
     // Check if the location is already a project
     const isProject = await this._validateProjectStructure(projectPath);
     if (isProject) {
-      throw new Error(
+      MainNotificationService.error(
+        'Ошибка создания проекта',
         'Выбранная папка уже является проектом. Пожалуйста, выберите другую папку.',
       );
+      return false;
     }
 
     if (this.db) {
@@ -114,6 +116,7 @@ class ProjectService {
 
     this.projectRoot = projectPath;
     eventBus.emit('project-opened');
+    return true;
   }
 
   public async open(projectPath: string): Promise<boolean> {
@@ -146,6 +149,7 @@ class ProjectService {
 
   public close(): void {
     if (this.db) {
+      this.flushDatabase(); // Ensure all data is written to disk
       this.db.close();
       this.db = null;
       this.projectRoot = null;
@@ -154,6 +158,20 @@ class ProjectService {
         'Текущий проект успешно закрыт.',
       );
       eventBus.emit('project-closed');
+    }
+  }
+
+  public flushDatabase(): void {
+    if (this.db) {
+      try {
+        this.db.pragma('wal_checkpoint(RESTART)');
+      } catch {
+        // Optionally, notify the user that a data flush failed.
+        MainNotificationService.error(
+          'Ошибка синхронизации данных',
+          'Не удалось принудительно сохранить изменения в файл проекта. Возможно, некоторые данные не сохранятся.',
+        );
+      }
     }
   }
 

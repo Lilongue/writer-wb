@@ -126,7 +126,6 @@ export default function App() {
     const cleanupArchiveRequest = window.electron.ipcRenderer.on(
       'project:archive-request',
       async () => {
-        notificationService.showInfo('Архивирование проекта');
         try {
           await window.electron.project.performArchive();
         } catch (error: any) {
@@ -160,7 +159,6 @@ export default function App() {
     const cleanupExport = window.electron.ipcRenderer.on(
       'trigger-export-world-objects',
       async () => {
-        notificationService.showInfo('Экспорт объектов мира...');
         try {
           await window.electron.worldObjects.export();
         } catch (error: any) {
@@ -210,19 +208,15 @@ export default function App() {
   };
 
   const handleCreateProject = async (values: any) => {
-    try {
-      await window.electron.project.create(values);
+    const success = await window.electron.project.create(values);
+
+    if (success) {
       setIsWizardVisible(false);
       notificationService.showSuccess(
         `Проект "${values.projectName}" успешно создан.`,
       );
-    } catch (error: any) {
-      console.error('Failed to create project:', error);
-      notificationService.showError(
-        'Ошибка при создании проекта',
-        error.message || 'Произошла неизвестная ошибка.',
-      );
     }
+    // If not successful, the main process has already shown an error notification.
   };
 
   const handleTemplateManagerClose = useCallback(() => {
@@ -281,7 +275,7 @@ export default function App() {
         <TemplateManagerModal
           visible={templateManagerVisible}
           onClose={handleTemplateManagerClose}
-          initialImportData={importFileContent ?? undefined} // Pass the new state
+          initialImportData={importFileContent ?? undefined}
         />
         <ProjectSettingsModal
           show={showSettingsModal}

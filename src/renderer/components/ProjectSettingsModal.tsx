@@ -161,9 +161,12 @@ const ProjectSettingsModal: FC<ProjectSettingsModalProps> = ({
           case 'file-path':
             return (
               <Input
+                size="small"
                 placeholder={placeholder}
-                addonAfter={
+                suffix={
                   <Button
+                    type="text"
+                    size="small"
                     onClick={() => handleBrowseClick(setting.key)}
                     icon={<FolderOpenOutlined />}
                   />

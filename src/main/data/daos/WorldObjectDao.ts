@@ -1,4 +1,8 @@
-import { WorldObject, WorldObjectType } from '../../../common/types';
+import {
+  WorldObject,
+  WorldObjectType,
+  WorldObjectInfoForConnection,
+} from '../../../common/types';
 import { BaseDao } from './BaseDao';
 
 export class WorldObjectDao extends BaseDao {
@@ -115,16 +119,25 @@ export class WorldObjectDao extends BaseDao {
   /**
    * Получает информацию о world_objects по списку ID.
    * @param {number[]} ids Список ID world_objects.
-   * @returns Список объектов с ID и именем.
+   * @returns Список объектов с ID и именем, включая ID и имя шаблона.
    */
-  public getWorldObjectsInfo(ids: number[]): { id: number; name: string }[] {
+  public getWorldObjectsInfo(ids: number[]): WorldObjectInfoForConnection[] {
     if (ids.length === 0) {
       return [];
     }
     const db = this.getDb();
     const placeholders = ids.map(() => '?').join(',');
-    const sql = `SELECT id, name FROM world_objects WHERE id IN (${placeholders})`;
-    return db.prepare(sql).all(ids) as { id: number; name: string }[];
+    const sql = `
+      SELECT
+        wo.id,
+        wo.name,
+        et.id as template_id,
+        et.name as template_name
+      FROM world_objects wo
+      JOIN entity_templates et ON wo.template_id = et.id
+      WHERE wo.id IN (${placeholders})
+    `;
+    return db.prepare(sql).all(ids) as WorldObjectInfoForConnection[];
   }
 
   /**

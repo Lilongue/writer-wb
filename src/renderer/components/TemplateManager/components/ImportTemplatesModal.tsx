@@ -1,5 +1,13 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Modal, Button, Empty, Segmented, Checkbox, Space } from 'antd';
+import {
+  Modal,
+  Button,
+  Empty,
+  Segmented,
+  Checkbox,
+  Space,
+  Typography,
+} from 'antd';
 import {
   PredefinedTemplate,
   ExportFile, // Import ExportFile
@@ -50,6 +58,29 @@ const ImportTemplatesModal = ({
   >([]);
   const [shouldImportObjects, setShouldImportObjects] = useState(false);
   const [shouldImportConnections, setShouldImportConnections] = useState(false);
+  const [existingTemplateNames, setExistingTemplateNames] = useState<string[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (fileTemplatesToDisplay.length > 0) {
+      const templateNames = fileTemplatesToDisplay.map((t) => t.name);
+      window.electron.template
+        .checkTemplateNames(templateNames)
+        .then((existingNames) => {
+          setExistingTemplateNames(existingNames);
+          return existingNames; // Return for consistency
+        })
+        .catch(() => {
+          notificationService.showError(
+            'Ошибка проверки шаблонов',
+            'Не удалось проверить наличие дубликатов шаблонов.',
+          );
+        });
+    } else {
+      setExistingTemplateNames([]); // Clear if no templates to display
+    }
+  }, [fileTemplatesToDisplay]);
 
   useEffect(() => {
     if (visible && initialImportData) {
@@ -94,6 +125,7 @@ const ImportTemplatesModal = ({
       setParsedConnections([]);
       setShouldImportObjects(false);
       setShouldImportConnections(false);
+      setExistingTemplateNames([]);
     }
   }, [visible, initialImportData, onClose]); // onClose added to dependencies
 
@@ -168,35 +200,49 @@ const ImportTemplatesModal = ({
         />
         <Button
           onClick={() =>
-            setSelectedTemplateNames(currentTemplatesSource.map((t) => t.name))
+            setSelectedTemplateNames(
+              currentTemplatesSource
+                .filter((t) => !existingTemplateNames.includes(t.name))
+                .map((t) => t.name),
+            )
           }
-          style={{ marginLeft: 8 }}
+          style={{ marginLeft: 8, marginRight: 8 }}
         >
           Выбрать все
         </Button>
+        {parsedExportFile && ( // Only show object/connection options for file import
+          <Space>
+            {parsedWorldObjects.length > 0 && (
+              <Checkbox
+                checked={shouldImportObjects}
+                onChange={(e) => setShouldImportObjects(e.target.checked)}
+              >
+                Объекты мира ({parsedWorldObjects.length} шт.)
+              </Checkbox>
+            )}
+            {parsedConnections.length > 0 && (
+              <Checkbox
+                checked={shouldImportConnections}
+                onChange={(e) => setShouldImportConnections(e.target.checked)}
+                disabled={!shouldImportObjects} // Connections depend on objects
+              >
+                Связи ({parsedConnections.length} шт.)
+              </Checkbox>
+            )}
+          </Space>
+        )}
       </div>
-
-      {parsedExportFile && ( // Only show object/connection options for file import
-        <Space direction="vertical" style={{ marginTop: 16 }}>
-          {parsedWorldObjects.length > 0 && (
-            <Checkbox
-              checked={shouldImportObjects}
-              onChange={(e) => setShouldImportObjects(e.target.checked)}
-            >
-              Импортировать объекты мира ({parsedWorldObjects.length} шт.)
-            </Checkbox>
-          )}
-          {parsedConnections.length > 0 && (
-            <Checkbox
-              checked={shouldImportConnections}
-              onChange={(e) => setShouldImportConnections(e.target.checked)}
-              disabled={!shouldImportObjects} // Connections depend on objects
-            >
-              Импортировать связи ({parsedConnections.length} шт.)
-            </Checkbox>
-          )}
-        </Space>
+      {existingTemplateNames.length > 0 && (
+        <Typography.Text
+          type="warning"
+          style={{ marginTop: 16, display: 'block' }}
+        >
+          Обнаружены дубликаты шаблонов. Они не будут выбраны автоматически. При
+          ручном выборе импортируемые объекты будут привязаны к существующим
+          шаблонам.
+        </Typography.Text>
       )}
+
       <div className="template-import-cards-container">
         {filteredTemplates.length > 0 ? (
           filteredTemplates.map((template) => (
@@ -205,6 +251,7 @@ const ImportTemplatesModal = ({
               template={template}
               selected={selectedTemplateNames.includes(template.name)}
               onSelect={handleToggleSelection}
+              isDuplicate={existingTemplateNames.includes(template.name)}
             />
           ))
         ) : (

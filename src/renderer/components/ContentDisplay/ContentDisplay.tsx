@@ -84,6 +84,12 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
       );
     }
 
+    const currentEntity = {
+      id: selectedId,
+      type: selectedType,
+      name: details.name || '',
+    };
+
     const nameLabel =
       selectedType === EntityType.Narrative ? 'Название' : 'Имя объекта';
 
@@ -147,6 +153,7 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
           onAddConnection={handleAddConnection}
           searchResults={searchResults}
           onSearch={debouncedSearch}
+          currentEntity={currentEntity}
         />
 
         <FileContent

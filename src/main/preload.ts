@@ -73,6 +73,7 @@ export type ElectronAPI = typeof electronHandler & {
     importTemplate: (
       templateData: PredefinedTemplate,
     ) => Promise<EntityTemplate>;
+    checkTemplateNames: (names: string[]) => Promise<string[]>;
   };
   dialog: {
     showOpenDialog: (
@@ -85,7 +86,7 @@ export type ElectronAPI = typeof electronHandler & {
       projectName: string;
       narrativeStructure: string[];
       createSubfolder: boolean;
-    }) => Promise<void>;
+    }) => Promise<boolean>;
     performArchive: () => Promise<{
       success: boolean;
       filePath?: string;
@@ -110,6 +111,9 @@ export type ElectronAPI = typeof electronHandler & {
   fs: {
     openFolder: (folderPath: string) => Promise<void>;
     getDirectoryFiles: (folderPath: string) => Promise<string[]>;
+    readdir: (
+      folderPath: string,
+    ) => Promise<{ success: boolean; files: string[]; error?: string }>;
   };
 };
 
@@ -124,6 +128,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('templates:get-predefined'),
     importTemplate: (templateData: PredefinedTemplate) =>
       ipcRenderer.invoke('templates:import', templateData),
+    checkTemplateNames: (names: string[]) =>
+      ipcRenderer.invoke('import:check-template-names', names),
   },
   dialog: {
     showOpenDialog: (options?: OpenDialogOptions) =>
@@ -147,6 +153,8 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('fs:open-folder', folderPath),
     getDirectoryFiles: (folderPath: string) =>
       ipcRenderer.invoke('fs:get-directory-files', folderPath),
+    readdir: (folderPath: string) =>
+      ipcRenderer.invoke('fs-readdir', folderPath),
   },
 });
 
