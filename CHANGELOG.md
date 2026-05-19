@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed at [0.2.4]
 
+- Standardized the appearance of collapsible list panels (Attached Files, Narrative Plan, Connections) to ensure consistent height and vertical alignment in their collapsed state.
 - Removed redundant project name prefix from exported World Object template names.
 
 ### Fixed at [0.2.4]

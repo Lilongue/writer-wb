@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, List, Collapse } from 'antd';
+import { Button, List, Collapse, Typography } from 'antd';
 import notificationService from '../../../services/notificationService';
 
 interface AttachedFilesProps {
@@ -83,7 +83,13 @@ const AttachedFiles: React.FC<AttachedFilesProps> = ({
   return (
     <Collapse style={{ marginBottom: '24px' }}>
       <Collapse.Panel
-        header={`Дополнительные файлы (${attachedFiles.length})`}
+        header={
+          <div className="uniform-collapse-header">
+            <Typography.Text strong>
+              {`Дополнительные файлы (${attachedFiles.length})`}
+            </Typography.Text>
+          </div>
+        }
         key="1"
       >
         <List

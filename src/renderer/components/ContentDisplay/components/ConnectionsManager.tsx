@@ -8,6 +8,7 @@ import {
   Collapse,
   Dropdown,
   Menu,
+  Typography,
 } from 'antd';
 import {
   PlusCircleOutlined,
@@ -126,25 +127,23 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
   const connectionsCount = connections ? connections.length : 0;
 
   const headerContent = (
-    <div className="connections-header">
-      <Space>
-        <h3>
-          Связи{' '}
-          {connectionsCount > 0 &&
-            `(${filteredConnections.length} / ${connectionsCount})`}
-        </h3>
-        <Tooltip title="Добавить новую связь">
-          <Button
-            type="text"
-            shape="circle"
-            icon={<PlusCircleOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsModalVisible(true);
-            }}
-          />
-        </Tooltip>
-      </Space>
+    <div className="uniform-collapse-header">
+      <Typography.Text strong>
+        Связи{' '}
+        {connectionsCount > 0 &&
+          `(${filteredConnections.length} / ${connectionsCount})`}
+      </Typography.Text>
+      <Tooltip title="Добавить новую связь">
+        <Button
+          type="text"
+          shape="circle"
+          icon={<PlusCircleOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsModalVisible(true);
+          }}
+        />
+      </Tooltip>
     </div>
   );
 
@@ -170,7 +169,7 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
 
   return (
     <div className="connections-section">
-      <Collapse defaultActiveKey={['1']} ghost>
+      <Collapse defaultActiveKey={['1']}>
         <Collapse.Panel header={headerContent} key="1">
           {connectionsCount === 0 ? (
             <p>Связей пока нет. Добавьте первую!</p>

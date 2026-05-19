@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Input, Collapse, Button, Space, Tooltip, Descriptions } from 'antd';
+import {
+  Input,
+  Collapse,
+  Button,
+  Tooltip,
+  Descriptions,
+  Typography,
+} from 'antd';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import ChecklistEditor from '../../ChecklistEditor';
 import AddPlanItemModal from '../../AddPlanItemModal';
@@ -34,7 +41,6 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const planItemsCount = plan ? plan.split('\n').filter(Boolean).length : 0;
-  const panelHeader = `Пунктов в плане: ${planItemsCount}`;
 
   const handleAddPlanItem = (newItems: string[]) => {
     if (newItems.length === 0) {
@@ -81,32 +87,41 @@ const NarrativeDetails: React.FC<NarrativeDetailsProps> = ({
           </Descriptions.Item>
         </Descriptions>
       </div>
-      <br />
 
-      <div>
-        <Space>
-          <h3>План</h3>
-          <Tooltip title="Добавить новый пункт плана">
-            <Button
-              type="text"
-              shape="circle"
-              icon={<PlusCircleOutlined />}
-              onClick={() => setIsModalVisible(true)}
-            />
-          </Tooltip>
-        </Space>
-      </div>
-      {planItemsCount > 0 && (
-        <Collapse
-          activeKey={planCollapseKey}
-          onChange={onPlanCollapseChange}
-          ghost
+      <Collapse
+        activeKey={planCollapseKey}
+        onChange={onPlanCollapseChange}
+        style={{ marginTop: '24px', marginBottom: '24px' }}
+        defaultActiveKey={['1']}
+      >
+        <Collapse.Panel
+          header={
+            <div className="uniform-collapse-header">
+              <Typography.Text strong>
+                План {planItemsCount > 0 && `(${planItemsCount})`}
+              </Typography.Text>
+              <Tooltip title="Добавить новый пункт плана">
+                <Button
+                  type="text"
+                  shape="circle"
+                  icon={<PlusCircleOutlined />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsModalVisible(true);
+                  }}
+                />
+              </Tooltip>
+            </div>
+          }
+          key="1"
         >
-          <Collapse.Panel header={panelHeader} key="1">
+          {planItemsCount > 0 ? (
             <ChecklistEditor value={plan || ''} onChange={onPlanChange} />
-          </Collapse.Panel>
-        </Collapse>
-      )}
+          ) : (
+            <p>Пунктов в плане пока нет. Добавьте первый!</p>
+          )}
+        </Collapse.Panel>
+      </Collapse>
       <AddPlanItemModal
         visible={isModalVisible}
         onOk={handleAddPlanItem}
