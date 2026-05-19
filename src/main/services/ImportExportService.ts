@@ -73,13 +73,11 @@ class ImportExportService {
         return;
       }
 
-      const namespacedTemplateName = `[${projectName}] ${template.name}`;
-
       if (!templatesToExport.has(template.id)) {
         try {
           const fields = JSON.parse(template.fields_schema);
           templatesToExport.set(template.id, {
-            name: namespacedTemplateName,
+            name: template.name,
             category: EntityType.WorldObject,
             fields,
           });
@@ -94,7 +92,7 @@ class ImportExportService {
       allEntityIdToLocalIdMap.set(allEntityId, localIdCounter);
       exportedWorldObjects.push({
         localId: localIdCounter,
-        templateName: namespacedTemplateName,
+        templateName: template.name,
         objectData: {
           name: object.name,
           description: object.description,

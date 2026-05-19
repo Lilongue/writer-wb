@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed at [0.2.4]
 
+- Removed redundant project name prefix from exported World Object template names.
+
 ### Fixed at [0.2.4]
 
 ## [0.2.3] - 2026-05-15
