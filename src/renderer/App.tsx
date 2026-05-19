@@ -186,6 +186,27 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const cleanupSaveRequest = window.electron.ipcRenderer.on(
+      'main:request-save',
+      async () => {
+        try {
+          await contentDisplayRef.current?.save();
+        } catch (error) {
+          // The save function itself should show a notification on error
+          console.error('Auto-save before close/archive failed:', error);
+        } finally {
+          // Always signal back to the main process that the attempt is complete
+          window.electron.ipcRenderer.sendMessage('renderer:save-complete');
+        }
+      },
+    );
+
+    return () => {
+      cleanupSaveRequest();
+    };
+  }, []);
+
   const handleSelect = async (id: number | null, type: EntityType | null) => {
     // Do nothing if the selection hasn't changed
     if (id === selection.id && type === selection.type) {

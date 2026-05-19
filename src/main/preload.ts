@@ -30,7 +30,9 @@ export type Channels =
   | 'project-archive'
   | 'project:archive-request'
   | 'trigger-export-world-objects'
-  | 'trigger-import-world-objects';
+  | 'trigger-import-world-objects'
+  | 'main:request-save'
+  | 'renderer:save-complete';
 
 const electronHandler = {
   ipcRenderer: {
@@ -115,6 +117,9 @@ export type ElectronAPI = typeof electronHandler & {
       folderPath: string,
     ) => Promise<{ success: boolean; files: string[]; error?: string }>;
   };
+  editor: {
+    savePendingChanges: () => Promise<void>;
+  };
 };
 
 contextBridge.exposeInMainWorld('electron', {
@@ -155,6 +160,10 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('fs:get-directory-files', folderPath),
     readdir: (folderPath: string) =>
       ipcRenderer.invoke('fs-readdir', folderPath),
+  },
+  editor: {
+    savePendingChanges: () =>
+      ipcRenderer.invoke('editor:save-pending-changes'),
   },
 });
 

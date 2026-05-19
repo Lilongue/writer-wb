@@ -77,6 +77,22 @@ const importExportService = new ImportExportService(
 let mainWindow: BrowserWindow | null = null;
 let filePathToOpenOnReady: string | null = null; // For macOS open-file event when app is not ready
 
+const triggerSaveInRenderer = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      // Listen for the response from the renderer
+      ipcMain.once('renderer:save-complete', () => {
+        resolve();
+      });
+      // Send the request to the renderer
+      mainWindow.webContents.send('main:request-save');
+    } else {
+      // If there's no window, there's nothing to save.
+      resolve();
+    }
+  });
+};
+
 process.on('uncaughtException', (error) => {
   MainNotificationService.error(
     'Критическая ошибка',
@@ -290,7 +306,8 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', async () => {
+  await triggerSaveInRenderer();
   projectService.close();
 });
 
@@ -644,6 +661,8 @@ ipcMain.handle('project:perform-archive', async () => {
   }
 
   try {
+    await triggerSaveInRenderer();
+
     const projectRoot = projectService.getProjectRoot();
     if (!projectRoot) {
       MainNotificationService.error('Ошибка архивации', 'Проект не открыт.');
@@ -665,7 +684,9 @@ ipcMain.handle('project:perform-archive', async () => {
     if (warnings.length > 0) {
       MainNotificationService.warning(
         'Архив создан с предупреждениями',
-        `Проект успешно заархивирован в ${filePath}. Предупреждения: ${warnings.join('; ')}`,
+        `Проект успешно заархивирован в ${filePath}. Предупреждения: ${warnings.join(
+          '; ',
+        )}`,
       );
     } else {
       MainNotificationService.success(
