@@ -66,11 +66,6 @@ const AttachedFiles: React.FC<AttachedFilesProps> = ({
           return null;
         })
         .catch((error) => {
-          // Отключаем уведомления, чтобы не спамить пользователя
-          // notificationService.showError(
-          //   'Ошибка проверки дополнительных файлов',
-          //   String(error),
-          // );
           // eslint-disable-next-line no-console
           console.error('Error polling for attached files:', error);
         });
