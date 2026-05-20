@@ -4,6 +4,7 @@ import 'antd/dist/reset.css';
 import './App.css';
 import 'rc-tree/assets/index.css';
 import { Layout, Empty, notification, message } from 'antd';
+import { appEventBus } from './EventBus';
 import NarrativeTree from './components/NarrativeTree';
 import WorldObjectTree from './components/WorldObjectTree';
 import ContentDisplay from './components/ContentDisplay';
@@ -31,6 +32,19 @@ export default function App() {
     apiHolder.notification = notificationApi;
     apiHolder.message = messageApi;
   }, [notificationApi, messageApi]);
+
+  useEffect(() => {
+    const cleanup = window.electron.ipcRenderer.on(
+      'top-menu-item-clicked',
+      () => {
+        appEventBus.emit('top-menu-clicked');
+      },
+    );
+
+    return () => {
+      cleanup();
+    };
+  }, []);
 
   const [selection, setSelection] = useState<{
     id: number | null;
@@ -241,9 +255,6 @@ export default function App() {
   };
 
   const handleTemplateManagerClose = useCallback(() => {
-    console.log(
-      'App.tsx: TemplateManagerModal onClose triggered. Closing modal and clearing data.',
-    );
     setTemplateManagerVisible(false);
     setImportFileContent(null); // Clear content when modal closes
   }, []); // Empty dependency array as no external state is used by the function itself

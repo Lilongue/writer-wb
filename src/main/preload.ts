@@ -32,7 +32,8 @@ export type Channels =
   | 'trigger-export-world-objects'
   | 'trigger-import-world-objects'
   | 'main:request-save'
-  | 'renderer:save-complete';
+  | 'renderer:save-complete'
+  | 'top-menu-item-clicked';
 
 const electronHandler = {
   ipcRenderer: {
@@ -162,8 +163,7 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.invoke('fs-readdir', folderPath),
   },
   editor: {
-    savePendingChanges: () =>
-      ipcRenderer.invoke('editor:save-pending-changes'),
+    savePendingChanges: () => ipcRenderer.invoke('editor:save-pending-changes'),
   },
 });
 

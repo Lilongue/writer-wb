@@ -9,6 +9,8 @@ import { buildTree } from './narrativeTreeUtils';
 import notificationService from '../../services/notificationService';
 import { cleanNameInput } from '../../../common/utils';
 
+import { appEventBus } from '../../EventBus';
+
 const useNarrativeTreeData = (
   onSelect: (id: number | null) => void,
   selectedId: number | null,
@@ -31,6 +33,18 @@ const useNarrativeTreeData = (
     open: boolean;
     node: any;
   }>({ open: false, node: null });
+
+  const onContextMenuClose = useCallback(
+    () => setContextMenu((prev) => ({ ...prev, open: false })),
+    [],
+  );
+
+  useEffect(() => {
+    appEventBus.on('top-menu-clicked', onContextMenuClose);
+    return () => {
+      appEventBus.off('top-menu-clicked', onContextMenuClose);
+    };
+  }, [onContextMenuClose]);
 
   const initialModalState: NarrativeModalState = {
     open: false,
@@ -228,8 +242,7 @@ const useNarrativeTreeData = (
   return {
     treeData,
     contextMenu,
-    onContextMenuClose: () =>
-      setContextMenu((prev) => ({ ...prev, open: false })),
+    onContextMenuClose,
     handleMenuClick,
     onRightClick,
     handleSelect,

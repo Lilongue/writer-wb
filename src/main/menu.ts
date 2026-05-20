@@ -27,6 +27,15 @@ export default class MenuBuilder {
     // this.handleProjectArchive = handleProjectArchive; // REMOVED
   }
 
+  private withMenuClickEvent(
+    fn: (...args: any[]) => void,
+  ): (...args: any[]) => void {
+    return (...args) => {
+      this.mainWindow.webContents.send('top-menu-item-clicked');
+      fn(...args);
+    };
+  }
+
   buildMenu(): Menu {
     if (
       process.env.NODE_ENV === 'development' ||
@@ -182,14 +191,14 @@ export default class MenuBuilder {
           {
             label: '&Новый проект',
             accelerator: 'Ctrl+N',
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.webContents.send('open-project-wizard');
-            },
+            }),
           },
           {
             label: '&Открыть проект',
             accelerator: 'Ctrl+O',
-            async click() {
+            click: this.withMenuClickEvent(async () => {
               const { canceled, filePaths } = await dialog.showOpenDialog({
                 properties: ['openFile'],
                 filters: [
@@ -214,14 +223,14 @@ export default class MenuBuilder {
                 );
                 // TODO: Показать ошибку пользователю
               }
-            },
+            }),
           },
           {
             label: '&Закрыть проект',
             accelerator: 'Ctrl+C',
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               ProjectService.close();
-            },
+            }),
           },
           { type: 'separator' },
           {
@@ -229,14 +238,14 @@ export default class MenuBuilder {
             id: 'archive-project-menu-item', // Added ID for dynamic control
             accelerator: 'Ctrl+Shift+S', // Common shortcut for save as / archive
             enabled: ProjectService.getProjectRoot() !== null,
-            click: async () => {
+            click: this.withMenuClickEvent(async () => {
               this.mainWindow.webContents.send('project:archive-request'); // Send IPC message to renderer
-            },
+            }),
           },
           {
             label: '&Настройки',
             accelerator: 'Ctrl+,', // Common shortcut for settings
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               // Only open project settings if a project is currently open
               if (ProjectService.getProjectRoot()) {
                 this.mainWindow.webContents.send('open-project-settings');
@@ -246,15 +255,15 @@ export default class MenuBuilder {
                   'Для доступа к настройкам проекта сначала откройте проект.',
                 );
               }
-            },
+            }),
           },
           { type: 'separator' },
           {
             label: '&Выход',
             accelerator: 'Ctrl+W',
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.close();
-            },
+            }),
           },
         ],
       },
@@ -264,26 +273,26 @@ export default class MenuBuilder {
           {
             label: 'Управление &типами...',
             accelerator: 'Ctrl+Shift+T',
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.webContents.send('open-template-manager');
-            },
+            }),
           },
           {
             label: 'Импортировать объекты мира...',
             id: 'import-world-objects-menu-item',
             enabled: ProjectService.getProjectRoot() !== null,
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.webContents.send('trigger-import-world-objects');
-            },
+            }),
           },
           { type: 'separator' }, // Adding a separator for better organization
           {
             label: 'Экспортировать объекты мира...',
             id: 'export-world-objects-menu-item',
             enabled: ProjectService.getProjectRoot() !== null,
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.webContents.send('trigger-export-world-objects');
-            },
+            }),
           },
         ],
       },
@@ -292,9 +301,9 @@ export default class MenuBuilder {
         submenu: [
           {
             label: 'Экспортировать всю рукопись',
-            click: () => {
+            click: this.withMenuClickEvent(() => {
               this.mainWindow.webContents.send('export-full-manuscript');
-            },
+            }),
           },
         ],
       },
@@ -307,29 +316,29 @@ export default class MenuBuilder {
                 {
                   label: '&Перезагрузить',
                   accelerator: 'Ctrl+R',
-                  click: () => {
+                  click: this.withMenuClickEvent(() => {
                     this.mainWindow.webContents.reload();
-                  },
+                  }),
                 },
                 {
                   label: 'Переключить &полноэкранный режим',
                   accelerator: 'F11',
-                  click: () => {
+                  click: this.withMenuClickEvent(() => {
                     this.mainWindow.setFullScreen(
                       !this.mainWindow.isFullScreen(),
                     );
-                  },
+                  }),
                 },
               ]
             : [
                 {
                   label: 'Переключить &полноэкранный режим',
                   accelerator: 'F11',
-                  click: () => {
+                  click: this.withMenuClickEvent(() => {
                     this.mainWindow.setFullScreen(
                       !this.mainWindow.isFullScreen(),
                     );
-                  },
+                  }),
                 },
               ],
       },
@@ -338,9 +347,9 @@ export default class MenuBuilder {
         submenu: [
           {
             label: 'О программе',
-            click() {
+            click: this.withMenuClickEvent(() => {
               app.showAboutPanel();
-            },
+            }),
           },
         ],
       },

@@ -196,19 +196,31 @@
 
 ## Взаимодействие процессов и событий
 
-Для связи между `main` и `renderer` процессами, а также между модулями внутри `main`-процесса, используется комбинация из двух подходов.
+Для связи между `main` и `renderer` процессами, а также между модулями внутри каждого из них, используется комбинация из трех подходов.
 
-### 1. Шина событий (`eventBus`)
+### 1. Взаимодействие внутри Main-процесса: `eventBus`
 
 * **Файл:** `src/main/eventBus.ts`
 * **Технология:** `EventEmitter` из Node.js.
-* **Назначение:** Обеспечивает слабую связанность (decoupling) между сервисами в `main`-процессе. Например, `ProjectService` не знает о существовании `NarrativeService`, но может уведомить всю систему об открытии проекта, отправив событие в `eventBus`.
+* **Назначение:** Обеспечивает слабую связанность (decoupling) между сервисами в `main`-процессе. Позволяет модулям публиковать события и другим модулям подписываться на них, не имея прямых зависимостей друг от друга. Это основной механизм для внутренней коммуникации и оповещения об изменениях состояния внутри `main`-процесса.
 * **Примеры:**
   * `eventBus.emit('project-opened')` — отправляется `ProjectService` после успешного открытия проекта.
-  * `eventBus.emit('narrative-changed')` — отправляется `NarrativeService` после изменения структуры повествования.
-  * `eventBus.emit('world-objects-changed')` — отправляется `WorldObjectService` после изменения объектов мира.
+  * `eventBus.emit('project-closed')` — отправляется `ProjectService` при закрытии проекта.
+  * `eventBus.emit('narrative-changed')` — отправляется `NarrativeService` после CRUD-операций или изменений в структуре повествования.
+  * `eventBus.emit('world-objects-changed')` — отправляется `WorldObjectService` или `TemplateService` после изменения объектов мира.
+  * `eventBus.emit('templates-changed')` — отправляется `TemplateService` после изменений в шаблонах.
 
-### 2. Межпроцессное взаимодействие (IPC)
+### 2. Взаимодействие внутри Renderer-процесса: `appEventBus`
+
+* **Файл:** `src/renderer/EventBus.ts`
+* **Технология:** Пользовательская реализация `EventEmitter`.
+* **Назначение:** Обеспечивает слабую связанность между компонентами React внутри `renderer`-процесса. Основное применение — отправка глобальных UI-событий, позволяющая избежать "пробрасывания" `props` (prop drilling).
+* **Пример использования:**
+  * При клике на пункт нативного меню `main`-процесс отправляет IPC-событие `top-menu-item-clicked`.
+  * Корневой компонент `App.tsx` получает это событие и генерирует локальное событие `appEventBus.emit('top-menu-clicked')`.
+  * Хуки `useNarrativeTreeData` и `useWorldObjectTreeData` подписаны на это событие и при его получении закрывают все открытые контекстные меню.
+
+### 3. Межпроцессное взаимодействие (IPC)
 
 * **`main.ts`** прослушивает события из `eventBus` и пересылает их в `renderer`-процесс с помощью `mainWindow.webContents.send('channel')`.
 * **`preload.ts`** действует как мост, безопасно предоставляя `renderer`-процессу доступ к определенным каналам `ipcRenderer`.
@@ -225,6 +237,7 @@
   | `open-in-external-editor` | `invoke` | **Источник:** `useItemDetails` (renderer) при клике на "Открыть в редакторе". **Назначение:** `main.ts` использует `shell.openPath` для открытия файла в системном приложении. |
   | `narrative-changed` | `on` | **Источник:** `NarrativeService` (main) после CRUD-операций. **Назначение:** `useNarrativeTreeData` (renderer) перезапрашивает дерево повествования для обновления UI. |
   | `export-full-manuscript` | `invoke` | **Источник:** `NarrativeTree` (renderer) из контекстного меню. **Назначение:** `main.ts` запускает `ManuscriptService` для сборки и сохранения файла рукописи. |
+  | `top-menu-item-clicked` | `send` | **Источник:** `menu.ts` (main) при клике на любой пункт верхнего меню. **Назначение:** `App.tsx` (renderer) получает событие и через `appEventBus` генерирует локальное событие `top-menu-clicked` для закрытия контекстных меню. |
   | `world-objects-changed` | `on` | **Источник:** `WorldObjectService` или `TemplateService` (main) после изменений. **Назначение:** `useWorldObjectTreeData` и `useItemDetails` (renderer) перезапрашивают данные для обновления UI. |
   | `open-template-manager` | `on` | **Источник:** `menu.ts` (main) при выборе пункта в меню. **Назначение:** `App.tsx` (renderer) открывает модальное окно `TemplateManagerModal`. |
   | `open-project-settings` | `on` | **Источник:** `menu.ts` (main) при выборе пункта в меню. **Назначение:** `App.tsx` (renderer) открывает модальное окно `ProjectSettingsModal`. |

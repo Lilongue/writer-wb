@@ -7,6 +7,8 @@ import { WorldObject, WorldObjectType } from '../../../common/types';
 import { ModalState } from './components/WorldObjectModal';
 import { cleanNameInput } from '../../../common/utils';
 
+import { appEventBus } from '../../EventBus';
+
 type TreeNode = (WorldObjectType & { children?: any[] }) | WorldObject;
 
 interface ReducerState {
@@ -77,6 +79,18 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     open: false,
     node: null,
   });
+
+  const onContextMenuClose = useCallback(
+    () => setContextMenu((prev) => ({ ...prev, open: false })),
+    [],
+  );
+
+  useEffect(() => {
+    appEventBus.on('top-menu-clicked', onContextMenuClose);
+    return () => {
+      appEventBus.off('top-menu-clicked', onContextMenuClose);
+    };
+  }, [onContextMenuClose]);
 
   const initialModalState: ModalState = {
     open: false,
@@ -290,8 +304,7 @@ const useWorldObjectTreeData = (onSelect: (id: string | null) => void) => {
     setExpandedKeys,
     onLoadData,
     contextMenu,
-    onContextMenuClose: () =>
-      setContextMenu((prev) => ({ ...prev, open: false })),
+    onContextMenuClose,
     handleMenuClick,
     onRightClick,
     modalState,
