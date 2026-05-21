@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, List, Collapse, Typography } from 'antd';
 import notificationService from '../../../services/notificationService';
+import pollingService from '../../../services/PollingService';
 
 interface AttachedFilesProps {
   folderPath: string | null;
@@ -50,10 +51,12 @@ const AttachedFiles: React.FC<AttachedFilesProps> = ({
 
     fetchFiles();
 
-    const intervalId = setInterval(() => {
-      if (!folderPath) {
-        return;
-      }
+    if (!folderPath) {
+      pollingService.stopDirectoryPolling();
+      return () => {};
+    }
+
+    const pollCallback = () => {
       window.electron.fs
         .readdir(folderPath)
         .then((result) => {
@@ -69,10 +72,12 @@ const AttachedFiles: React.FC<AttachedFilesProps> = ({
           // eslint-disable-next-line no-console
           console.error('Error polling for attached files:', error);
         });
-    }, 3000); // Опрашиваем каждые 3 секунды
+    };
+
+    pollingService.startDirectoryPolling(pollCallback);
 
     return () => {
-      clearInterval(intervalId);
+      pollingService.stopDirectoryPolling();
     };
   }, [folderPath]);
 

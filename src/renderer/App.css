@@ -361,5 +361,5 @@
 
 /* Fix for ant-collapse-expand-icon vertical alignment */
 .ant-collapse-expand-icon {
-  height: 32px;
+  height: 32px !important;
 }

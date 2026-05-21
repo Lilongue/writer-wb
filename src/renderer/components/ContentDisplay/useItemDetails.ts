@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityType, ItemDetails } from '../../../common/types';
 import notificationService from '../../services/notificationService';
+import pollingService from '../../services/PollingService';
 
 interface UseItemDetailsProps {
   selectedId: number | null;
@@ -115,10 +116,10 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
 
   useEffect(() => {
     if (!details?.path || !details.fileExists) {
+      pollingService.stopFilePolling();
       return () => {};
     }
-
-    const intervalId = setInterval(() => {
+    const pollCallback = () => {
       window.electron.ipcRenderer
         .invoke('fs-stat', details.path)
         .then((stats: unknown) => {
@@ -134,10 +135,10 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
             String(error),
           ),
         );
-    }, 2000);
-
+    };
+    pollingService.startFilePolling(pollCallback);
     return () => {
-      clearInterval(intervalId);
+      pollingService.stopFilePolling();
     };
   }, [details, fetchDetails]);
 
