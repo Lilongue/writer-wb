@@ -6,11 +6,16 @@
 
 ## Структура Main-процесса (`src/main`)
 
-Логика основного процесса разделена на несколько слоев для лучшей организации.
+Логика основного процесса разделена на несколько модулей для лучшей организации и разделения ответственности, следуя принципу Single Responsibility Principle.
 
 ### 1. Файлы в корне `src/main`
 
-* `main.ts`: **Точка входа.** Отвечает за создание окна (`BrowserWindow`), управление жизненным циклом приложения и регистрацию обработчиков `ipcMain`. Включает глобальный обработчик `uncaughtException`, который использует `MainNotificationService.error` для уведомления пользователя о критических ошибках основного процесса.
+* `main.ts`: **Минимальная точка входа.** Единственная задача этого файла — импортировать и запустить `initializeApp` из `appLifecycle.ts`.
+* `appLifecycle.ts`: **Оркестратор жизненного цикла.** Отвечает за управление событиями жизненного цикла приложения (`app.on('window-all-closed')`, `app.whenReady()`, `app.on('before-quit')`). Координирует инициализацию, вызывая `createWindow()` из `windowManager.ts` и `registerIpcHandlers()` из `ipcHandlers.ts`.
+* `windowManager.ts`: **Менеджер окон.** Инкапсулирует всю логику, связанную с созданием и управлением окнами `BrowserWindow`.
+* `ipcHandlers.ts`: **Центр обработки IPC.** Содержит регистрацию всех обработчиков `ipcMain.handle` и `ipcMain.on`. Этот модуль импортирует необходимые сервисы и делегирует им выполнение бизнес-логики в ответ на вызовы из `renderer`-процесса.
+* `ipcUtils.ts`: **Вспомогательные утилиты IPC.** Содержит переиспользуемые функции, связанные с IPC, которые вынесены для предотвращения циклических зависимостей между другими модулями `main`-процесса (например, между `appLifecycle.ts` и `ipcHandlers.ts`).
+* `services.ts`: **Инициализация сервисов.** Создает и экспортирует синглтон-экземпляры всех сервисов (`ProjectService`, `NarrativeService` и т.д.). Это позволяет другим модулям импортировать уже готовые экземпляры, а не создавать их.
 * `menu.ts`: Отвечает за создание и управление нативным меню приложения.
 * `preload.ts`: **Мост безопасности.** Скрипт, который выполняется в контексте `renderer`-процесса, но имеет доступ к API `Node.js`. Используется для безопасного предоставления `ipcRenderer` в React-приложение.
 * `util.ts`: Общие утилитарные функции, не привязанные к конкретной бизнес-логике.
@@ -231,7 +236,7 @@
 
 ### 3. Межпроцессное взаимодействие (IPC)
 
-* **`main.ts`** прослушивает события из `eventBus` и пересылает их в `renderer`-процесс с помощью `mainWindow.webContents.send('channel')`.
+* **`ipcHandlers.ts`** регистрирует слушателей для `eventBus` и пересылает их события в `renderer`-процесс с помощью `mainWindow.webContents.send('channel')`. Эта регистрация инициируется из `appLifecycle.ts` после готовности приложения.
 * **`preload.ts`** действует как мост, безопасно предоставляя `renderer`-процессу доступ к определенным каналам `ipcRenderer`.
 * **Renderer-процесс** (React-компоненты) использует `window.electron.ipcRenderer` для двух типов операций:
   * **Запрос-ответ:** `invoke('channel')` для получения данных от `main`-процесса (например, `project:create`, `get-narrative-items`, `dialog:show-open-dialog`).
@@ -243,9 +248,9 @@
   | :------------------------------ | :---------------- | :------------------------------------ |
   | `project-opened` | `on` | **Источник:** `ProjectService` (main) после успешной загрузки проекта. **Назначение:** `ProjectContext` (renderer) переключает состояние `isProjectOpen` в `true`, активируя основной интерфейс. |
   | `project-closed` | `on` | **Источник:** `ProjectService` (main) при закрытии проекта. **Назначение:** `ProjectContext` (renderer) переключает `isProjectOpen` в `false`, возвращая приложение на экран приветствия. |
-  | `open-in-external-editor` | `invoke` | **Источник:** `useItemDetails` (renderer) при клике на "Открыть в редакторе". **Назначение:** `main.ts` использует `shell.openPath` для открытия файла в системном приложении. |
+  | `open-in-external-editor` | `invoke` | **Источник:** `useItemDetails` (renderer) при клике на "Открыть в редакторе". **Назначение:** `ipcHandlers.ts` использует `shell.openPath` для открытия файла в системном приложении. |
   | `narrative-changed` | `on` | **Источник:** `NarrativeService` (main) после CRUD-операций. **Назначение:** `useNarrativeTreeData` (renderer) перезапрашивает дерево повествования для обновления UI. |
-  | `export-full-manuscript` | `invoke` | **Источник:** `NarrativeTree` (renderer) из контекстного меню. **Назначение:** `main.ts` запускает `ManuscriptService` для сборки и сохранения файла рукописи. |
+  | `export-full-manuscript` | `invoke` | **Источник:** `NarrativeTree` (renderer) из контекстного меню. **Назначение:** `ipcHandlers.ts` запускает `ManuscriptService` для сборки и сохранения файла рукописи. |
   | `top-menu-item-clicked` | `send` | **Источник:** `menu.ts` (main) при клике на любой пункт верхнего меню. **Назначение:** `App.tsx` (renderer) получает событие и через `appEventBus` генерирует локальное событие `top-menu-clicked` для закрытия контекстных меню. |
   | `world-objects-changed` | `on` | **Источник:** `WorldObjectService` или `TemplateService` (main) после изменений. **Назначение:** `useWorldObjectTreeData` и `useItemDetails` (renderer) перезапрашивают данные для обновления UI. |
   | `open-template-manager` | `on` | **Источник:** `menu.ts` (main) при выборе пункта в меню. **Назначение:** `App.tsx` (renderer) открывает модальное окно `TemplateManagerModal`. |
