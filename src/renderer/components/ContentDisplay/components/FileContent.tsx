@@ -5,14 +5,14 @@ import ReactMarkdown from 'react-markdown';
 interface FileContentProps {
   fileExists: boolean | undefined;
   content: string | null;
-  onCreteFile: () => void;
+  onCreateFile: () => void;
   isCreateFileDisabled: boolean;
 }
 
 const FileContent: React.FC<FileContentProps> = ({
   fileExists,
   content,
-  onCreteFile,
+  onCreateFile,
   isCreateFileDisabled,
 }) => {
   return fileExists ? (
@@ -28,7 +28,7 @@ const FileContent: React.FC<FileContentProps> = ({
       <br />
       <Button
         type="primary"
-        onClick={onCreteFile}
+        onClick={onCreateFile}
         disabled={isCreateFileDisabled}
       >
         Создать файл

@@ -1,6 +1,8 @@
 /**
  * Представление элемента повествования (часть, глава, сцена) в коде.
  */
+import BetterSqlite3 from 'better-sqlite3';
+
 export interface NarrativeItem {
   id: number;
   name: string;
@@ -231,4 +233,13 @@ export interface ImportResult {
     errors: number;
   };
   messages: string[]; // To store detailed error/warning messages
+}
+
+/**
+ * Определяет структуру скрипта миграции.
+ */
+export interface Migration {
+  version: string;
+  up: (db: BetterSqlite3.Database) => void;
+  down?: (db: BetterSqlite3.Database) => void;
 }

@@ -8,6 +8,7 @@ import {
 import path from 'path'; // Добавлено
 import ProjectService from './services/ProjectService';
 import MainNotificationService from './services/NotificationService';
+import eventBus from './eventBus';
 // import { handleProjectArchiveRequest } from './main'; // REMOVED
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -51,6 +52,18 @@ export default class MenuBuilder {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+
+    const migrationMenuItem = menu.getMenuItemById(
+      'manual-migration-menu-item',
+    );
+    if (migrationMenuItem) {
+      eventBus.on('project-opened', (data: { isOutdated: boolean }) => {
+        migrationMenuItem.enabled = data.isOutdated;
+      });
+      eventBus.on('project-closed', () => {
+        migrationMenuItem.enabled = false;
+      });
+    }
 
     return menu;
   }
@@ -230,6 +243,14 @@ export default class MenuBuilder {
             accelerator: 'Ctrl+C',
             click: this.withMenuClickEvent(() => {
               ProjectService.close();
+            }),
+          },
+          {
+            label: 'Обновить структуру проекта...',
+            id: 'manual-migration-menu-item',
+            enabled: false,
+            click: this.withMenuClickEvent(() => {
+              this.mainWindow.webContents.send('request-manual-migration');
             }),
           },
           { type: 'separator' },

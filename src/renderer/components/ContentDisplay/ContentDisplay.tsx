@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Card, Empty, Button } from 'antd';
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import useItemDetails from './useItemDetails';
@@ -159,7 +158,7 @@ const ContentDisplay = forwardRef<ContentDisplayRef, ContentDisplayProps>(
         <FileContent
           fileExists={details.fileExists}
           content={details.content}
-          onCreteFile={handleCreateFile}
+          onCreateFile={handleCreateFile}
           isCreateFileDisabled={!details.path}
         />
       </Card>

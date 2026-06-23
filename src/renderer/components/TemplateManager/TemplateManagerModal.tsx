@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { useState, useEffect } from 'react';
 import { Modal, Button, List, Checkbox, Space } from 'antd';
 import useTemplates from './useTemplates';
@@ -12,6 +11,7 @@ import TemplateEditorModal, {
   TemplateEditModalState,
 } from './components/TemplateEditorModal';
 import ImportTemplatesModal from './components/ImportTemplatesModal';
+import notificationService from '../../services/notificationService';
 
 function TemplateManagerModal({
   visible,
@@ -76,7 +76,10 @@ function TemplateManagerModal({
       fetchTemplates();
       window.electron.ipcRenderer.sendMessage('world-objects-changed');
     } catch (errorInfo) {
-      console.error('Failed:', errorInfo);
+      notificationService.showError(
+        'Ошибка сохранения шаблона',
+        String(errorInfo),
+      );
     }
   };
 
@@ -108,7 +111,7 @@ function TemplateManagerModal({
       fetchTemplates();
       window.electron.ipcRenderer.sendMessage('world-objects-changed');
     } catch (error) {
-      console.error('File import failed:', error);
+      notificationService.showError('Ошибка импорта из файла', String(error));
     }
     onClose(); // Close the entire manager
   };

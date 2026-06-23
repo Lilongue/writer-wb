@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added at [0.2.4]
 
+- **Project Migration:** Implemented a project migration mechanism to automatically update project structure to new versions.
+
 ### Changed at [0.2.4]
 
 - Standardized the appearance of collapsible list panels (Attached Files, Narrative Plan, Connections) to ensure consistent height and vertical alignment in their collapsed state.

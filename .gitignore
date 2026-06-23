@@ -28,7 +28,10 @@ npm-debug.log.*
 *.sass.d.ts
 *.scss.d.ts
 
+# agents
 .gemini/
 GEMINI.md
 .geminiignore
 .kilocode/
+.gigaide/
+.opencode/

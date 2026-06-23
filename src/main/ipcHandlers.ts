@@ -19,6 +19,7 @@ import { TemplateService } from './services/TemplateService';
 import MainNotificationService from './services/NotificationService';
 import ArchiveService from './services/ArchiveService';
 import { EntityType } from '../common/types';
+import MigrationService from './services/MigrationService';
 import { getMainWindow } from './windowManager';
 import triggerSaveInRenderer from './ipcUtils';
 
@@ -706,6 +707,52 @@ const registerIpcHandlers = () => {
 
   ipcMain.handle('project-settings:update', (_event, settings) => {
     return projectSettingsService.updateSettings(settings);
+  });
+
+  ipcMain.on('request-manual-migration', async () => {
+    const projectRoot = projectService.getProjectRoot();
+    if (!projectRoot) {
+      MainNotificationService.warning(
+        'Миграция невозможна',
+        'Сначала откройте проект, который необходимо обновить.',
+      );
+      return;
+    }
+
+    const db = projectService.getDb();
+    const projectVersion = projectService.getProjectVersion();
+
+    const migrationService = new MigrationService(
+      db,
+      projectRoot,
+      projectVersion,
+    );
+    const success = await migrationService.migrate();
+
+    if (success) {
+      const mainWindow = getMainWindow();
+      if (mainWindow) {
+        dialog
+          .showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Обновление завершено',
+            message: 'Проект успешно обновлен. Сейчас он будет перезагружен.',
+          })
+          .then(async () => {
+            // Reload the project
+            await projectService.close();
+            await projectService.open(projectRoot);
+            return undefined;
+          })
+          .catch((err) =>
+            MainNotificationService.error(
+              'Error showing dialog or reloading project:',
+              err,
+            ),
+          );
+      }
+    }
+    // If not successful, MigrationService already showed an error.
   });
 };
 

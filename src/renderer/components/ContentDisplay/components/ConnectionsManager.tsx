@@ -7,7 +7,6 @@ import {
   Checkbox,
   Collapse,
   Dropdown,
-  Menu,
   Typography,
 } from 'antd';
 import {
@@ -147,25 +146,19 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
     </div>
   );
 
-  const filterMenu = (
-    <Menu>
-      {availableTemplates.map((template) => (
-        <Menu.Item
-          key={template.id}
-          onClick={(e) => e.domEvent.stopPropagation()}
-        >
-          <Checkbox
-            checked={filters.templateIds.includes(template.id)}
-            onChange={(e) =>
-              handleTemplateFilterChange(template.id, e.target.checked)
-            }
-          >
-            {template.name}
-          </Checkbox>
-        </Menu.Item>
-      ))}
-    </Menu>
-  );
+  const filterMenuItems = availableTemplates.map((template) => ({
+    key: template.id,
+    label: (
+      <Checkbox
+        checked={filters.templateIds.includes(template.id)}
+        onChange={(e) =>
+          handleTemplateFilterChange(template.id, e.target.checked)
+        }
+      >
+        {template.name}
+      </Checkbox>
+    ),
+  }));
 
   return (
     <div className="connections-section">
@@ -206,7 +199,7 @@ const ConnectionsManager: React.FC<ConnectionsManagerProps> = ({
                     Объекты мира
                   </Checkbox>
                   <Dropdown
-                    overlay={filterMenu}
+                    menu={{ items: filterMenuItems }}
                     trigger={['click']}
                     placement="bottomRight"
                     disabled={availableTemplates.length === 0}

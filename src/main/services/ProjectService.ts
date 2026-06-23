@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import Database from 'better-sqlite3';
 import { app } from 'electron';
+import semver from 'semver';
 import FileSystemService from './FileSystemService';
 import { NarrativeService } from './NarrativeService';
 import eventBus from '../eventBus';
@@ -126,7 +127,6 @@ class ProjectService {
 
     const structureIsValid = await this._validateProjectStructure(projectPath);
     if (!structureIsValid) {
-      // TODO: Показать пользователю осмысленную ошибку
       MainNotificationService.error(
         'Ошибка открытия проекта',
         'Неверная структура проекта или поврежденные файлы.',
@@ -138,12 +138,23 @@ class ProjectService {
     this.db = this._connectToDatabase(dbPath);
     this.db.pragma('journal_mode = WAL');
 
+    const projectVersion = this._getProjectVersion();
+    const appVersion = app.getVersion();
+    const isOutdated = semver.lt(projectVersion, appVersion);
+
     this.projectRoot = projectPath;
-    MainNotificationService.info(
-      'Проект открыт',
-      `Проект успешно открыт по пути: ${projectPath}`,
-    );
-    eventBus.emit('project-opened');
+    if (isOutdated) {
+      MainNotificationService.warning(
+        'Проект открыт с устаревшей структурой',
+        `Проект требует обновления. Текущая версия: ${projectVersion}, требуется: ${appVersion}. Используйте меню "Файл" -> "Обновить структуру проекта..." для миграции.`,
+      );
+    } else {
+      MainNotificationService.info(
+        'Проект открыт',
+        `Проект успешно открыт по пути: ${projectPath}`,
+      );
+    }
+    eventBus.emit('project-opened', { isOutdated });
     return true;
   }
 
@@ -186,6 +197,10 @@ class ProjectService {
     return this.projectRoot;
   }
 
+  public getProjectVersion(): string {
+    return this._getProjectVersion();
+  }
+
   public getProjectPathDetails(): {
     projectRoot: string;
     dbPath: string;
@@ -226,6 +241,27 @@ class ProjectService {
       [EntityType.Narrative, EntityType.WorldObject],
     );
     return dbExists && dirsExist;
+  }
+
+  private _getProjectVersion(): string {
+    if (!this.db) {
+      // Это теоретически не должно произойти, если вызов идет из open()
+      throw new Error('Database not connected.');
+    }
+    try {
+      const stmt = this.db.prepare(
+        "SELECT value FROM project_settings WHERE key = 'project.version'",
+      );
+      const result = stmt.get() as { value: string } | undefined;
+      // Если версия не найдена, возвращаем '0.0.0' для запуска всех миграций
+      return result?.value ?? '0.0.0';
+    } catch (error) {
+      // Если таблицы еще нет (очень старый проект), также возвращаем '0.0.0'
+      MainNotificationService.warning(
+        `Could not retrieve project version, assuming 0.0.0. Error:${error instanceof Error ? error.message : String(error)}`,
+      );
+      return '0.0.0';
+    }
   }
 }
 

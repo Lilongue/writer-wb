@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { EntityType, ItemDetails } from '../../../common/types';
+import { EntityType, ItemDetails, ResolvedEntity } from '../../../common/types';
 import notificationService from '../../services/notificationService';
 import pollingService from '../../services/PollingService';
 
@@ -31,7 +31,7 @@ const getDirname = (filePath: string): string => {
 const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
   const [details, setDetails] = useState<ItemDetails | null>(null);
   const [loading, setLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<ResolvedEntity[]>([]);
 
   const fetchDetails = useCallback(() => {
     if (selectedId && selectedType) {
@@ -63,7 +63,7 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
             query,
             currentEntity: { id: details.id, type: selectedType },
           })
-          .then((result: unknown) => setSearchResults(result as any[]))
+          .then((result: unknown) => setSearchResults(result as ResolvedEntity[]))
           .catch((error) =>
             notificationService.showError(
               'Ошибка поиска сущностей',
@@ -117,7 +117,7 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
   useEffect(() => {
     if (!details?.path || !details.fileExists) {
       pollingService.stopFilePolling();
-      return () => {};
+      return;
     }
     const pollCallback = () => {
       window.electron.ipcRenderer
@@ -159,8 +159,8 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
     (fileName: string) => {
       if (details?.path) {
         const folderPath = getDirname(details.path);
-        // This is not platform-agnostic, but electron will handle it.
-        const fullPath = `${folderPath}/${fileName}`;
+        const sep = folderPath.includes('\\') ? '\\' : '/';
+        const fullPath = `${folderPath}${sep}${fileName}`;
 
         window.electron.ipcRenderer
           .invoke('open-in-external-editor', fullPath)
