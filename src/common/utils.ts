@@ -12,4 +12,7 @@ export function cleanNameInput(name: string): string {
   return trimmed.replace(/[^a-zA-Zа-яА-ЯёЁ0-9.,!?'"-_\s]/g, '');
 }
 
-export default cleanNameInput;
+export function generateExportName(): string {
+  const randomPart = Math.random().toString(36).substring(2, 11);
+  return `template_${Date.now()}_${randomPart}`;
+}

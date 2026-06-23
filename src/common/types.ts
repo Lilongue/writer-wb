@@ -50,6 +50,7 @@ export interface WorldObject {
 export interface EntityTemplate {
   id: number;
   name: string;
+  export_name: string;
   category: EntityType;
   fields_schema: string; // JSON-схема полей
   is_visible: boolean;

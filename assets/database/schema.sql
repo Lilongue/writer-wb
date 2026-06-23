@@ -1,6 +1,7 @@
 CREATE TABLE entity_templates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
+    export_name TEXT NOT NULL UNIQUE,
     category TEXT NOT NULL, -- 'narrative' или 'world'
     fields_schema TEXT, -- JSON-схема полей (только для 'world')
     is_visible BOOLEAN NOT NULL DEFAULT TRUE,

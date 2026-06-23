@@ -12,6 +12,7 @@ import {
   EntityType,
 } from '../../common/types';
 import MainNotificationService from './NotificationService';
+import { generateExportName } from '../../common/utils';
 
 /**
  * Сервис для управления шаблонами (типами) объектов.
@@ -100,8 +101,12 @@ export class TemplateService {
     const weight =
       templateData.category === EntityType.Narrative ? templateData.weight : 0;
 
+    // Для предустановленных шаблонов name может служить основой для export_name
+    const exportName = name;
+
     const newId = this.templateDao.createTemplate(
       nameToStore,
+      exportName,
       category,
       fieldsSchema,
       weight,
@@ -123,8 +128,11 @@ export class TemplateService {
       })),
     );
 
+    const exportName = generateExportName();
+
     const newId = this.templateDao.createTemplate(
       name,
+      exportName,
       category,
       fieldsSchema,
       weight,

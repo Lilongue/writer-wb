@@ -33,7 +33,8 @@ export class TemplateDao extends BaseDao {
 
   /**
    * Создает новый шаблон сущности.
-   * @param {string} name Название шаблона.
+   * @param name
+   * @param exportName
    * @param {'narrative' | 'world'} category Категория шаблона ('narrative' или 'world').
    * @param {string} fieldsSchema JSON-схема полей шаблона.
    * @param {number} weight Вес для сортировки.
@@ -41,15 +42,16 @@ export class TemplateDao extends BaseDao {
    */
   public createTemplate(
     name: string,
+    exportName: string,
     category: 'narrative' | 'world',
     fieldsSchema: string,
     weight: number = 0,
   ): number {
     const db = this.getDb();
     const stmt = db.prepare(
-      'INSERT INTO entity_templates (name, category, fields_schema, weight) VALUES (?, ?, ?, ?)',
+      'INSERT INTO entity_templates (name, export_name, category, fields_schema, weight) VALUES (?, ?, ?, ?, ?)',
     );
-    const info = stmt.run(name, category, fieldsSchema, weight);
+    const info = stmt.run(name, exportName, category, fieldsSchema, weight);
     return info.lastInsertRowid as number;
   }
 
