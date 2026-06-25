@@ -27,6 +27,7 @@ describe('narrativeReorderer', () => {
     {
       id: 1,
       name: 'Project',
+      export_name: '1',
       weight: 1000,
       category: EntityType.Narrative,
       fields_schema: '[]',
@@ -35,6 +36,7 @@ describe('narrativeReorderer', () => {
     {
       id: 2,
       name: 'Chapter',
+      export_name: '2',
       weight: 100,
       category: EntityType.Narrative,
       fields_schema: '[]',
@@ -43,6 +45,7 @@ describe('narrativeReorderer', () => {
     {
       id: 3,
       name: 'Scene',
+      export_name: '3',
       weight: 10,
       category: EntityType.Narrative,
       fields_schema: '[]',
@@ -51,6 +54,7 @@ describe('narrativeReorderer', () => {
     {
       id: 4,
       name: 'Sub-Scene',
+      export_name: '4',
       weight: 1,
       category: EntityType.Narrative,
       fields_schema: '[]',
