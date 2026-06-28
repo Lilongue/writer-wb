@@ -63,7 +63,9 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
             query,
             currentEntity: { id: details.id, type: selectedType },
           })
-          .then((result: unknown) => setSearchResults(result as ResolvedEntity[]))
+          .then((result: unknown) =>
+            setSearchResults(result as ResolvedEntity[]),
+          )
           .catch((error) =>
             notificationService.showError(
               'Ошибка поиска сущностей',
@@ -137,9 +139,7 @@ const useItemDetails = ({ selectedId, selectedType }: UseItemDetailsProps) => {
         );
     };
     pollingService.startFilePolling(pollCallback);
-    return () => {
-      pollingService.stopFilePolling();
-    };
+    pollingService.stopFilePolling();
   }, [details, fetchDetails]);
 
   const handleOpenFile = useCallback(() => {

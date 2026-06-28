@@ -111,7 +111,7 @@ export class TemplateService {
       fieldsSchema,
       weight,
     );
-    return this.templateDao.getTemplate(newId);
+    return this.templateDao.getTemplate(newId)!;
   }
 
   createTemplate(
@@ -137,10 +137,10 @@ export class TemplateService {
       fieldsSchema,
       weight,
     );
-    return this.templateDao.getTemplate(newId);
+    return this.templateDao.getTemplate(newId)!;
   }
 
-  getTemplate(id: number): EntityTemplate {
+  getTemplate(id: number): EntityTemplate | undefined {
     return this.templateDao.getTemplate(id);
   }
 
@@ -193,7 +193,7 @@ export class TemplateService {
 
     this.templateDao.updateTemplateSchema(id, JSON.stringify(finalSchema));
 
-    return this.getTemplate(id);
+    return this.getTemplate(id)!;
   }
 }
 

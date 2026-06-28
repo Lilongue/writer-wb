@@ -60,10 +60,10 @@ export class TemplateDao extends BaseDao {
    * @param {number} id ID шаблона.
    * @returns {EntityTemplate} Объект шаблона сущности.
    */
-  public getTemplate(id: number): EntityTemplate {
+  public getTemplate(id: number): EntityTemplate | undefined {
     const db = this.getDb();
     const stmt = db.prepare('SELECT * FROM entity_templates WHERE id = ?');
-    return stmt.get(id) as EntityTemplate;
+    return stmt.get(id) as EntityTemplate | undefined;
   }
 
   /**
