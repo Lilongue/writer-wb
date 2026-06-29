@@ -4,6 +4,10 @@
 
 ---
 
+## 29 июня 2026 г
+
+* **Расширение тестов Services:** Разработаны и внедрены модульные тесты для `ManuscriptService.ts` и `NarrativeService.ts`, обеспечивающие покрытие кода > 80%.
+
 ## 28 июня 2026 г
 
 * **Расширение тестов Services** Разработаны и внедрены модульные тесты для `FileSystemService.ts` и `ImportExportService.ts`. Также был исправлен вызов `templateDao.createTemplate` в `ImportExportService.ts` для соответствия его сигнатуре и использования утилиты `generateExportName`. Исправлена сигнатура метода в `TemplateDao`.

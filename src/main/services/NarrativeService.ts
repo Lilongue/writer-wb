@@ -73,6 +73,9 @@ export class NarrativeService {
           content = `# Ошибка чтения файла\nНе удалось прочитать файл, хотя он существует.`;
           fileExists = false; // It exists but is unreadable
         }
+      } else {
+        fileExists = false;
+        content = '# Файл не найден\\nНажмите кнопку ниже, чтобы создать его.';
       }
     } else {
       fileExists = false;
