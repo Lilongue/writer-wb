@@ -177,8 +177,8 @@ export type PredefinedTemplate =
  * Описывает структуру файла `predefined-templates.json`.
  */
 export type PredefinedTemplatesFile = {
-  world_templates: PredefinedWorldTemplate[];
-  narrative_templates: PredefinedNarrativeTemplate[];
+  world_templates?: PredefinedWorldTemplate[];
+  narrative_templates?: PredefinedNarrativeTemplate[];
 };
 
 /**

@@ -8,6 +8,7 @@
 
 * **Расширение тестов Services:** Разработаны и внедрены модульные тесты для `ManuscriptService.ts` и `NarrativeService.ts`, обеспечивающие покрытие кода > 80%.
 * **Расширение тестов Services:** Разработаны и внедрены модульные тесты для `NotificationService.ts` и `ProjectService.ts`, обеспечивающие покрытие кода > 80%.
+* **Расширение тестов Services:** Разработаны и внедрены модульные тесты для `ProjectSettingsService.ts` и `TemplateService.ts`, обеспечивающие покрытие кода 100%.
 
 ## 28 июня 2026 г
 
