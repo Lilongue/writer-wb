@@ -269,5 +269,82 @@ describe('narrativeReorderer', () => {
       expect(newParentId).toBe(2); // Should be placed in Chapter 1
       expect(newSortOrder).toBe(0); // As the first child, pushing others down
     });
+
+    it('should return if no valid container found up the tree (drag high-level item onto low-level)', () => {
+      // USER ACTION: Drag "Project" (highest level) after "Sub-Scene" (lowest level).
+      // EXPECTED: The logic should ascend the tree from Sub-Scene's parent, fail to find a valid parent for Project,
+      // and thus return the original parent and sort order for Project.
+      const { newParentId, newSortOrder } = findNewParentAndSortOrder({
+        dragItem: getItem(1), // Project
+        dropItem: getItem(7), // Sub-Scene 2.1.1
+        dropType: 'after',
+        items: mockItems,
+        getTemplate,
+      });
+      expect(newParentId).toBe(null); // Original parent of Project is null
+      expect(newSortOrder).toBe(0); // Original sort order of Project
+    });
+  });
+
+  describe('Root Level Reordering', () => {
+    const rootItem2: NarrativeItem = {
+      id: 8,
+      name: 'Project 2',
+      template_id: 1,
+      parent_id: null,
+      sort_order: 1,
+    };
+    const itemsWithTwoRoots = [...mockItems, rootItem2];
+    const getRootItem2 = () => rootItem2;
+
+    it('should handle invalid drop on a root item', () => {
+      // USER ACTION: Drag Chapter (weight 100) after Project 2 (weight 1000). Invalid sibling, parent is Project.
+      // EXPECTED: Logic detects non-sibling move. `canBeChild` is true. `handleInvalidMove` will dive.
+      // The `else` branch for `searchRoot` determination (line 72) should be hit here.
+      const { newParentId, newSortOrder } = findNewParentAndSortOrder({
+        dragItem: {
+          ...getItem(1),
+          name: 'Project To Drag',
+          id: 9,
+          parent_id: null,
+        }, // A different project
+        dropItem: getRootItem2(), // Drop after Project 2
+        dropType: 'after',
+        items: itemsWithTwoRoots,
+        getTemplate,
+      });
+      // This move is complex, but the main goal is to cover the branch.
+      // The logic should find a valid home. Let's trace it.
+      // `searchRoot` becomes `items.find(i => i.parent_id === null)`, which is Project 1.
+      // `validContainer` is Project 1, but `canBeChild` is false. Loop continues up to null. `return`.
+      // So the original position is kept.
+      expect(newParentId).toBe(null);
+      expect(newSortOrder).toBe(0);
+    });
+
+    it('should handle sibling move at the root level', () => {
+      // USER ACTION: Drag Project 2 before Project 1
+      const { newParentId, newSortOrder } = findNewParentAndSortOrder({
+        dragItem: getRootItem2(),
+        dropItem: getItem(1),
+        dropType: 'before',
+        items: itemsWithTwoRoots,
+        getTemplate,
+      });
+
+      // `newParentId` should be null for root level
+      expect(newParentId).toBe(null);
+      expect(newSortOrder).toBe(0);
+
+      const updates = calculateNarrativeOrderUpdates({
+        dragItem: getRootItem2(),
+        items: itemsWithTwoRoots,
+        newParentId,
+        newSortOrder,
+      });
+
+      expect(updates).toContainEqual({ id: 8, parent_id: null, sort_order: 0 });
+      expect(updates).toContainEqual({ id: 1, parent_id: null, sort_order: 1 });
+    });
   });
 });
