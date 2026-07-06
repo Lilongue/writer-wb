@@ -149,6 +149,13 @@ export default function App() {
       },
     );
 
+    const cleanupManualMigration = window.electron.ipcRenderer.on(
+      'request-manual-migration',
+      () => {
+        window.electron.ipcRenderer.sendMessage('request-manual-migration');
+      },
+    );
+
     // If project is closed, clear selection
     if (!isProjectOpen) {
       setSelection({ id: null, type: null });
@@ -166,6 +173,7 @@ export default function App() {
       cleanupNotification();
       cleanupItemDeleted();
       cleanupArchiveRequest();
+      cleanupManualMigration();
     };
   }, [isProjectOpen, selection.id, selection.type, importFileContent]); // Rerun effect when isProjectOpen or selection changes
 

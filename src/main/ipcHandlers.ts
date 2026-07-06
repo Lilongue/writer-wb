@@ -1,6 +1,7 @@
 import { shell, ipcMain, dialog, OpenDialogOptions } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import Database from 'better-sqlite3';
 import { spawn } from 'child_process';
 import fileSystemService from './services/FileSystemService';
 import eventBus from './eventBus';
@@ -710,6 +711,7 @@ const registerIpcHandlers = () => {
   });
 
   ipcMain.on('request-manual-migration', async () => {
+    // 1. Get project details before closing
     const projectRoot = projectService.getProjectRoot();
     if (!projectRoot) {
       MainNotificationService.warning(
@@ -718,41 +720,47 @@ const registerIpcHandlers = () => {
       );
       return;
     }
-
-    const db = projectService.getDb();
     const projectVersion = projectService.getProjectVersion();
 
-    const migrationService = new MigrationService(
-      db,
-      projectRoot,
-      projectVersion,
-    );
-    const success = await migrationService.migrate();
+    try {
+      // 2. Close the project to release any file locks on the database
+      projectService.close();
 
-    if (success) {
-      const mainWindow = getMainWindow();
-      if (mainWindow) {
-        dialog
-          .showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'Обновление завершено',
-            message: 'Проект успешно обновлен. Сейчас он будет перезагружен.',
-          })
-          .then(async () => {
-            // Reload the project
-            await projectService.close();
-            await projectService.open(projectRoot);
-            return undefined;
-          })
-          .catch((err) =>
-            MainNotificationService.error(
-              'Error showing dialog or reloading project:',
-              err,
-            ),
-          );
+      // 3. Open a new, dedicated database connection for the migration
+      const dbPath = path.join(projectRoot, 'project.sqlite');
+      const migrationDb = new Database(dbPath);
+      migrationDb.pragma('journal_mode = WAL');
+
+      const migrationService = new MigrationService(
+        migrationDb,
+        projectRoot,
+        projectVersion,
+      );
+      const success = await migrationService.migrate();
+
+      // 4. Close the dedicated migration connection
+      migrationDb.close();
+
+      // 5. Reopen the project, regardless of success, to return the app to a stable state.
+      // MigrationService should have handled backup/restore and error notifications.
+      await projectService.open(projectRoot);
+
+      if (success) {
+        MainNotificationService.success(
+          'Обновление завершено',
+          'Проект был успешно обновлен и открыт заново.',
+        );
       }
+      // If `success` is false, MigrationService already showed an error.
+      // The subsequent `projectService.open` will show its own notifications.
+    } catch (error) {
+      MainNotificationService.error(
+        'Ошибка миграции',
+        `Произошла непредвиденная ошибка в процессе миграции: ${String(error)}`,
+      );
+      // Attempt to reopen the project even after a catastrophic failure
+      await projectService.open(projectRoot);
     }
-    // If not successful, MigrationService already showed an error.
   });
 };
 

@@ -31,6 +31,7 @@ export type Channels =
   | 'project:archive-request'
   | 'trigger-export-world-objects'
   | 'trigger-import-world-objects'
+  | 'request-manual-migration'
   | 'main:request-save'
   | 'renderer:save-complete'
   | 'top-menu-item-clicked';

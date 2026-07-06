@@ -25,8 +25,16 @@ class MigrationService {
 
   public async migrate(): Promise<boolean> {
     const appVersion = app.getVersion();
+    MainNotificationService.info(
+      'Проверка миграций',
+      `Версия проекта: ${this.projectVersion}, Версия приложения: ${appVersion}`,
+    );
 
     if (semver.gte(this.projectVersion, appVersion)) {
+      MainNotificationService.info(
+        'Миграция не требуется',
+        'Версия проекта актуальна.',
+      );
       return true;
     }
 
@@ -39,6 +47,10 @@ class MigrationService {
       .sort((a, b) => semver.compare(a.version, b.version));
 
     if (migrationsToApply.length === 0) {
+      MainNotificationService.info(
+        'Миграция не требуется',
+        'Не найдено подходящих скриптов для обновления.',
+      );
       this.updateProjectVersion(appVersion);
       return true;
     }
@@ -69,22 +81,45 @@ class MigrationService {
 
     const allApplied = migrationsToApply.every((migration) => {
       try {
+        // Disable FK constraints BEFORE the transaction starts.
+        this.db.exec('PRAGMA foreign_keys = OFF;');
+
         const transaction = this.db.transaction(() => {
           migration.up(this.db);
           this.updateProjectVersion(migration.version);
         });
         transaction();
+
         return true;
       } catch (error) {
         MainNotificationService.error(
           'Ошибка миграции',
-          `Ошибка при применении миграции до версии ${migration.version}: ${String(error)}`,
+          `Ошибка при применении миграции до версии ${migration.version}: ${String(
+            error,
+          )}`,
         );
         return false;
+      } finally {
+        // Always re-enable foreign keys, even if the migration failed.
+        this.db.exec('PRAGMA foreign_keys = ON;');
       }
     });
 
     if (!allApplied) {
+      // TODO: Here we should ideally restore from backup. For now, we've just shown an error.
+      return false;
+    }
+
+    // Run a final integrity check after all migrations are applied
+    const integrityCheck = this.db.prepare('PRAGMA foreign_key_check;').all();
+    if (integrityCheck.length > 0) {
+      MainNotificationService.error(
+        'Ошибка целостности данных',
+        `После миграции нарушена целостность внешних ключей: ${JSON.stringify(
+          integrityCheck,
+        )}`,
+      );
+      // TODO: Restore from backup here as well.
       return false;
     }
 
@@ -109,10 +144,9 @@ class MigrationService {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
     const backupFileName = `migration-${fromVersion}-to-${toVersion}-${timestamp}.db.backup`;
-    const dbPath = this.db.name;
     const backupPath = path.join(backupDir, backupFileName);
 
-    fs.copyFileSync(dbPath, backupPath);
+    this.db.backup(backupPath);
   }
 }
 
