@@ -9,7 +9,7 @@ import FileSystemService from './FileSystemService';
 import { NarrativeService } from './NarrativeService';
 import eventBus from '../eventBus';
 import { TemplateService } from './TemplateService';
-import { sanitizeFilename } from '../util';
+import { sanitizeFilename } from '../../common/utils/stringUtils';
 import ProjectSettingsService from './ProjectSettingsService';
 import { EntityType } from '../../common/types';
 import MainNotificationService from './NotificationService';

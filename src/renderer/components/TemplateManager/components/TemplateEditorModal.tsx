@@ -3,7 +3,7 @@ import { Modal, Button, Input, Form, message, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { EntityTemplate } from '../../../../common/types';
 import '../../../App.css';
-import { cleanNameInput } from '../../../../common/utils';
+import { cleanNameInput } from '../../../../common/utils/stringUtils';
 
 export interface TemplateEditModalState {
   open: boolean;

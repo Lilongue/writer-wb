@@ -5,7 +5,7 @@ import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { resolveHtmlPath } from './utils/projectUtils';
 import eventBus from './eventBus';
 import MainNotificationService from './services/NotificationService';
 import notificationService from '../renderer/services/notificationService';

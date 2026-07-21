@@ -12,7 +12,7 @@ import {
   EntityType,
 } from '../../common/types';
 import MainNotificationService from './NotificationService';
-import { generateExportName } from '../../common/utils';
+import { generateExportName } from '../../common/utils/stringUtils';
 
 /**
  * Сервис для управления шаблонами (типами) объектов.

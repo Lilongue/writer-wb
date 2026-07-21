@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'path';
-import { resolveHtmlPath, sanitizeFilename, slugify } from '../../main/util';
+import { resolveHtmlPath } from '../../main/utils/projectUtils';
+import { sanitizeFilename, slugify } from '../../common/utils/stringUtils';
 
 describe('util', () => {
   const originalNodeEnv = process.env.NODE_ENV;

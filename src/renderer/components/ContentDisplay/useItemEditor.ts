@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityType, ItemDetails } from '../../../common/types';
 import notificationService from '../../services/notificationService';
-import { cleanNameInput } from '../../../common/utils';
+import { cleanNameInput } from '../../../common/utils/stringUtils';
 
 interface UseItemEditorProps {
   details: ItemDetails | null;

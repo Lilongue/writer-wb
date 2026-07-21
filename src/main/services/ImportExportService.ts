@@ -7,7 +7,7 @@ import {
   ExportedConnection,
   ImportResult,
 } from '../../common/types';
-import { generateExportName } from '../../common/utils';
+import { generateExportName } from '../../common/utils/stringUtils';
 import { TemplateDao } from '../data/daos/TemplateDao';
 import { WorldObjectDao } from '../data/daos/WorldObjectDao';
 import { ConnectionDao } from '../data/daos/ConnectionDao'; // <-- Добавлено

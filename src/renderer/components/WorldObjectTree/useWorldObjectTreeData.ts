@@ -5,7 +5,7 @@ import type { MenuProps } from 'antd';
 import notificationService from '../../services/notificationService';
 import { WorldObject, WorldObjectType } from '../../../common/types';
 import { ModalState } from './components/WorldObjectModal';
-import { cleanNameInput } from '../../../common/utils';
+import { cleanNameInput } from '../../../common/utils/stringUtils';
 
 import { appEventBus } from '../../EventBus';
 

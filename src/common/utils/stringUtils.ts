@@ -1,20 +1,25 @@
-/* eslint import/prefer-default-export: off */
-import { URL } from 'url';
-import path from 'path';
+export function cleanNameInput(name: string): string {
+  // First, trim leading/trailing whitespace
+  const trimmed = name.trim();
+  // Then, remove any characters that are not:
+  // - Latin letters (a-zA-Z)
+  // - Cyrillic letters (а-яА-ЯёЁ)
+  // - Digits (0-9)
+  // - Common punctuation marks (.,!?'"-_)
+  // - Spaces (\s)
+  // The hyphen '-' is included as a valid character within the set.
+  // The 'g' flag ensures all occurrences are replaced.
+  return trimmed.replace(/[^a-zA-Zа-яА-ЯёЁ0-9.,!?'"-_\s]/g, '');
+}
 
-export function resolveHtmlPath(htmlFileName: string) {
-  if (process.env.NODE_ENV === 'development') {
-    const port = process.env.PORT || 1212;
-    const url = new URL(`http://localhost:${port}`);
-    url.pathname = htmlFileName;
-    return url.href;
-  }
-  return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}`;
+export function generateExportName(): string {
+  const randomPart = Math.random().toString(36).substring(2, 11);
+  return `template_${Date.now()}_${randomPart}`;
 }
 
 export function sanitizeFilename(filename: string): string {
   return filename
-    .replace(/[<>:"/\\|?*]+/g, '_') // Замена недопустимых символов на '_'
+    .replace(/[<>:"/\|?*]+/g, '_') // Замена недопустимых символов на '_'
     .replace(/\s/g, '-') // Замена пробелов на '-'
     .replace(/^-+|-+$/g, '') // Удаление начальных/конечных дефисов
     .replace(/--+/g, '-'); // Замена нескольких дефисов на один

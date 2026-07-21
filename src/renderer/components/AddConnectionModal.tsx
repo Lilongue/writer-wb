@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import notificationService from '../services/notificationService';
-import { cleanNameInput } from '../../common/utils';
+import { cleanNameInput } from '../../common/utils/stringUtils';
 
 interface AddConnectionModalProps {
   visible: boolean;

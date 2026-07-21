@@ -7,7 +7,7 @@ import { NarrativeItem, EntityType } from '../../../common/types';
 import { NarrativeModalState } from './NarrativeItemModal';
 import { buildTree } from './narrativeTreeUtils';
 import notificationService from '../../services/notificationService';
-import { cleanNameInput } from '../../../common/utils';
+import { cleanNameInput } from '../../../common/utils/stringUtils';
 
 import { appEventBus } from '../../EventBus';
 

@@ -28,9 +28,7 @@ jest.mock('../../../main/services/TemplateService');
 jest.mock('../../../main/services/ProjectSettingsService');
 jest.mock('../../../main/services/NotificationService');
 jest.mock('../../../main/eventBus');
-jest.mock('../../../main/util', () => ({
-  sanitizeFilename: jest.fn((name: string) => name),
-}));
+jest.mock('../../../common/utils/stringUtils', () => ({ sanitizeFilename: jest.fn((name: string) => name), }));
 jest.mock('semver', () => ({
   lt: jest.fn(),
 }));

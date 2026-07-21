@@ -11,7 +11,7 @@ import {
   Checkbox,
 } from 'antd';
 import { PredefinedNarrativeTemplate } from '../../common/types';
-import { cleanNameInput } from '../../common/utils';
+import { cleanNameInput } from '../../common/utils/stringUtils';
 
 const { Step } = Steps;
 const { Title, Text } = Typography;
